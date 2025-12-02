@@ -4,10 +4,10 @@
     WORKDIR /app
     
     # 1. 复制依赖描述文件
-    COPY package.json package-lock.json* ./
+    COPY package.json yarn.lock* ./
     
     # 2. 安装依赖
-    RUN npm install
+    RUN yarn install
     
     # 3. 复制所有源代码
     COPY . .
@@ -18,7 +18,7 @@
     ENV VITE_API_URL=https://bananaboom-api-242273127238.asia-east1.run.app
     
     # 4. 执行构建 (生成 dist 文件夹)
-    RUN npm run build
+    RUN yarn run build
     
     # --- 阶段二：运行 (Serve) ---
     FROM nginx:alpine
