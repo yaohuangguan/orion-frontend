@@ -1,6 +1,11 @@
 
 
-import { BlogPost, User, Comment, Project, ResumeItem, Log, Todo, Photo, PaginatedResponse, PaginationData, AuditLog } from '../types';
+
+
+
+
+
+import { BlogPost, User, Comment, Project, ResumeItem, Log, Todo, Photo, PaginatedResponse, PaginationData, AuditLog, ChatMessage, FitnessRecord, FitnessStats } from '../types';
 import { toast } from '../components/Toast';
 
 const API_BASE_URL = 'https://bananaboom-api-242273127238.asia-east1.run.app/api';
@@ -667,6 +672,41 @@ export const apiService = {
     return Array.isArray(res) ? res : [];
   },
 
+  // --- Chat ---
+  getPublicChatHistory: async (roomName: string): Promise<ChatMessage[]> => {
+    try {
+      const res = await fetchClient<any[]>(`/chat/public/${roomName}`);
+      return res.map(msg => ({
+        message: msg.content || msg.message, // Use content
+        author: msg.user?.name || msg.user?.displayName || 'Unknown',
+        userId: msg.user?.id || msg.user?._id,
+        timestamp: msg.createdDate || msg.date,
+        isPrivate: false,
+        room: msg.room
+      }));
+    } catch (e) {
+      console.warn("Public chat history fetch failed", e);
+      return [];
+    }
+  },
+
+  getPrivateChatHistory: async (targetUserId: string): Promise<ChatMessage[]> => {
+    try {
+      const res = await fetchClient<any[]>(`/chat/private/${targetUserId}`);
+      return res.map(msg => ({
+        message: msg.content || msg.message, // Use content
+        author: msg.user?.name || msg.user?.displayName || 'Unknown',
+        userId: msg.user?.id || msg.user?._id,
+        timestamp: msg.createdDate || msg.date,
+        isPrivate: true,
+        receiver: msg.toUser 
+      }));
+    } catch (e) {
+      console.warn("Private chat history fetch failed", e);
+      return [];
+    }
+  },
+
   // --- Todos ---
   getTodos: async (): Promise<Todo[]> => {
     try {
@@ -715,5 +755,29 @@ export const apiService = {
   // --- Resume ---
   getResume: async (): Promise<ResumeItem[]> => {
     return await fetchClient<ResumeItem[]>('/resume');
+  },
+
+  // --- Fitness ---
+  getFitnessRecords: async (start?: string, end?: string): Promise<FitnessRecord[]> => {
+    const params = new URLSearchParams();
+    if (start) params.append('start', start);
+    if (end) params.append('end', end);
+    return await fetchClient<FitnessRecord[]>(`/fitness?${params.toString()}`);
+  },
+
+  submitFitnessRecord: async (data: FitnessRecord): Promise<FitnessRecord> => {
+    const res = await fetchClient<FitnessRecord>('/fitness', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+    toast.success('Fitness record saved.');
+    return res;
+  },
+
+  getFitnessStats: async (days: number = 30, email?: string): Promise<FitnessStats> => {
+    const params = new URLSearchParams();
+    params.append('days', days.toString());
+    if (email) params.append('email', email);
+    return await fetchClient<FitnessStats>(`/fitness/stats?${params.toString()}`);
   }
 };

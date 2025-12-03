@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from '../../i18n/LanguageContext';
 
 // --- MOCK DATA FOR MUSIC SEARCH ---
@@ -10,198 +9,132 @@ const DEMO_SONGS = [
   { id: 4, title: 'Pirate Chantey', url: 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d0.mp3?filename=pirate-15828.mp3' },
 ];
 
-// --- SUDOKU GAME ---
-const LEVEL_1_INITIAL = [
-  5, 3, 0, 0, 7, 0, 0, 0, 0,
-  6, 0, 0, 1, 9, 5, 0, 0, 0,
-  0, 9, 8, 0, 0, 0, 0, 6, 0,
-  8, 0, 0, 0, 6, 0, 0, 0, 3,
-  4, 0, 0, 8, 0, 3, 0, 0, 1,
-  7, 0, 0, 0, 2, 0, 0, 0, 6,
-  0, 6, 0, 0, 0, 0, 2, 8, 0,
-  0, 0, 0, 4, 1, 9, 0, 0, 5,
-  0, 0, 0, 0, 8, 0, 0, 7, 9
-];
-
-const LEVEL_2_INITIAL = [
-  0, 0, 0, 6, 0, 0, 4, 0, 0,
-  7, 0, 0, 0, 0, 3, 6, 0, 0,
-  0, 0, 0, 0, 9, 1, 0, 8, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 5, 0, 1, 8, 0, 0, 0, 3,
-  0, 0, 0, 3, 0, 6, 0, 4, 5,
-  0, 4, 0, 2, 0, 0, 0, 6, 0,
-  9, 0, 3, 0, 0, 0, 0, 0, 0,
-  0, 2, 0, 0, 0, 0, 1, 0, 0
-];
-
-const SudokuGame: React.FC = () => {
+// --- DIGITAL CLOCK COMPONENT ---
+const DigitalClock: React.FC = () => {
   const { t } = useTranslation();
-  const [level, setLevel] = useState(1);
-  const [board, setBoard] = useState<number[]>([]);
-  const [initialBoard, setInitialBoard] = useState<number[]>([]);
-  const [selectedCell, setSelectedCell] = useState<number | null>(null);
-  const [status, setStatus] = useState<'PLAYING' | 'SOLVED' | 'FAILED'>('PLAYING');
+  const [time, setTime] = useState(new Date());
+  const [weather, setWeather] = useState<{ temp: number, code: number } | null>(null);
+  const [loadingWeather, setLoadingWeather] = useState(true);
 
+  // Update Time
   useEffect(() => {
-    startLevel(level);
-  }, [level]);
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
-  const startLevel = (lvl: number) => {
-    const data = lvl === 1 ? LEVEL_1_INITIAL : LEVEL_2_INITIAL;
-    setBoard([...data]);
-    setInitialBoard([...data]);
-    setStatus('PLAYING');
-    setSelectedCell(null);
+  // Fetch Shenzhen Weather (Open-Meteo)
+  useEffect(() => {
+    const fetchWeather = async () => {
+      try {
+        // Coordinates for Shenzhen: 22.5431° N, 114.0579° E
+        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=22.5431&longitude=114.0579&current=temperature_2d,weather_code&timezone=auto');
+        
+        if (!res.ok) {
+           throw new Error(`Weather API returned ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        // Safety check to prevent "Cannot read properties of undefined"
+        if (!data || !data.current) {
+            throw new Error('Invalid weather data structure');
+        }
+
+        setWeather({
+            temp: data.current.temperature_2d,
+            code: data.current.weather_code
+        });
+      } catch (e) {
+        console.error("Weather fetch failed", e);
+        // Fallback to null (or keep previous state) so UI doesn't break
+        setWeather(null);
+      } finally {
+        setLoadingWeather(false);
+      }
+    };
+    
+    fetchWeather();
+    // Refresh weather every 30 mins
+    const interval = setInterval(fetchWeather, 30 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Format Helpers
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-GB', { hour12: false }); // 24-hour format
   };
 
-  const handleCellClick = (index: number) => {
-    if (initialBoard[index] !== 0) return; // Cannot edit initial cells
-    setSelectedCell(index);
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short' });
   };
 
-  const handleInput = (num: number) => {
-    if (selectedCell === null || status !== 'PLAYING') return;
-    const newBoard = [...board];
-    newBoard[selectedCell] = num;
-    setBoard(newBoard);
-  };
-
-  const checkSolution = () => {
-    // Basic Sudoku Rules Check
-    // 1. No zeros
-    if (board.includes(0)) {
-       setStatus('FAILED');
-       return;
-    }
-
-    // 2. Rows, Cols, Boxes unique 1-9
-    if (isValidSudoku(board)) {
-       setStatus('SOLVED');
-    } else {
-       setStatus('FAILED');
-    }
-  };
-
-  const isValidSudoku = (grid: number[]) => {
-     // Check Rows
-     for (let r = 0; r < 9; r++) {
-       const seen = new Set();
-       for (let c = 0; c < 9; c++) {
-          const val = grid[r * 9 + c];
-          if (seen.has(val)) return false;
-          seen.add(val);
-       }
-     }
-     // Check Cols
-     for (let c = 0; c < 9; c++) {
-       const seen = new Set();
-       for (let r = 0; r < 9; r++) {
-          const val = grid[r * 9 + c];
-          if (seen.has(val)) return false;
-          seen.add(val);
-       }
-     }
-     // Check Boxes
-     for (let br = 0; br < 3; br++) {
-       for (let bc = 0; bc < 3; bc++) {
-          const seen = new Set();
-          for (let r = 0; r < 3; r++) {
-             for (let c = 0; c < 3; c++) {
-                const val = grid[(br * 3 + r) * 9 + (bc * 3 + c)];
-                if (seen.has(val)) return false;
-                seen.add(val);
-             }
-          }
-       }
-     }
-     return true;
+  const getWeatherIcon = (code: number) => {
+    // WMO Weather interpretation codes (http://www.wmo.int/pages/prog/www/IMOP/publications/CIMO-Guide/CIMO_Guide-7th_Edition-2008.html)
+    if (code === 0) return 'fa-sun'; // Clear
+    if (code >= 1 && code <= 3) return 'fa-cloud-sun'; // Partly cloudy
+    if (code >= 45 && code <= 48) return 'fa-smog'; // Fog
+    if (code >= 51 && code <= 67) return 'fa-cloud-rain'; // Drizzle/Rain
+    if (code >= 71 && code <= 77) return 'fa-snowflake'; // Snow
+    if (code >= 80 && code <= 82) return 'fa-cloud-showers-heavy'; // Showers
+    if (code >= 95) return 'fa-bolt'; // Thunderstorm
+    return 'fa-cloud';
   };
 
   return (
-    <div className="bg-slate-900 rounded-[2rem] p-6 border border-slate-700 shadow-xl h-full flex flex-col items-center">
-       <div className="w-full flex justify-between items-center mb-4">
-          <div className="flex items-center gap-2 text-emerald-400">
-             <i className="fas fa-border-all"></i>
-             <h3 className="font-display font-bold uppercase text-xs tracking-widest">{t.privateSpace.leisure.sudoku.title}</h3>
+    <div className="bg-white rounded-[2rem] p-6 border-4 border-pink-100 shadow-xl h-full flex flex-col items-center justify-between relative overflow-hidden group">
+       
+       {/* Decor: Pink Glow Background */}
+       <div className="absolute top-0 right-0 w-32 h-32 bg-pink-100 rounded-full blur-3xl -mr-10 -mt-10 opacity-60"></div>
+       <div className="absolute bottom-0 left-0 w-32 h-32 bg-pink-100 rounded-full blur-3xl -ml-10 -mb-10 opacity-60"></div>
+
+       {/* Header */}
+       <div className="w-full flex justify-between items-center z-10 border-b border-pink-50 pb-2">
+          <div className="flex items-center gap-2 text-pink-500">
+             <i className="fas fa-satellite-dish animate-pulse"></i>
+             <h3 className="font-display font-bold uppercase text-xs tracking-widest">{t.privateSpace.leisure.clock.title}</h3>
           </div>
-          <span className="text-xs font-mono text-slate-500">{t.privateSpace.leisure.sudoku.level} {level}</span>
+          <span className="text-xs font-mono font-bold text-pink-300 uppercase">{t.privateSpace.leisure.clock.subtitle}</span>
        </div>
 
-       {/* Grid */}
-       <div className="grid grid-cols-9 gap-px bg-slate-700 border-2 border-slate-600 mb-4 select-none">
-          {board.map((cell, idx) => {
-             const isInitial = initialBoard[idx] !== 0;
-             const isSelected = selectedCell === idx;
-             const row = Math.floor(idx / 9);
-             const col = idx % 9;
-             // Add thicker borders for 3x3 boxes
-             const borderB = (row + 1) % 3 === 0 && row < 8 ? 'mb-0.5' : '';
-             const borderR = (col + 1) % 3 === 0 && col < 8 ? 'mr-0.5' : '';
-             
-             return (
-               <div 
-                 key={idx}
-                 onClick={() => handleCellClick(idx)}
-                 className={`w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center text-sm font-bold cursor-pointer transition-colors ${borderB} ${borderR} 
-                    ${isSelected ? 'bg-emerald-600 text-white' : isInitial ? 'bg-slate-800 text-slate-400' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
-               >
-                 {cell !== 0 ? cell : ''}
-               </div>
-             );
-          })}
+       {/* Main Display */}
+       <div className="flex-1 flex flex-col items-center justify-center z-10 w-full gap-2">
+          {/* Time */}
+          <div className="text-6xl sm:text-7xl font-mono font-bold text-slate-800 tracking-tighter tabular-nums drop-shadow-sm">
+             {formatTime(time)}
+          </div>
+          
+          {/* Date */}
+          <div className="text-pink-400 font-bold text-lg uppercase tracking-widest bg-pink-50 px-4 py-1 rounded-full">
+             {formatDate(time)}
+          </div>
        </div>
 
-       {/* Controls */}
-       <div className="w-full flex flex-col gap-3">
-          <div className="flex justify-between gap-1">
-             {[1,2,3,4,5,6,7,8,9].map(num => (
-               <button 
-                 key={num}
-                 onClick={() => handleInput(num)}
-                 className="flex-1 py-1 bg-slate-800 text-slate-300 rounded hover:bg-emerald-600 hover:text-white text-xs font-bold transition-colors"
-               >
-                 {num}
-               </button>
-             ))}
-             <button onClick={() => handleInput(0)} className="flex-1 py-1 bg-red-900/30 text-red-400 rounded hover:bg-red-600 hover:text-white text-xs"><i className="fas fa-eraser"></i></button>
+       {/* Weather Footer */}
+       <div className="w-full bg-slate-50 rounded-2xl p-4 flex items-center justify-between z-10 border border-slate-100">
+          <div className="flex items-center gap-3">
+             <div className="w-10 h-10 rounded-full bg-pink-500 text-white flex items-center justify-center text-xl shadow-lg shadow-pink-200">
+                {loadingWeather ? (
+                    <i className="fas fa-sync fa-spin text-xs"></i>
+                ) : weather ? (
+                    <i className={`fas ${getWeatherIcon(weather.code)}`}></i>
+                ) : (
+                    <i className="fas fa-exclamation-triangle text-xs"></i>
+                )}
+             </div>
+             <div className="flex flex-col">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Shenzhen</span>
+                <span className="text-lg font-bold text-slate-800">
+                    {weather ? `${weather.temp}°C` : '--°C'}
+                </span>
+             </div>
           </div>
-
-          <div className="flex justify-between items-center">
-             {status === 'SOLVED' ? (
-                <div className="text-emerald-400 font-bold text-xs uppercase animate-pulse">
-                   <i className="fas fa-check mr-2"></i> {t.privateSpace.leisure.sudoku.solved}
-                </div>
-             ) : status === 'FAILED' ? (
-                <div className="text-red-400 font-bold text-xs uppercase">
-                   <i className="fas fa-times mr-2"></i> {t.privateSpace.leisure.sudoku.failed}
-                </div>
-             ) : (
-                <button 
-                  onClick={() => startLevel(level)} 
-                  className="text-xs text-slate-500 hover:text-white uppercase tracking-wider"
-                >
-                  {t.privateSpace.leisure.sudoku.reset}
-                </button>
-             )}
-
-             {status === 'SOLVED' && level === 1 ? (
-                <button 
-                   onClick={() => setLevel(2)} 
-                   className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase rounded shadow-lg shadow-emerald-500/20"
-                >
-                   {t.privateSpace.leisure.sudoku.nextLevel}
-                </button>
-             ) : status === 'SOLVED' && level === 2 ? (
-                <span className="text-xs text-emerald-500 font-bold">{t.privateSpace.leisure.sudoku.complete}</span>
-             ) : (
-                <button 
-                   onClick={checkSolution}
-                   className="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold uppercase rounded shadow-lg shadow-blue-500/20"
-                >
-                   {t.privateSpace.leisure.sudoku.check}
-                </button>
-             )}
+          
+          <div className="text-right hidden sm:block">
+              <div className="text-[10px] text-slate-400 uppercase font-bold">Status</div>
+              <div className="text-xs font-bold text-emerald-500 flex items-center gap-1 justify-end">
+                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                 Live
+              </div>
           </div>
        </div>
     </div>
@@ -618,7 +551,7 @@ export const LeisureSpace: React.FC = () => {
       <div 
         className="flex flex-col gap-6 h-full overflow-y-auto custom-scrollbar xl:pl-2 pb-20 order-3 flex-1 min-w-0"
       >
-         {/* Top Row: Compact Music & Sudoku */}
+         {/* Top Row: Compact Music & Clock */}
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
             {/* Compact Music Player */}
@@ -666,9 +599,9 @@ export const LeisureSpace: React.FC = () => {
                </div>
             </div>
 
-            {/* Sudoku Game */}
+            {/* Digital Clock */}
             <div className="h-80">
-               <SudokuGame />
+               <DigitalClock />
             </div>
          </div>
 

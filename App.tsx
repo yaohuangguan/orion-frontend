@@ -1,13 +1,12 @@
-
-
 import React, { useState, useEffect, Suspense, lazy, useRef } from 'react';
+import { io, Socket } from 'socket.io-client';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { BlogList } from './components/BlogList';
 import { CommentsSection } from './components/CommentsSection';
 import { CosmicBackground } from './components/CosmicBackground';
 import { ScenicBackground } from './components/ScenicBackground';
-import { ToastContainer } from './components/Toast';
+import { ToastContainer, toast } from './components/Toast';
 import { DeleteModal } from './components/DeleteModal';
 import { UserProfile } from './components/UserProfile';
 import { SettingsPage } from './components/SettingsPage';
@@ -20,6 +19,8 @@ import { LanguageProvider, useTranslation } from './i18n/LanguageContext';
 
 // Lazy Load Heavy Components to reduce initial bundle size and improve TBT (Total Blocking Time)
 const PrivateSpaceDashboard = lazy(() => import('./components/private/PrivateSpaceDashboard').then(module => ({ default: module.PrivateSpaceDashboard })));
+
+const SOCKET_URL = 'https://bananaboom-api-242273127238.asia-east1.run.app';
 
 declare global {
   interface Window {
@@ -804,6 +805,9 @@ const App: React.FC = () => {
 
   const { t, language, toggleLanguage } = useTranslation();
 
+  // Socket State
+  const [socket, setSocket] = useState<Socket | null>(null);
+
   useEffect(() => {
     // Check system preference
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -841,17 +845,53 @@ const App: React.FC = () => {
   // Listen for global logout events (from api.ts)
   useEffect(() => {
     const handleLogoutEvent = () => {
-      setUser(null);
-      setPrivateBlogs([]); 
-      localStorage.removeItem('auth_token'); 
-      localStorage.removeItem('googleInfo');
-      setIsLoginModalOpen(true);
-      setCurrentPage(PageView.HOME);
+      handleLogoutCleanup();
     };
 
     window.addEventListener('auth:logout', handleLogoutEvent);
     return () => window.removeEventListener('auth:logout', handleLogoutEvent);
   }, []);
+
+  // Socket Connection Effect
+  useEffect(() => {
+    if (user && !socket) {
+      const newSocket = io(SOCKET_URL);
+      
+      newSocket.on('connect', () => {
+        // Authenticate/Register User immediately
+        const userPayload = {
+            name: user.displayName,
+            id: user._id,
+            // photoURL: user.photoURL 
+        };
+        newSocket.emit('USER_CONNECTED', userPayload);
+      });
+
+      // Global Listeners
+      newSocket.on('NEW_NOTIFICATION', (data: any) => {
+         // Handle Global Notifications (e.g. from private messages or system events)
+         if (data.type === 'private_message') {
+             // Only toast if not in chat page? Or always?
+             toast.info(data.content);
+         }
+         // Dispatch event for Header to update its list
+         window.dispatchEvent(new CustomEvent('sys_notification', { detail: data }));
+      });
+      
+      setSocket(newSocket);
+    } else if (!user && socket) {
+      socket.emit('LOGOUT');
+      socket.disconnect();
+      setSocket(null);
+    }
+  }, [user]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+     return () => {
+       if (socket) socket.disconnect();
+     }
+  }, [socket]);
 
   // Fetch private blogs ONLY when user logs in AND is on Private Space
   useEffect(() => {
@@ -942,10 +982,18 @@ const App: React.FC = () => {
     // fetchPrivateBlogs is triggered by useEffect on user change IF on private space
   };
 
+  const handleLogoutCleanup = () => {
+    setUser(null);
+    setPrivateBlogs([]); 
+    localStorage.removeItem('auth_token'); 
+    localStorage.removeItem('googleInfo');
+    setIsLoginModalOpen(true);
+    setCurrentPage(PageView.HOME);
+  };
+
   const handleLogout = () => {
     apiService.logout();
-    setUser(null);
-    setCurrentPage(PageView.HOME);
+    handleLogoutCleanup();
   };
 
   const handleSelectBlog = (blog: BlogPost) => {
@@ -1064,6 +1112,7 @@ const App: React.FC = () => {
         currentUser={user}
         onLogin={() => setIsLoginModalOpen(true)}
         onLogout={handleLogout}
+        socket={socket}
       />
       
       <main className="relative z-10 pointer-events-none">
@@ -1163,7 +1212,7 @@ const App: React.FC = () => {
         
         {currentPage === PageView.CHAT && user && (
           <div className="pointer-events-auto w-full min-h-screen">
-            <ChatRoom currentUser={user} />
+            <ChatRoom currentUser={user} socket={socket} />
           </div>
         )}
 

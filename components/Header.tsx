@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Theme, PageView, User, AuditLog } from '../types';
 import { useTranslation } from '../i18n/LanguageContext';
@@ -20,7 +19,7 @@ export const Header: React.FC<HeaderProps> = ({
   theme, 
   toggleTheme,
   setPage, 
-  currentPage,
+  currentPage: currentPage,
   currentUser,
   onLogin,
   onLogout
@@ -113,10 +112,13 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className={headerClasses}>
-      <div className="container mx-auto px-6 max-w-7xl flex justify-between items-center relative">
+      {/* Container - max-w-9xl approx (1600px) centered.
+          Padding is set to px-6 to allow items to move closer to edges on laptops, preventing overlap with center nav.
+      */}
+      <div className="w-full px-6 max-w-[1600px] mx-auto flex justify-between items-center relative">
         {/* Logo - ps5.space */}
         <div 
-          className="flex items-center gap-3 cursor-pointer group"
+          className="flex items-center gap-3 cursor-pointer group z-20 relative"
           onClick={() => setPage(PageView.HOME)}
         >
           <div className="relative w-10 h-10 flex items-center justify-center">
@@ -133,9 +135,8 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Desktop Nav - INTERSTELLAR CHART STYLE */}
-        {/* Floating Glass Pod */}
-        <nav className="hidden md:flex items-center justify-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+        {/* Desktop Nav - Keep XL breakpoint to prevent overlap */}
+        <nav className="hidden xl:flex items-center justify-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
            <div className={`flex items-center gap-1 px-2 py-1.5 rounded-full border backdrop-blur-md transition-colors duration-500 ${isPrivate ? 'bg-white/50 border-rose-200' : 'bg-white/70 dark:bg-white/5 border-slate-200 dark:border-white/10 shadow-lg shadow-black/5'}`}>
             {navLinks.map((link) => {
               const isActive = currentPage === link.value;
@@ -197,15 +198,8 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </nav>
 
-        {/* Actions */}
-        <div className="flex items-center gap-6">
-          <button
-            onClick={toggleLanguage}
-            className={`text-xs font-bold uppercase tracking-widest transition-colors ${isPrivate ? 'text-rose-700 hover:text-rose-900 bg-rose-50 px-2 py-1 rounded' : 'text-slate-600 dark:text-slate-500 hover:text-primary-600 dark:hover:text-primary-400'}`}
-          >
-            {language === 'en' ? 'EN' : 'CN'}
-          </button>
-
+        {/* Actions - Added High Z-Index to prevent blocking */}
+        <div className="flex items-center gap-4 relative z-50">
           <button 
             onClick={toggleTheme} 
             className={`w-8 h-8 flex items-center justify-center transition-colors ${isPrivate ? 'text-rose-700 hover:text-rose-900' : 'text-slate-600 dark:text-slate-500 hover:text-primary-600 dark:hover:text-primary-400'}`}
@@ -257,8 +251,8 @@ export const Header: React.FC<HeaderProps> = ({
           )}
 
           {currentUser ? (
-            // Logged In Dropdown Menu
-            <div className={`hidden md:block relative group border-l pl-4 ${isPrivate ? 'border-rose-200' : 'border-slate-200 dark:border-white/10'}`}>
+            // Logged In Dropdown Menu - Keep XL breakpoint
+            <div className={`hidden xl:block relative group border-l pl-4 ${isPrivate ? 'border-rose-200' : 'border-slate-200 dark:border-white/10'}`}>
               <button className="flex items-center gap-3 py-1 outline-none">
                  <div className={`w-8 h-8 rounded-full p-[1px] ${isPrivate ? 'bg-gradient-to-tr from-rose-300 to-pink-500' : 'bg-gradient-to-tr from-primary-400 to-primary-600'}`}>
                    <img 
@@ -318,18 +312,36 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
           ) : (
+            // Keep XL breakpoint for login button
             <button 
               onClick={onLogin}
-              className="hidden md:flex items-center gap-2 px-6 py-2 rounded-full border border-primary-500/30 bg-primary-500/10 text-primary-600 dark:text-primary-400 text-xs font-bold uppercase tracking-widest hover:bg-primary-500 hover:text-white transition-all duration-300 hover:shadow-[0_0_20px_rgba(14,165,233,0.4)]"
+              className="hidden xl:flex items-center gap-2 px-6 py-2 rounded-full border border-primary-500/30 bg-primary-500/10 text-primary-600 dark:text-primary-400 text-xs font-bold uppercase tracking-widest hover:bg-primary-500 hover:text-white transition-all duration-300 hover:shadow-[0_0_20px_rgba(14,165,233,0.4)]"
             >
               <i className="fas fa-terminal text-[10px]"></i>
               {t.header.signIn}
             </button>
           )}
 
-          {/* Mobile Toggle */}
+          {/* Language Toggle - Moved to Right of User Profile/Login */}
+          <button
+            onClick={toggleLanguage}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all duration-300 group
+              ${isPrivate 
+                ? 'bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100 hover:border-rose-300' 
+                : 'bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-white hover:border-primary-500 dark:hover:border-primary-400 hover:text-primary-600 dark:hover:text-primary-400 shadow-sm'
+              }
+            `}
+            title={language === 'en' ? 'Switch to Chinese' : 'Switch to English'}
+          >
+            <i className={`fas fa-globe text-xs ${isPrivate ? 'text-rose-500' : 'text-slate-400 group-hover:text-primary-500'}`}></i>
+            <span className="text-xs font-bold font-mono uppercase tracking-wider">
+              {language === 'en' ? 'English' : '中文'}
+            </span>
+          </button>
+
+          {/* Mobile Toggle - Keep XL breakpoint */}
           <button 
-            className={`md:hidden ${isPrivate ? 'text-rose-600' : 'text-slate-800 dark:text-white'}`}
+            className={`xl:hidden ${isPrivate ? 'text-rose-600' : 'text-slate-800 dark:text-white'}`}
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             <i className="fas fa-bars text-xl"></i>
@@ -339,7 +351,7 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className={`md:hidden absolute top-full left-0 w-full p-6 shadow-2xl animate-fade-in backdrop-blur-xl h-screen overflow-y-auto pb-32 ${isPrivate ? 'bg-white/95 border-b border-rose-200' : 'bg-[#fdfbf7] dark:bg-[#050914] border-b border-slate-200 dark:border-white/10'}`}>
+        <div className={`xl:hidden absolute top-full left-0 w-full p-6 shadow-2xl animate-fade-in backdrop-blur-xl h-screen overflow-y-auto pb-32 ${isPrivate ? 'bg-white/95 border-b border-rose-200' : 'bg-[#fdfbf7] dark:bg-[#050914] border-b border-slate-200 dark:border-white/10'}`}>
           <div className="flex flex-col space-y-4">
             {navLinks.map((link) => (
               <button

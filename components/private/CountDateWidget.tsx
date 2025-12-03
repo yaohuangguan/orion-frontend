@@ -1,9 +1,11 @@
 
 
+
+
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from '../../i18n/LanguageContext';
 
-export type TabType = 'JOURNAL' | 'LEISURE' | 'GALLERY';
+export type TabType = 'JOURNAL' | 'LEISURE' | 'GALLERY' | 'FITNESS';
 
 interface CountDateWidgetProps {
   fromDate: string;
@@ -60,6 +62,7 @@ export const CountDateWidget: React.FC<CountDateWidgetProps> = ({ fromDate, acti
       case 'JOURNAL': return 'fa-heart';
       case 'LEISURE': return 'fa-gamepad';
       case 'GALLERY': return 'fa-camera-retro';
+      case 'FITNESS': return 'fa-dumbbell';
       default: return 'fa-star';
     }
   };
@@ -102,8 +105,8 @@ export const CountDateWidget: React.FC<CountDateWidgetProps> = ({ fromDate, acti
         </div>
 
         {/* Center/Right: Navigation Tabs (Integrated) */}
-        <div className="flex items-center bg-black/10 backdrop-blur-sm rounded-full p-1 overflow-x-auto max-w-full">
-           {(['JOURNAL', 'GALLERY', 'LEISURE'] as TabType[]).map((tab) => {
+        <div className="flex items-center bg-black/10 backdrop-blur-sm rounded-full p-1 overflow-x-auto max-w-full custom-scrollbar">
+           {(['JOURNAL', 'GALLERY', 'LEISURE', 'FITNESS'] as TabType[]).map((tab) => {
              const isActive = activeTab === tab;
              return (
                <button

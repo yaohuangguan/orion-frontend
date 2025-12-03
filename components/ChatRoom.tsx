@@ -1,14 +1,13 @@
-
-
-
-import React, { useState, useEffect, useRef } from 'react';
-import { io, Socket } from 'socket.io-client';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { Socket } from 'socket.io-client';
 import { User, ChatMessage, ChatUser } from '../types';
 import { useTranslation } from '../i18n/LanguageContext';
 import { toast } from './Toast';
+import { apiService } from '../services/api';
 
 interface ChatRoomProps {
   currentUser: User | null;
+  socket: Socket | null;
 }
 
 const EVENTS = {
@@ -23,19 +22,17 @@ const EVENTS = {
   ROOM_WELCOME: "ROOM_WELCOME"
 };
 
-const SOCKET_URL = 'https://bananaboom-api-242273127238.asia-east1.run.app';
-
-export const ChatRoom: React.FC<ChatRoomProps> = ({ currentUser }) => {
+export const ChatRoom: React.FC<ChatRoomProps> = ({ currentUser, socket }) => {
   const { t } = useTranslation();
-  const [socket, setSocket] = useState<Socket | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<Record<string, ChatUser>>({});
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
-  const [privateReceiver, setPrivateReceiver] = useState<string | null>(null); // Name of private receiver
-  const [connectionStatus, setConnectionStatus] = useState<string>(t.chat.connecting);
-
+  
+  // Replaced string receiver with ChatUser object to better handle IDs for history
+  const [activeUser, setActiveUser] = useState<ChatUser | null>(null);
+  
   const scrollRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -48,98 +45,169 @@ export const ChatRoom: React.FC<ChatRoomProps> = ({ currentUser }) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, privateReceiver]);
+  }, [messages, activeUser]);
 
-  useEffect(() => {
-    if (!currentUser) return;
-
-    // Initialize Socket
-    const newSocket = io(SOCKET_URL);
-    setSocket(newSocket);
-
-    // 1. Connection Event
-    newSocket.on('connect', () => {
-      setConnectionStatus("Connected");
-      
-      // 2. Identify User
-      newSocket.emit(EVENTS.CONFIRM_USER, currentUser.displayName, ({ isUser }: { isUser: boolean }) => {
-          // If backend says user doesn't exist in temp memory, connect them
-          // Even if they exist, we re-announce to ensure socket ID is fresh
-          const userPayload = {
-              name: currentUser.displayName,
-              id: currentUser._id, // Pass DB ID for persistence
-              // can add avatar here if backend supported it fully
-          };
-          newSocket.emit(EVENTS.USER_CONNECTED, userPayload);
-      });
+  // Fix Online Users Count: Ensure current user is included if missing
+  // User reported count was 0 when it should be at least 1 (themselves)
+  const userList = useMemo(() => {
+    if (!currentUser) return [];
+    
+    const usersMap = new Map<string, ChatUser>();
+    
+    // 1. Add socket users (ensure they have valid structure)
+    Object.values(onlineUsers || {}).forEach(u => {
+        if (u && u.id && u.name) {
+            usersMap.set(u.id, u);
+        }
     });
 
-    // 3. Listen for Global/Room Welcome
-    newSocket.on(EVENTS.ROOM_WELCOME, (data: { user: string, message: string }) => {
+    // 2. Force Add Current User (if not present)
+    const myId = currentUser._id || (currentUser as any).id;
+    if (myId) {
+         // Ensure we use the same ID format. If map already has it, it might be from socket with potentially fresher data (or same).
+         // But we ensure at least one entry exists for 'me'.
+         if (!usersMap.has(myId)) {
+             usersMap.set(myId, { id: myId, name: currentUser.displayName });
+         }
+    }
+
+    return Array.from(usersMap.values());
+  }, [onlineUsers, currentUser]);
+
+  // Fetch History Logic
+  useEffect(() => {
+    if (!currentUser) return;
+    
+    const loadHistory = async () => {
+      let history: ChatMessage[] = [];
+      try {
+        if (activeUser) {
+           // Private
+           const raw = await apiService.getPrivateChatHistory(activeUser.id);
+           history = raw.map((m: any) => {
+             // For filtering logic in UI:
+             // If I sent the message (userId == myId), the receiver must be mapped to the current activeUser's NAME
+             // because the UI filters private messages by: (author === activeUser.name) OR (receiver === activeUser.name)
+             const isMe = String(m.userId) === String(currentUser._id);
+             return {
+                ...m,
+                // Ensure we set receiver correctly for outgoing messages so they show up
+                receiver: isMe ? activeUser.name : undefined 
+             };
+           });
+        } else {
+           // Public
+           const raw = await apiService.getPublicChatHistory("public");
+           history = raw.map((m: any) => ({
+             ...m,
+             isPrivate: false,
+             room: 'public'
+           }));
+        }
+        
+        if (history.length > 0) {
+            setMessages(prev => {
+                // Merge History with existing messages (deduplicating by timestamp + author + content)
+                const existingSigs = new Set(prev.map(p => `${p.timestamp}-${p.author}-${p.message}`));
+                const newHistory = history.filter(h => !existingSigs.has(`${h.timestamp}-${h.author}-${h.message}`));
+                
+                // Prepend history, keep existing real-time messages
+                const combined = [...newHistory, ...prev];
+                // Sort by time just to be safe
+                return combined.sort((a,b) => new Date(a.timestamp || 0).getTime() - new Date(b.timestamp || 0).getTime());
+            });
+        }
+      } catch (e) {
+        console.error("History load error", e);
+      }
+    };
+    
+    // Trigger load whenever active room/user changes
+    loadHistory();
+  }, [activeUser, currentUser]);
+
+  useEffect(() => {
+    if (!currentUser || !socket) return;
+
+    // 1. Listen for Global/Room Welcome
+    const handleWelcome = (data: { user: string, message: string }) => {
        setMessages(prev => [...prev, {
          author: data.user,
          message: data.message,
          isSystem: true,
          timestamp: new Date().toISOString()
        }]);
-    });
+    };
 
-    // 4. Update Online Users List
-    newSocket.on(EVENTS.USER_CONNECTED, (users: Record<string, ChatUser>) => {
+    // 2. Update Online Users List
+    const handleUserConnected = (users: Record<string, ChatUser>) => {
       setOnlineUsers(users);
-    });
+    };
 
-    // 5. Receive Public Messages
-    newSocket.on(EVENTS.MESSAGE_RECEIVED, (msg: ChatMessage) => {
-      // Dedup logic: Check if we already have this message (by timestamp similarity or exact content/author match if recently added)
-      // Since we use optimistic UI, we might get our own message back.
+    // 3. Receive Public Messages
+    const handleMessageReceived = (msg: ChatMessage) => {
       setMessages(prev => {
-        // Simple dedup: if the last message has same content and author and is very recent, skip
         const lastMsg = prev[prev.length - 1];
+        // Simple dedupe for rapid socket events vs optimistic updates
         const isDuplicate = lastMsg && 
             lastMsg.author === msg.author && 
             lastMsg.message === msg.message && 
-            (new Date().getTime() - new Date(lastMsg.timestamp || 0).getTime() < 2000); // 2 sec threshold
+            (new Date().getTime() - new Date(lastMsg.timestamp || 0).getTime() < 2000);
 
         if (isDuplicate) return prev;
         return [...prev, { ...msg, timestamp: new Date().toISOString() }];
       });
-    });
+    };
 
-    // 6. Receive Private Messages
-    newSocket.on(EVENTS.PRIVATE_MESSAGE, (msg: ChatMessage) => {
-       // Ignore own messages echoed from backend to prefer optimistic version with correct 'receiver' metadata
+    // 4. Receive Private Messages
+    const handlePrivateMessage = (msg: ChatMessage) => {
+       // Ignore own messages echoed from backend to prefer optimistic version
        if (msg.author === currentUser.displayName) return;
 
        setMessages(prev => [...prev, { ...msg, isPrivate: true, timestamp: new Date().toISOString() }]);
        if (msg.author !== currentUser.displayName) {
-          toast.info(`Private message from ${msg.author}`);
+          // If we are not chatting with them, show a toast
+          if (activeUser?.name !== msg.author) {
+             toast.info(`Private message from ${msg.author}`);
+          }
        }
-    });
+    };
 
-    // 7. Typing Indicators
-    newSocket.on(EVENTS.TYPING, ({ user, isTyping }: { user: string, isTyping: boolean }) => {
+    // 5. Typing Indicators
+    const handleTyping = ({ user, isTyping }: { user: string, isTyping: boolean }) => {
        setTypingUsers(prev => {
          const next = new Set(prev);
          if (isTyping) next.add(user);
          else next.delete(user);
          return next;
        });
-    });
+    };
 
-    newSocket.on(EVENTS.STOP_TYPING, ({ user }: { user: string }) => {
+    const handleStopTyping = ({ user }: { user: string }) => {
       setTypingUsers(prev => {
         const next = new Set(prev);
         next.delete(user);
         return next;
       });
-    });
+    };
+
+    // Attach Listeners
+    socket.on(EVENTS.ROOM_WELCOME, handleWelcome);
+    socket.on(EVENTS.USER_CONNECTED, handleUserConnected);
+    socket.on(EVENTS.MESSAGE_RECEIVED, handleMessageReceived);
+    socket.on(EVENTS.PRIVATE_MESSAGE, handlePrivateMessage);
+    socket.on(EVENTS.TYPING, handleTyping);
+    socket.on(EVENTS.STOP_TYPING, handleStopTyping);
 
     return () => {
-      newSocket.emit(EVENTS.LOGOUT);
-      newSocket.disconnect();
+      socket.off(EVENTS.ROOM_WELCOME, handleWelcome);
+      socket.off(EVENTS.USER_CONNECTED, handleUserConnected);
+      socket.off(EVENTS.MESSAGE_RECEIVED, handleMessageReceived);
+      socket.off(EVENTS.PRIVATE_MESSAGE, handlePrivateMessage);
+      socket.off(EVENTS.TYPING, handleTyping);
+      socket.off(EVENTS.STOP_TYPING, handleStopTyping);
     };
-  }, [currentUser]);
+  }, [socket, currentUser, activeUser]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,11 +215,12 @@ export const ChatRoom: React.FC<ChatRoomProps> = ({ currentUser }) => {
 
     const timestamp = new Date().toISOString();
 
-    if (privateReceiver) {
+    if (activeUser) {
       // Send Private
       socket.emit(EVENTS.PRIVATE_MESSAGE, {
-        receiverName: privateReceiver,
-        message: inputText
+        receiverName: activeUser.name,
+        message: inputText,
+        room: 'private'
       });
       
       // Optimistic Update for Private
@@ -161,7 +230,7 @@ export const ChatRoom: React.FC<ChatRoomProps> = ({ currentUser }) => {
           userId: currentUser._id,
           timestamp,
           isPrivate: true,
-          receiver: privateReceiver // Store receiver for filtering
+          receiver: activeUser.name // Store receiver for filtering
       };
       setMessages(prev => [...prev, optimisticMsg]);
     } else {
@@ -213,24 +282,22 @@ export const ChatRoom: React.FC<ChatRoomProps> = ({ currentUser }) => {
      return <div className="pt-32 text-center text-white">Access Denied. Please Login.</div>;
   }
 
-  // --- UI RENDER ---
-  const userList = Object.values(onlineUsers) as ChatUser[];
-
   // FILTER MESSAGES BASED ON CHANNEL
   const filteredMessages = messages.filter(msg => {
-    if (privateReceiver) {
-      // Private Channel: Show messages between me and privateReceiver
-      // Incoming: msg.author is privateReceiver AND msg.isPrivate
-      // Outgoing: msg.author is me AND msg.receiver is privateReceiver AND msg.isPrivate
+    if (activeUser) {
+      // Private Channel Filtering
+      // Show if message is private AND (Sent by Other OR Sent by Me to Other)
       return msg.isPrivate && (
-        msg.author === privateReceiver || 
-        (msg.author === currentUser.displayName && msg.receiver === privateReceiver)
+        msg.author === activeUser.name || 
+        (msg.author === currentUser.displayName && msg.receiver === activeUser.name)
       );
     } else {
-      // Public Channel: Show ONLY non-private messages
+      // Public Channel Filtering
       return !msg.isPrivate;
     }
   });
+
+  const connectionStatus = socket?.connected ? "Connected" : "Connecting...";
   
   return (
     <div className="h-screen pt-24 pb-6 px-4 md:px-6 relative flex flex-col items-center justify-center overflow-hidden">
@@ -259,8 +326,8 @@ export const ChatRoom: React.FC<ChatRoomProps> = ({ currentUser }) => {
            <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
               {/* Public Channel Selector */}
               <button 
-                onClick={() => setPrivateReceiver(null)}
-                className={`w-full text-left p-3 rounded-lg flex items-center gap-3 transition-all ${!privateReceiver ? 'bg-cyan-900/30 border border-cyan-500/30 text-cyan-300' : 'text-slate-400 hover:bg-slate-800'}`}
+                onClick={() => setActiveUser(null)}
+                className={`w-full text-left p-3 rounded-lg flex items-center gap-3 transition-all ${!activeUser ? 'bg-cyan-900/30 border border-cyan-500/30 text-cyan-300' : 'text-slate-400 hover:bg-slate-800'}`}
               >
                  <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center border border-slate-600">
                     <i className="fas fa-satellite-dish text-xs"></i>
@@ -269,7 +336,7 @@ export const ChatRoom: React.FC<ChatRoomProps> = ({ currentUser }) => {
                     <div className="text-sm font-bold">{t.chat.publicChannel}</div>
                     <div className="text-[10px] opacity-60">Global Broadcast</div>
                  </div>
-                 {!privateReceiver && <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>}
+                 {!activeUser && <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>}
               </button>
 
               <div className="my-2 h-px bg-slate-700/50 mx-2"></div>
@@ -277,11 +344,11 @@ export const ChatRoom: React.FC<ChatRoomProps> = ({ currentUser }) => {
               {/* Users List */}
               {userList.map(u => {
                  const isMe = u.name === currentUser.displayName;
-                 const isActive = privateReceiver === u.name;
+                 const isActive = activeUser?.id === u.id;
                  return (
                    <button 
-                     key={u.id || u.name} // fallback to name if id missing in socket list
-                     onClick={() => !isMe && setPrivateReceiver(u.name)}
+                     key={u.id || u.name} 
+                     onClick={() => !isMe && setActiveUser(u)}
                      disabled={isMe}
                      className={`w-full text-left p-2 rounded-lg flex items-center gap-3 transition-all border ${
                        isActive 
@@ -316,13 +383,13 @@ export const ChatRoom: React.FC<ChatRoomProps> = ({ currentUser }) => {
            {/* Header */}
            <div className="p-4 border-b border-slate-700/50 bg-slate-800/50 flex justify-between items-center z-10">
               <div className="flex items-center gap-3">
-                 <div className={`w-3 h-3 rounded-full ${privateReceiver ? 'bg-amber-500' : 'bg-cyan-500'} animate-pulse`}></div>
+                 <div className={`w-3 h-3 rounded-full ${activeUser ? 'bg-amber-500' : 'bg-cyan-500'} animate-pulse`}></div>
                  <div>
                     <h2 className="font-bold text-white tracking-wide">
-                       {privateReceiver ? `@ ${privateReceiver}` : t.chat.publicChannel}
+                       {activeUser ? `@ ${activeUser.name}` : t.chat.publicChannel}
                     </h2>
                     <p className="text-[10px] font-mono text-slate-400 uppercase">
-                       {privateReceiver ? t.chat.privateChannel : t.chat.subtitle}
+                       {activeUser ? t.chat.privateChannel : t.chat.subtitle}
                     </p>
                  </div>
               </div>
@@ -336,7 +403,7 @@ export const ChatRoom: React.FC<ChatRoomProps> = ({ currentUser }) => {
               {filteredMessages.length === 0 && (
                  <div className="flex flex-col items-center justify-center h-full text-slate-600">
                     <i className="fas fa-satellite text-4xl mb-4 opacity-50"></i>
-                    <p className="font-mono text-sm">{t.chat.connecting}</p>
+                    <p className="font-mono text-sm">{activeUser ? 'Start a private conversation...' : t.chat.connecting}</p>
                  </div>
               )}
               
@@ -396,7 +463,7 @@ export const ChatRoom: React.FC<ChatRoomProps> = ({ currentUser }) => {
                       type="text" 
                       value={inputText}
                       onChange={handleTyping}
-                      placeholder={privateReceiver ? `${t.chat.send} @${privateReceiver}...` : t.chat.placeholder}
+                      placeholder={activeUser ? `${t.chat.send} @${activeUser.name}...` : t.chat.placeholder}
                       className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-4 pr-12 py-3 focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 outline-none text-white placeholder-slate-600 transition-all font-mono text-sm"
                     />
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500">
@@ -407,7 +474,7 @@ export const ChatRoom: React.FC<ChatRoomProps> = ({ currentUser }) => {
                    type="submit"
                    disabled={!inputText.trim()}
                    className={`h-11 px-6 rounded-xl font-bold uppercase tracking-widest text-xs transition-all shadow-lg flex items-center gap-2 ${
-                      privateReceiver 
+                      activeUser 
                         ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-amber-900/20' 
                         : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-cyan-900/20'
                    } disabled:opacity-50 disabled:cursor-not-allowed`}

@@ -1,4 +1,9 @@
 
+
+
+
+
+
 import { BlogPost } from "../types";
 
 export const resources = {
@@ -213,7 +218,8 @@ export const resources = {
       tabs: {
         journal: "Journal",
         leisure: "Leisure",
-        gallery: "Gallery"
+        gallery: "Gallery",
+        fitness: "Fitness"
       },
       leisure: {
         musicTitle: "Sonic Player",
@@ -225,15 +231,9 @@ export const resources = {
         stopped: "Idle",
         mahjong: "Mahjong Soul Zone",
         mahjongDesc: "Access the Maj-Soul network.",
-        sudoku: {
-          title: "Neural Grid",
-          level: "Level",
-          reset: "Reset Grid",
-          check: "Check Status",
-          solved: "SEQUENCE CORRECT",
-          failed: "INVALID SEQUENCE",
-          nextLevel: "Proceed to Level 2",
-          complete: "ALL LEVELS CLEARED"
+        clock: {
+          title: "Smart Hub",
+          subtitle: "Shenzhen Live"
         },
         pirate: {
           title: "The Four Pirate Lords",
@@ -251,6 +251,60 @@ export const resources = {
             "Difficulty: Hard. Requires look-ahead planning."
           ]
         }
+      },
+      fitness: {
+        title: 'Fitness Space',
+        subtitle: 'Track body & performance metrics.',
+        tabs: {
+          workout: 'Activity',
+          status: 'Body & Mood',
+          diet: 'Diet',
+          photos: 'Photos'
+        },
+        workout: {
+          isDone: 'Task Done?',
+          duration: 'Duration (min)',
+          type: 'Activities',
+          notes: "Today's Highlights",
+          types: {
+            run: 'Running',
+            swim: 'Swimming',
+            lift: 'Lifting',
+            yoga: 'Yoga',
+            hiit: 'HIIT',
+            trip: 'Trip',
+            hike: 'Hiking',
+            movie: 'Movie',
+            love: 'Love',
+            other: 'Other'
+          }
+        },
+        status: {
+          weight: 'Weight (kg)',
+          sleep: 'Sleep (hours)',
+          mood: 'Mood',
+          moods: {
+            happy: 'Happy',
+            neutral: 'Neutral',
+            bad: 'Bad'
+          }
+        },
+        diet: {
+          content: 'What did you eat?',
+          contentPlaceholder: 'Breakfast: Bread, Milk...',
+          water: 'Water Intake (ml)'
+        },
+        photos: {
+          upload: 'Upload Daily Moments',
+          empty: 'No photos today'
+        },
+        charts: {
+          weightTitle: 'Weight Trend',
+          duration: 'Duration',
+          weight: 'Weight',
+        },
+        save: 'Save Record',
+        saved: 'Record Updated'
       },
       journal: "Our Journal",
       memories: "MEMORIES",
@@ -516,7 +570,8 @@ export const resources = {
       tabs: {
         journal: "日志空间",
         leisure: "休闲空间",
-        gallery: "胶囊相册"
+        gallery: "胶囊相册",
+        fitness: "运动空间"
       },
       leisure: {
         musicTitle: "音乐播放器",
@@ -528,15 +583,9 @@ export const resources = {
         stopped: "已停止",
         mahjong: "雀魂麻将区",
         mahjongDesc: "接入 Maj-Soul 神经网络",
-        sudoku: {
-          title: "神经网格 (数独)",
-          level: "关卡",
-          reset: "重置网格",
-          check: "验证状态",
-          solved: "序列正确",
-          failed: "序列无效",
-          nextLevel: "进入关卡 2",
-          complete: "所有关卡已清除"
+        clock: {
+          title: "智能中枢",
+          subtitle: "深圳实时"
         },
         pirate: {
           title: "四皇海战 (华容道)",
@@ -554,6 +603,60 @@ export const resources = {
             "难度: 困难。需要极强的预判能力。"
           ]
         }
+      },
+      fitness: {
+        title: '运动空间',
+        subtitle: '追踪您的生理机能与训练数据。',
+        tabs: {
+          workout: '活动记录',
+          status: '身体 & 状态',
+          diet: '饮食',
+          photos: '照片'
+        },
+        workout: {
+          isDone: '今日打卡?',
+          duration: '时长 (分钟)',
+          type: '活动类型',
+          notes: '今日流水账/高光',
+          types: {
+            run: '跑步',
+            swim: '游泳',
+            lift: '举铁',
+            yoga: '瑜伽',
+            hiit: 'HIIT',
+            trip: '出游',
+            hike: '爬山',
+            movie: '电影',
+            love: '爱爱',
+            other: '其他'
+          }
+        },
+        status: {
+          weight: '体重 (kg)',
+          sleep: '睡眠 (小时)',
+          mood: '今日心情',
+          moods: {
+            happy: '开心',
+            neutral: '一般',
+            bad: '难受'
+          }
+        },
+        diet: {
+          content: '今天吃了什么？',
+          contentPlaceholder: '早餐：面包，牛奶...',
+          water: '喝水 (ml)'
+        },
+        photos: {
+          upload: '上传今日瞬间',
+          empty: '今日暂无照片'
+        },
+        charts: {
+          weightTitle: '体重趋势',
+          duration: '时长',
+          weight: '体重',
+        },
+        save: '保存记录',
+        saved: '记录已更新'
       },
       journal: "我们的日志",
       memories: "篇回忆",

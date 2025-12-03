@@ -108,6 +108,47 @@ export interface Todo {
   timestamp: number;
 }
 
+// Fitness Types (Refactored)
+export interface FitnessBody {
+  weight?: number; // kg
+}
+
+export interface FitnessWorkout {
+  isDone: boolean;
+  duration?: number; // min
+  types?: string[]; // Array of strings e.g. ["Running", "Chest"]
+  note?: string;
+}
+
+export interface FitnessDiet {
+  content?: string; // "Bread for breakfast..."
+  water?: number; // ml or cups
+}
+
+export interface FitnessStatus {
+  mood?: 'happy' | 'neutral' | 'bad';
+  sleepHours?: number;
+}
+
+export interface FitnessRecord {
+  _id?: string;
+  user?: User | string; // Can be ID or populated object
+  date?: string; 
+  dateStr?: string; // YYYY-MM-DD
+  body?: FitnessBody;
+  workout?: FitnessWorkout;
+  diet?: FitnessDiet; // Changed from nutrition
+  status?: FitnessStatus; // New field
+  photos?: string[];
+  targetUserEmail?: string; // For submission only
+}
+
+export interface FitnessStats {
+  dates: string[];
+  weights: (number | null)[];
+  durations: number[];
+}
+
 export enum Theme {
   LIGHT = 'light',
   DARK = 'dark'

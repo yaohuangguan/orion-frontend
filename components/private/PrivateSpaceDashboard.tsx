@@ -1,10 +1,9 @@
-
-
 import React, { useState } from 'react';
 import { CountDateWidget, TabType } from './CountDateWidget';
 import { JournalSpace } from './JournalSpace';
 import { LeisureSpace } from './LeisureSpace';
 import { PhotoGallery } from './PhotoGallery';
+import { FitnessSpace } from './FitnessSpace';
 import { BlogPost, User, PaginationData } from '../../types';
 import { useTranslation } from '../../i18n/LanguageContext';
 
@@ -36,8 +35,14 @@ export const PrivateSpaceDashboard: React.FC<PrivateSpaceDashboardProps> = ({
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<TabType>('JOURNAL');
 
+  // Fitness tab should scroll with the page, others have fixed internal layouts on desktop
+  const isFixedLayout = activeTab !== 'FITNESS';
+
   return (
-    <div className="lg:h-screen min-h-screen pt-24 pb-6 px-4 md:px-6 relative lg:overflow-hidden overflow-y-auto flex flex-col gap-6">
+    <div className={`
+      min-h-screen pt-24 pb-6 px-4 md:px-6 relative flex flex-col gap-6 text-slate-900
+      ${isFixedLayout ? 'lg:h-screen lg:overflow-hidden overflow-y-auto' : 'overflow-y-auto'}
+    `}>
       
       {/* Floating Hearts Effect */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
@@ -70,7 +75,7 @@ export const PrivateSpaceDashboard: React.FC<PrivateSpaceDashboardProps> = ({
       </div>
 
       {/* Main Content Area */}
-      <div className="container mx-auto flex-1 lg:min-h-0 max-w-[1600px] relative z-10 pb-10 lg:pb-0">
+      <div className={`container mx-auto flex-1 max-w-[1600px] relative z-10 ${isFixedLayout ? 'lg:min-h-0 pb-10 lg:pb-0' : 'pb-20'}`}>
         {activeTab === 'JOURNAL' && (
           <JournalSpace 
             user={user} 
@@ -93,6 +98,12 @@ export const PrivateSpaceDashboard: React.FC<PrivateSpaceDashboardProps> = ({
         {activeTab === 'GALLERY' && (
           <div className="h-full animate-fade-in lg:overflow-hidden">
              <PhotoGallery />
+          </div>
+        )}
+
+        {activeTab === 'FITNESS' && (
+          <div className="animate-fade-in w-full">
+             <FitnessSpace />
           </div>
         )}
       </div>
