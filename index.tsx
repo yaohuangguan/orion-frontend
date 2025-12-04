@@ -2,7 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { LanguageProvider } from './i18n/LanguageContext';
-import { Analytics } from "@vercel/analytics/next"
+import { inject } from '@vercel/analytics';
+
+// Initialize Vercel Web Analytics
+inject();
 
 
 const rootElement = document.getElementById('root');
@@ -15,7 +18,6 @@ root.render(
   <React.StrictMode>
     <LanguageProvider>
       <App />
-      <Analytics />
     </LanguageProvider>
   </React.StrictMode>
 );
