@@ -43,6 +43,7 @@ export const JournalSpace: React.FC<JournalSpaceProps> = ({
 
   // Preview Data State
   const [previewData, setPreviewData] = useState<{ title: string, content: string, tags: string[], date: string } | null>(null);
+  const [isPreviewHidden, setIsPreviewHidden] = useState(false);
 
   const { t } = useTranslation();
   
@@ -152,17 +153,32 @@ export const JournalSpace: React.FC<JournalSpaceProps> = ({
   const displayPagination = logSource === 'private' ? privatePagination : publicPagination;
   const displayPageChange = logSource === 'private' ? onPrivatePageChange : handlePublicPageChange;
 
-  // Render Preview Content (Parsed Markdown)
-  const renderedPreview = useMemo(() => {
-    if (!previewData?.content) return '';
-    try {
-        if (window.marked) return window.marked.parse(previewData.content);
-        return previewData.content;
-    } catch (e) { return previewData.content; }
-  }, [previewData?.content]);
+  // Helper to detect meaningful content (ignores empty tags like <p><br></p>)
+  const hasContent = (data: { title: string, content: string } | null) => {
+      if (!data) return false;
+      const title = data.title?.trim();
+      const rawContent = data.content || '';
+      // Strip tags to check for text, also remove non-breaking spaces
+      const textContent = rawContent.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+      // Check for media
+      const hasMedia = rawContent.includes('<img') || rawContent.includes('<iframe') || rawContent.includes('<video');
+      
+      return !!title || textContent.length > 0 || hasMedia;
+  };
 
-  // Check if we should show preview: Must have data AND (be editing existing OR have typed a title/content)
-  const showPreview = previewData && (editingPost || previewData.title || previewData.content);
+  // Reset hidden state when content is cleared
+  useEffect(() => {
+    if (!hasContent(previewData)) {
+        setIsPreviewHidden(false);
+    }
+  }, [previewData]);
+
+  // Check if we should show preview: Must have data AND meaningful content AND not hidden
+  const hasActiveContent = hasContent(previewData);
+  const showPreview = previewData && hasActiveContent && !isPreviewHidden;
+
+  // Render Preview Content - Direct HTML since Quill outputs HTML
+  const renderedPreview = previewData?.content || '';
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-10 lg:pb-0 h-full min-h-0">
@@ -182,37 +198,58 @@ export const JournalSpace: React.FC<JournalSpaceProps> = ({
          
          {/* Preview Header (If Previewing) */}
          {showPreview ? (
-            <div className="p-6 pb-4 bg-amber-50/50 border-b border-amber-100 flex items-center justify-between animate-fade-in">
+            <div className="p-6 pb-4 bg-amber-50/50 border-b border-amber-100 flex items-center justify-between animate-fade-in shrink-0">
                <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-amber-200 flex items-center justify-center text-amber-700 shadow-sm animate-pulse">
                      <i className="fas fa-eye"></i>
                   </div>
                   <h2 className="text-lg font-display font-bold text-slate-700 uppercase tracking-widest">Live Preview</h2>
                </div>
-               <div className="text-xs font-mono text-slate-400">
-                  {new Date().toLocaleTimeString()}
+               
+               <div className="flex items-center gap-4">
+                   <div className="text-xs font-mono text-slate-400 hidden sm:block">
+                      {new Date().toLocaleTimeString()}
+                   </div>
+                   <button 
+                     onClick={() => setIsPreviewHidden(true)}
+                     className="w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-200 flex items-center justify-center transition-colors shadow-sm"
+                     title="Close Preview"
+                   >
+                      <i className="fas fa-times"></i>
+                   </button>
                </div>
             </div>
          ) : (
             // Standard Header
-            <div className="p-6 pb-4 flex flex-col gap-4 bg-white/40 border-b border-rose-100/50">
+            <div className="p-6 pb-4 flex flex-col gap-4 bg-white/40 border-b border-rose-100/50 shrink-0">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm shrink-0 transition-colors ${logSource === 'private' ? 'bg-rose-100 text-rose-500' : 'bg-blue-100 text-blue-500'}`}>
                             <i className={`fas ${logSource === 'private' ? 'fa-heart' : 'fa-globe'}`}></i>
                         </div>
-                        <div>
-                            <h1 className="text-2xl font-display font-bold text-slate-800">
+                        <div className="min-w-0">
+                            <h1 className="text-2xl font-display font-bold text-slate-800 truncate">
                             {logSource === 'private' ? t.privateSpace.journal : 'Public Log'}
                             </h1>
-                            <span className={`text-xs font-mono uppercase tracking-widest ${logSource === 'private' ? 'text-rose-400' : 'text-blue-400'}`}>
-                            {displayPagination ? displayPagination.totalItems : displayBlogs.length} Entries
-                            </span>
+                            <div className="flex items-center gap-2">
+                                <span className={`text-xs font-mono uppercase tracking-widest ${logSource === 'private' ? 'text-rose-400' : 'text-blue-400'}`}>
+                                {displayPagination ? displayPagination.totalItems : displayBlogs.length} Entries
+                                </span>
+                                {/* Resume Preview Button if hidden but content exists */}
+                                {hasActiveContent && isPreviewHidden && (
+                                    <button 
+                                        onClick={() => setIsPreviewHidden(false)}
+                                        className="ml-2 px-2 py-0.5 bg-amber-100 text-amber-600 text-[10px] font-bold uppercase rounded-full animate-pulse hover:bg-amber-200 transition-colors"
+                                    >
+                                        <i className="fas fa-eye mr-1"></i> Resume Preview
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
 
                     {/* Source Toggle */}
-                    <div className="flex bg-slate-100 p-1 rounded-lg">
+                    <div className="flex bg-slate-100 p-1 rounded-lg shrink-0">
                         <button 
                             onClick={() => setLogSource('private')}
                             className={`px-3 py-1.5 rounded-md text-xs font-bold uppercase transition-all ${logSource === 'private' ? 'bg-white text-rose-500 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
@@ -254,17 +291,17 @@ export const JournalSpace: React.FC<JournalSpaceProps> = ({
                <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-lg animate-slide-up">
                   <div className="mb-6 pb-6 border-b border-slate-100">
                      <div className="flex gap-2 mb-4 flex-wrap">
-                        {previewData.tags.map(t => (
+                        {previewData?.tags.map(t => (
                            <span key={t} className="px-2 py-1 bg-slate-100 text-slate-500 text-[10px] font-bold uppercase rounded">{t}</span>
                         ))}
                      </div>
-                     <h1 className="text-3xl font-display font-bold text-slate-900 mb-2">{previewData.title || 'Untitled Entry'}</h1>
+                     <h1 className="text-3xl font-display font-bold text-slate-900 mb-2">{previewData?.title || 'Untitled Entry'}</h1>
                      <div className="text-xs font-mono text-slate-400 uppercase tracking-widest">
-                        {new Date(previewData.date).toLocaleDateString()}
+                        {previewData?.date ? new Date(previewData.date).toLocaleDateString() : 'Draft'}
                      </div>
                   </div>
                   <div 
-                     className="prose prose-slate max-w-none prose-p:text-slate-600 prose-headings:font-display prose-headings:font-bold prose-headings:text-slate-800"
+                     className="prose prose-slate max-w-none prose-p:text-slate-600 prose-headings:font-display prose-headings:font-bold prose-headings:text-slate-800 prose-pre:bg-slate-800 prose-pre:text-slate-100 prose-pre:rounded-xl"
                      dangerouslySetInnerHTML={{ __html: renderedPreview || '<p class="text-slate-400 italic">Start writing to see preview...</p>' }}
                   />
                </div>
@@ -307,4 +344,3 @@ export const JournalSpace: React.FC<JournalSpaceProps> = ({
     </div>
   );
 };
-    
