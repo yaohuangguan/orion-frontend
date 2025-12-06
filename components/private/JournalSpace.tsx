@@ -7,6 +7,7 @@ import { DeleteModal } from '../DeleteModal';
 import { BlogPost, User, PaginationData } from '../../types';
 import { apiService } from '../../services/api';
 import { useTranslation } from '../../i18n/LanguageContext';
+import { BlogContent } from '../BlogContent';
 
 interface JournalSpaceProps {
   user: User | null;
@@ -287,22 +288,25 @@ export const JournalSpace: React.FC<JournalSpaceProps> = ({
          
          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-slate-50/30">
             {showPreview ? (
-               // PREVIEW CARD
-               <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-lg animate-slide-up">
-                  <div className="mb-6 pb-6 border-b border-slate-100">
-                     <div className="flex gap-2 mb-4 flex-wrap">
+               // LIVE PREVIEW with BlogContent for robust styling
+               <div className="animate-slide-up">
+                  {/* Article Metadata Header - Similar to ArticleView */}
+                  <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl p-6 border border-slate-200 dark:border-slate-800 mb-6">
+                     <div className="flex gap-2 mb-4 flex-wrap justify-center">
                         {previewData?.tags.map(t => (
-                           <span key={t} className="px-2 py-1 bg-slate-100 text-slate-500 text-[10px] font-bold uppercase rounded">{t}</span>
+                           <span key={t} className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-bold uppercase rounded-full tracking-wider">{t}</span>
                         ))}
                      </div>
-                     <h1 className="text-3xl font-display font-bold text-slate-900 mb-2">{previewData?.title || 'Untitled Entry'}</h1>
-                     <div className="text-xs font-mono text-slate-400 uppercase tracking-widest">
+                     <h1 className="text-3xl md:text-4xl font-display font-bold text-slate-900 dark:text-white mb-2 text-center leading-tight">{previewData?.title || 'Untitled Entry'}</h1>
+                     <div className="text-xs font-mono text-slate-400 uppercase tracking-widest text-center">
                         {previewData?.date ? new Date(previewData.date).toLocaleDateString() : 'Draft'}
                      </div>
                   </div>
-                  <div 
-                     className="prose prose-slate max-w-none prose-p:text-slate-600 prose-headings:font-display prose-headings:font-bold prose-headings:text-slate-800 prose-pre:bg-slate-800 prose-pre:text-slate-100 prose-pre:rounded-xl"
-                     dangerouslySetInnerHTML={{ __html: renderedPreview || '<p class="text-slate-400 italic">Start writing to see preview...</p>' }}
+                  
+                  {/* Robust Content Render - Using lighter shadow for preview */}
+                  <BlogContent 
+                    content={renderedPreview || '<p class="text-slate-400 italic text-center py-12">Start writing to see preview...</p>'} 
+                    shadowClass="shadow-sm"
                   />
                </div>
             ) : (
