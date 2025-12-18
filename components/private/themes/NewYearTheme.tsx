@@ -1,7 +1,10 @@
 
 import React from 'react';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 export const NewYearTheme: React.FC = () => {
+  const { language } = useTranslation();
+
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-gradient-to-b from-[#450a0a] via-[#7f1d1d] to-[#9a3412]">
        {/* Decorative Pattern Overlay */}
@@ -21,7 +24,11 @@ export const NewYearTheme: React.FC = () => {
        {/* "Happy New Year" Engraved Text */}
        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center z-0 pointer-events-none">
           <h1 className="text-[12vw] font-display font-black text-transparent bg-clip-text bg-gradient-to-b from-amber-500/20 to-amber-900/5 uppercase tracking-widest leading-none drop-shadow-sm select-none">
-             Happy<br/>New Year
+             {language === 'zh' ? (
+                <>新年<br/>快乐</>
+             ) : (
+                <>Happy<br/>New Year</>
+             )}
           </h1>
        </div>
 

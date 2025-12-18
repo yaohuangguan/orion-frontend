@@ -1,5 +1,4 @@
 
-
 import { BlogPost } from "../types";
 
 export const resources = {
@@ -371,6 +370,40 @@ export const resources = {
       fitness: {
         title: 'Fitness Space',
         subtitle: 'Track body & performance metrics.',
+        calendar: {
+          weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+          holidays: {
+            '1-1': 'New Year', '2-14': 'Valentine', '3-8': 'Women Day', '3-12': 'Arbor Day',
+            '4-1': 'April Fools', '5-1': 'Labor Day', '5-4': 'Youth Day', '6-1': 'Children Day',
+            '7-1': 'CCP Day', '8-1': 'Army Day', '9-10': 'Teacher Day', '10-1': 'National Day',
+            '12-24': 'Xmas Eve', '12-25': 'Christmas'
+          },
+          terms: [
+            "Minor Cold", "Major Cold", "Start of Spring", "Rain Water", "Awakening of Insects", "Spring Equinox", 
+            "Pure Brightness", "Grain Rain", "Start of Summer", "Grain Buds", "Grain in Ear", "Summer Solstice",
+            "Minor Heat", "Major Heat", "Start of Autumn", "End of Heat", "White Dew", "Autumn Equinox", 
+            "Cold Dew", "Frost's Descent", "Start of Winter", "Minor Snow", "Major Snow", "Winter Solstice"
+          ],
+          noActivity: 'No activity'
+        },
+        photoWall: {
+          title: 'Fitness Gallery',
+          captured: '{n} Photos Captured This Month',
+          empty: 'No photos uploaded for this month',
+          view: 'View Day Photos'
+        },
+        stats: {
+          progress: 'Progress',
+          userProgress: "{name}'s Progress",
+          activeProfile: 'Active Profile',
+          loading: 'Loading...',
+          loadMore: 'Load More',
+          noData: 'No data collected yet'
+        },
+        input: {
+          loggingFor: 'Logging for:',
+          selectUser: 'Select User'
+        },
         tabs: {
           workout: 'Activity',
           status: 'Body & Mood',
@@ -864,6 +897,38 @@ export const resources = {
       fitness: {
         title: '运动空间',
         subtitle: '追踪您的生理机能与训练数据。',
+        calendar: {
+          weekdays: ['日', '一', '二', '三', '四', '五', '六'],
+          holidays: {
+            '1-1': '元旦', '2-14': '情人节', '3-8': '妇女节', '3-12': '植树节',
+            '4-1': '愚人节', '5-1': '劳动节', '5-4': '青年节', '6-1': '儿童节',
+            '7-1': '建党节', '8-1': '建军节', '9-10': '教师节', '10-1': '国庆节',
+            '12-24': '平安夜', '12-25': '圣诞节'
+          },
+          terms: [
+            "小寒", "大寒", "立春", "雨水", "惊蛰", "春分", "清明", "谷雨", "立夏", "小满", "芒种", "夏至",
+            "小暑", "大暑", "立秋", "处暑", "白露", "秋分", "寒露", "霜降", "立冬", "小雪", "大雪", "冬至"
+          ],
+          noActivity: '无记录'
+        },
+        photoWall: {
+          title: '运动光影墙',
+          captured: '本月拍摄 {n} 张',
+          empty: '本月暂无照片',
+          view: '查看当日照片'
+        },
+        stats: {
+          progress: '进度',
+          userProgress: "{name} 的进度",
+          activeProfile: '当前用户',
+          loading: '加载中...',
+          loadMore: '加载更多',
+          noData: '暂无数据'
+        },
+        input: {
+          loggingFor: '记录对象:',
+          selectUser: '选择用户'
+        },
         tabs: {
           workout: '活动记录',
           status: '身体 & 状态',

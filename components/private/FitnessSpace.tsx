@@ -32,29 +32,6 @@ const getSolarTermDate = (year: number, termIndex: number): number => {
   return day;
 };
 
-const getSpecialDay = (year: number, month: number, day: number) => {
-  const m = month + 1;
-  const key = `${m}-${day}`;
-  const holidays: Record<string, string> = {
-    '1-1': '元旦', '2-14': '情人节', '3-8': '妇女节', '3-12': '植树节',
-    '4-1': '愚人节', '5-1': '劳动节', '5-4': '青年节', '6-1': '儿童节',
-    '7-1': '建党节', '8-1': '建军节', '9-10': '教师节', '10-1': '国庆节',
-    '12-24': '平安夜', '12-25': '圣诞节'
-  };
-  if (holidays[key]) return holidays[key];
-  const termIndex1 = month * 2;
-  const termIndex2 = month * 2 + 1;
-  const date1 = getSolarTermDate(year, termIndex1);
-  const date2 = getSolarTermDate(year, termIndex2);
-  const TERM_NAMES = [
-    "小寒", "大寒", "立春", "雨水", "惊蛰", "春分", "清明", "谷雨", "立夏", "小满", "芒种", "夏至",
-    "小暑", "大暑", "立秋", "处暑", "白露", "秋分", "寒露", "霜降", "立冬", "小雪", "大雪", "冬至"
-  ];
-  if (day === date1) return TERM_NAMES[termIndex1];
-  if (day === date2) return TERM_NAMES[termIndex2];
-  return null;
-};
-
 const CHART_CONFIG = {
   WEIGHT: { color: '#f43f5e', fill: '#fecdd3', unit: 'kg', name: 'Weight' },
   DURATION: { color: '#a855f7', fill: '#e9d5ff', unit: 'min', name: 'Workout' },
@@ -79,8 +56,32 @@ export const FitnessSpace: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
+  // Photo Wall State
+  const [isPhotoWallOpen, setIsPhotoWallOpen] = useState(false);
+
   // State for viewing all photos of a specific day
   const [dayPhotosData, setDayPhotosData] = useState<{ date: string, photos: string[] } | null>(null);
+
+  // Helper function to get special day name (Holiday or Solar Term)
+  const getSpecialDayName = (year: number, month: number, day: number) => {
+    const m = month + 1;
+    const key = `${m}-${day}`;
+    // Access translated holidays map safely
+    const holidays = t.privateSpace.fitness.calendar.holidays as Record<string, string>;
+    if (holidays[key]) return holidays[key];
+
+    const termIndex1 = month * 2;
+    const termIndex2 = month * 2 + 1;
+    const date1 = getSolarTermDate(year, termIndex1);
+    const date2 = getSolarTermDate(year, termIndex2);
+    
+    // Access translated terms array safely
+    const terms = t.privateSpace.fitness.calendar.terms as string[];
+    if (day === date1) return terms[termIndex1];
+    if (day === date2) return terms[termIndex2];
+    
+    return null;
+  };
 
   const fetchUsers = async (page: number) => {
     if (isLoadingUsers) return;
@@ -251,6 +252,36 @@ export const FitnessSpace: React.FC = () => {
      setDayPhotosData({ date: dateStr, photos });
   };
 
+  // --- Photo Wall Logic ---
+  const allMonthPhotos = useMemo(() => {
+    const flattened: { url: string; record: FitnessRecord; user: User }[] = [];
+    
+    // Iterate through all days in monthRecords
+    monthRecords.forEach((records) => {
+      records.forEach(r => {
+        // Filter by selected user to show relevant photos or show all? 
+        // Showing ALL gives a "community/couple" feel, but let's stick to ALL for the "Wall" concept unless filtered.
+        // Actually, usually fitness space is viewing one profile at a time? 
+        // The calendar shows aggregated, but stats show selectedUser. 
+        // Let's show photos for the selectedUser to correspond with the data shown.
+        if (selectedUser && (r.user as User)?.email !== selectedUser.email) return;
+
+        if (r.photos && r.photos.length > 0) {
+          r.photos.forEach(url => {
+            flattened.push({
+              url,
+              record: r,
+              user: r.user as User
+            });
+          });
+        }
+      });
+    });
+
+    // Sort by Date Descending
+    return flattened.sort((a, b) => new Date(b.record.dateStr || '').getTime() - new Date(a.record.dateStr || '').getTime());
+  }, [monthRecords, selectedUser]);
+
   const calendarCells = useMemo(() => {
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
@@ -265,7 +296,7 @@ export const FitnessSpace: React.FC = () => {
       const isSelected = toLocalDateStr(currentDate) === localDateStr;
       const isToday = toLocalDateStr(new Date()) === localDateStr;
       const dayRecords = monthRecords.get(localDateStr) || [];
-      const holiday = getSpecialDay(year, month, d);
+      const holiday = getSpecialDayName(year, month, d);
       
       const dayPhotos = dayRecords.reduce((acc: string[], r) => [...acc, ...(r.photos || [])], []);
       const hasPhotos = dayPhotos.length > 0;
@@ -296,7 +327,7 @@ export const FitnessSpace: React.FC = () => {
                 <div 
                    onClick={(e) => handleOpenDayGallery(e, localDateStr, dayPhotos)}
                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all transform hover:scale-125 cursor-pointer ${isSelected ? 'text-amber-300' : 'text-amber-500'} drop-shadow-md`}
-                   title="View Day Photos"
+                   title={t.privateSpace.fitness.photoWall.view}
                 >
                    <i className="fas fa-star text-lg animate-pulse"></i>
                 </div>
@@ -336,7 +367,7 @@ export const FitnessSpace: React.FC = () => {
                       </div>
                    );
                 })
-             ) : <div className={`mt-auto text-xs text-center w-full opacity-50 py-4 ${isSelected ? 'text-white' : 'text-slate-400'}`}>No activity</div>}
+             ) : <div className={`mt-auto text-xs text-center w-full opacity-50 py-4 ${isSelected ? 'text-white' : 'text-slate-400'}`}>{t.privateSpace.fitness.calendar.noActivity}</div>}
           </div>
         </button>
       );
@@ -364,7 +395,7 @@ export const FitnessSpace: React.FC = () => {
                   <div className="flex items-center gap-3">
                      <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center shadow-inner"><i className="fas fa-star"></i></div>
                      <div>
-                        <h3 className="text-xl font-display font-bold text-slate-800">Workout Memories</h3>
+                        <h3 className="text-xl font-display font-bold text-slate-800">{t.privateSpace.fitness.photoWall.title}</h3>
                         <p className="text-xs font-mono text-rose-400 font-bold uppercase">{dayPhotosData.date}</p>
                      </div>
                   </div>
@@ -386,7 +417,7 @@ export const FitnessSpace: React.FC = () => {
                </div>
                
                <div className="p-4 text-center border-t border-slate-100 text-[10px] text-slate-400 font-mono uppercase tracking-widest">
-                  Tap photos to enlarge
+                  Tap to view
                </div>
             </div>
          </div>,
@@ -409,11 +440,80 @@ export const FitnessSpace: React.FC = () => {
          </div>
          
          <div className="grid grid-cols-7 gap-3 md:gap-4">
-            {['SUN','MON','TUE','WED','THU','FRI','SAT'].map((d,i) => (
+            {(t.privateSpace.fitness.calendar.weekdays as string[]).map((d,i) => (
                <div key={i} className="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">{d}</div>
             ))}
             {calendarCells}
          </div>
+      </div>
+
+      {/* 1.5 NEW MODULE: Collapsible Photo Wall */}
+      <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-xl border border-white/50 overflow-hidden transition-all">
+         <button 
+            onClick={() => setIsPhotoWallOpen(!isPhotoWallOpen)}
+            className="w-full p-4 flex justify-between items-center bg-gradient-to-r from-rose-50 to-white hover:bg-rose-100/50 transition-colors"
+         >
+            <div className="flex items-center gap-3">
+               <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center shadow-sm border border-rose-200">
+                  <i className="fas fa-images"></i>
+               </div>
+               <div className="text-left">
+                  <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">{t.privateSpace.fitness.photoWall.title}</h3>
+                  <p className="text-[10px] text-rose-400 font-mono">
+                     {t.privateSpace.fitness.photoWall.captured.replace('{n}', allMonthPhotos.length.toString())}
+                  </p>
+               </div>
+            </div>
+            <div className={`w-8 h-8 rounded-full bg-white border border-rose-100 flex items-center justify-center text-slate-400 transition-transform duration-300 ${isPhotoWallOpen ? 'rotate-180 text-rose-500' : ''}`}>
+               <i className="fas fa-chevron-down"></i>
+            </div>
+         </button>
+
+         {isPhotoWallOpen && (
+            <div className="p-6 bg-slate-50/50 animate-slide-up">
+               {allMonthPhotos.length === 0 ? (
+                  <div className="text-center py-10 text-slate-400 flex flex-col items-center gap-2 border-2 border-dashed border-slate-200 rounded-2xl">
+                     <i className="fas fa-camera-retro text-2xl opacity-50"></i>
+                     <span className="text-xs uppercase tracking-widest">{t.privateSpace.fitness.photoWall.empty}</span>
+                  </div>
+               ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                     {allMonthPhotos.map((item, idx) => (
+                        <div 
+                           key={`${item.record._id}-${idx}`}
+                           className="group relative aspect-[3/4] rounded-2xl overflow-hidden shadow-md cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-white"
+                           onClick={() => setSelectedPhoto(item.url)}
+                        >
+                           <img src={item.url} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" alt="Moment"/>
+                           
+                           {/* Data Overlay */}
+                           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 pt-8 text-white opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end">
+                              <div className="text-[10px] font-mono text-white/80 mb-1">{item.record.dateStr}</div>
+                              
+                              <div className="flex flex-wrap gap-2 text-xs font-bold">
+                                 {item.record.body?.weight && (
+                                    <span className="flex items-center gap-1"><i className="fas fa-weight text-[10px] text-rose-400"></i> {item.record.body.weight}kg</span>
+                                 )}
+                                 {item.record.workout?.duration && (
+                                    <span className="flex items-center gap-1"><i className="fas fa-stopwatch text-[10px] text-amber-400"></i> {item.record.workout.duration}m</span>
+                                 )}
+                              </div>
+                              {item.record.workout?.types && item.record.workout.types.length > 0 && (
+                                 <div className="mt-1 flex flex-wrap gap-1">
+                                    {item.record.workout.types.slice(0,2).map(t => (
+                                       <span key={t} className="px-1.5 py-0.5 bg-white/20 rounded text-[9px] uppercase backdrop-blur-sm">
+                                          {t}
+                                       </span>
+                                    ))}
+                                 </div>
+                              )}
+                           </div>
+                        </div>
+                     ))}
+                  </div>
+               )}
+            </div>
+         )}
       </div>
 
       {/* 2. MIDDLE: Chart (Stats) & User Selector */}
@@ -421,7 +521,7 @@ export const FitnessSpace: React.FC = () => {
          <div className="md:col-span-2 bg-white/80 backdrop-blur-md rounded-3xl p-6 shadow-xl border border-white/50 flex flex-col h-[24rem]">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4 shrink-0">
                <h3 className="text-sm font-bold text-slate-700 uppercase tracking-widest flex items-center gap-2">
-                  <i className="fas fa-chart-area text-rose-400"></i> {selectedUser ? `${selectedUser.displayName}'s Progress` : 'Progress'}
+                  <i className="fas fa-chart-area text-rose-400"></i> {selectedUser ? t.privateSpace.fitness.stats.userProgress.replace('{name}', selectedUser.displayName) : t.privateSpace.fitness.stats.progress}
                </h3>
                <div className="flex flex-wrap gap-2 bg-slate-100/50 p-1 rounded-xl">
                   {Object.keys(CHART_CONFIG).map((metric) => {
@@ -463,13 +563,13 @@ export const FitnessSpace: React.FC = () => {
                         {activeMetric === 'SLEEP' && <Area type="step" dataKey="sleep" stroke={CHART_CONFIG.SLEEP.color} fill={`url(#color-${activeMetric})`} strokeWidth={3} connectNulls={true}/>}
                      </ComposedChart>
                   </ResponsiveContainer>
-               ) : <div className="w-full h-full flex flex-col items-center justify-center text-slate-300"><i className="fas fa-chart-line text-4xl mb-2 opacity-50"></i><p className="text-xs font-mono uppercase tracking-widest">No data collected yet</p></div>}
+               ) : <div className="w-full h-full flex flex-col items-center justify-center text-slate-300"><i className="fas fa-chart-line text-4xl mb-2 opacity-50"></i><p className="text-xs font-mono uppercase tracking-widest">{t.privateSpace.fitness.stats.noData}</p></div>}
             </div>
          </div>
 
          <div className="bg-gradient-to-br from-rose-500 to-pink-600 rounded-3xl p-6 shadow-xl shadow-rose-200 flex flex-col text-white h-[24rem] relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-            <h3 className="text-sm font-bold uppercase tracking-widest opacity-80 mb-4 text-center z-10 shrink-0">Active Profile</h3>
+            <h3 className="text-sm font-bold uppercase tracking-widest opacity-80 mb-4 text-center z-10 shrink-0">{t.privateSpace.fitness.stats.activeProfile}</h3>
             <div className="flex-1 overflow-y-auto custom-scrollbar z-10 space-y-3 pr-1">
                {displayUserList.map(user => {
                   const isActive = selectedUser?._id === user._id;
@@ -481,7 +581,7 @@ export const FitnessSpace: React.FC = () => {
                      </button>
                   )
                })}
-               {hasMoreUsers && <button onClick={handleLoadMoreUsers} className="w-full py-2 text-[10px] font-bold uppercase border border-white/20 rounded-xl hover:bg-white/10 transition-colors">{isLoadingUsers ? 'Loading...' : 'Load More'}</button>}
+               {hasMoreUsers && <button onClick={handleLoadMoreUsers} className="w-full py-2 text-[10px] font-bold uppercase border border-white/20 rounded-xl hover:bg-white/10 transition-colors">{isLoadingUsers ? t.privateSpace.fitness.stats.loading : t.privateSpace.fitness.stats.loadMore}</button>}
             </div>
          </div>
       </div>
@@ -497,10 +597,10 @@ export const FitnessSpace: React.FC = () => {
          </div>
          <div className="flex-1 p-6 relative">
             <div className="absolute top-4 right-4 flex items-center gap-3">
-               <span className="text-xs font-bold text-rose-400 uppercase tracking-wider">Logging for:</span>
+               <span className="text-xs font-bold text-rose-400 uppercase tracking-wider">{t.privateSpace.fitness.input.loggingFor}</span>
                <div className="flex items-center gap-2 bg-rose-500 text-white px-3 py-1 rounded-full shadow-sm">
                   <div className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center text-[8px]"><i className="fas fa-user"></i></div>
-                  <span className="text-xs font-bold truncate max-w-[100px]">{selectedUser?.displayName || 'Select User'}</span>
+                  <span className="text-xs font-bold truncate max-w-[100px]">{selectedUser?.displayName || t.privateSpace.fitness.input.selectUser}</span>
                </div>
                <span className="text-xs font-mono text-slate-400 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
                   {currentDate.toLocaleDateString()}
