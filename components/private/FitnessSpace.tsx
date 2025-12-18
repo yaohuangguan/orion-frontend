@@ -21,6 +21,17 @@ const toLocalDateStr = (date: Date) => {
   return `${y}-${m}-${d}`;
 };
 
+// --- CHINESE NEW YEAR LOOKUP TABLE (2024 - 2050) ---
+// Key: Year (int), Value: 'MM-DD' string of the date
+const CNY_DATES: Record<number, string> = {
+  2024: '02-10', 2025: '01-29', 2026: '02-17', 2027: '02-06', 2028: '01-26',
+  2029: '02-13', 2030: '02-03', 2031: '01-23', 2032: '02-11', 2033: '01-31',
+  2034: '02-19', 2035: '02-08', 2036: '01-28', 2037: '02-15', 2038: '02-04',
+  2039: '01-24', 2040: '02-12', 2041: '02-01', 2042: '01-22', 2043: '02-10',
+  2044: '01-30', 2045: '02-17', 2046: '02-06', 2047: '01-26', 2048: '02-14',
+  2049: '02-02', 2050: '01-23'
+};
+
 // --- HOLIDAY & SOLAR TERM UTILS ---
 const getSolarTermDate = (year: number, termIndex: number): number => {
   const C_VALUES = [
@@ -40,7 +51,7 @@ const CHART_CONFIG = {
 };
 
 export const FitnessSpace: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [viewDate, setViewDate] = useState<Date>(new Date());
   const [monthRecords, setMonthRecords] = useState<Map<string, FitnessRecord[]>>(new Map());
@@ -66,10 +77,18 @@ export const FitnessSpace: React.FC = () => {
   const getSpecialDayName = (year: number, month: number, day: number) => {
     const m = month + 1;
     const key = `${m}-${day}`;
-    // Access translated holidays map safely
+    
+    // 1. Check Chinese New Year (Dynamic based on year)
+    const dateKey = `${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    if (CNY_DATES[year] === dateKey) {
+        return language === 'zh' ? '春节' : 'Spring Festival';
+    }
+
+    // 2. Check Standard Holidays
     const holidays = t.privateSpace.fitness.calendar.holidays as Record<string, string>;
     if (holidays[key]) return holidays[key];
 
+    // 3. Check Solar Terms
     const termIndex1 = month * 2;
     const termIndex2 = month * 2 + 1;
     const date1 = getSolarTermDate(year, termIndex1);
@@ -259,11 +278,7 @@ export const FitnessSpace: React.FC = () => {
     // Iterate through all days in monthRecords
     monthRecords.forEach((records) => {
       records.forEach(r => {
-        // Filter by selected user to show relevant photos or show all? 
-        // Showing ALL gives a "community/couple" feel, but let's stick to ALL for the "Wall" concept unless filtered.
-        // Actually, usually fitness space is viewing one profile at a time? 
-        // The calendar shows aggregated, but stats show selectedUser. 
-        // Let's show photos for the selectedUser to correspond with the data shown.
+        // Filter by selected user to show relevant photos
         if (selectedUser && (r.user as User)?.email !== selectedUser.email) return;
 
         if (r.photos && r.photos.length > 0) {
@@ -317,7 +332,11 @@ export const FitnessSpace: React.FC = () => {
              <div className="flex flex-col">
                 <span className={`text-lg md:text-xl font-bold font-display ${isSelected ? 'text-white' : 'text-slate-800'}`}>{d}</span>
                 {holiday && (
-                  <span className={`text-[10px] whitespace-nowrap font-bold px-1.5 py-0.5 rounded-full mt-1 ${isSelected ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-600'}`}>
+                  <span className={`text-[10px] whitespace-nowrap font-bold px-1.5 py-0.5 rounded-full mt-1 ${
+                    holiday === '春节' || holiday === 'Spring Festival' || holiday === 'CNY'
+                        ? 'bg-red-600 text-white shadow-sm'
+                        : isSelected ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-600'
+                  }`}>
                     {holiday}
                   </span>
                 )}
@@ -373,7 +392,7 @@ export const FitnessSpace: React.FC = () => {
       );
     }
     return cells;
-  }, [viewDate, currentDate, monthRecords, t]);
+  }, [viewDate, currentDate, monthRecords, t, language]);
 
   return (
     <div className="flex flex-col gap-6 text-slate-900">

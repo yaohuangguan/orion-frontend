@@ -13,15 +13,16 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('en');
-
-  // Load from localStorage on mount
-  useEffect(() => {
-    const savedLang = localStorage.getItem('app_language');
-    if (savedLang === 'en' || savedLang === 'zh') {
-      setLanguage(savedLang);
+  // Initialize state directly from localStorage to ensure cache priority
+  const [language, setLanguage] = useState<Language>(() => {
+    if (typeof window !== 'undefined') {
+      const savedLang = localStorage.getItem('app_language');
+      if (savedLang === 'en' || savedLang === 'zh') {
+        return savedLang;
+      }
     }
-  }, []);
+    return 'en';
+  });
 
   const toggleLanguage = () => {
     setLanguage((prev) => {
