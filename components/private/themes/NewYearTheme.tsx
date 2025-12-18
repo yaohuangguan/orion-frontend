@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useTranslation } from '../../i18n/LanguageContext';
+import { useTranslation } from '../../../i18n/LanguageContext';
 
 export const NewYearTheme: React.FC = () => {
   const { language } = useTranslation();
