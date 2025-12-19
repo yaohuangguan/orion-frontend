@@ -1,4 +1,13 @@
 
+
+
+
+
+
+
+
+
+
 import { BlogPost } from "../types";
 
 export const resources = {
@@ -111,7 +120,15 @@ export const resources = {
       exportLogs: 'Export Logs',
       active: 'Active',
       vipBadge: 'VIP',
-      downloadBackup: 'Download a backup of all your personal logs in JSON format.'
+      downloadBackup: 'Download a backup of all your personal logs in JSON format.',
+      // New translations
+      height: 'Height (cm)',
+      fitnessGoal: 'Fitness Goal',
+      goals: {
+        cut: 'Fat Loss (Cut)',
+        bulk: 'Muscle Gain (Bulk)',
+        maintain: 'Maintain'
+      }
     },
     settings: {
       title: 'System Configuration',
@@ -254,6 +271,14 @@ export const resources = {
         gallery: "Gallery",
         fitness: "Fitness"
       },
+      hotSearch: {
+        title: "News Center",
+        hot: "Hot Trends",
+        finance: "Finance",
+        game: "Gaming",
+        updated: "Updated",
+        loading: "Scanning network..."
+      },
       leisure: {
         musicTitle: "Sonic Player",
         playUrl: "Play URL",
@@ -302,52 +327,75 @@ export const resources = {
           }
         },
         chefWheel: {
-          title: "Chef's Decision",
-          subtitle: "What to eat today?",
-          spin: "SPIN",
-          spinning: "...",
-          cooking: "Chef is thinking...",
-          selectIngredients: "Select Ingredients",
-          instruction: "Pick ingredients & Spin for recipes",
-          reset: "Reset",
-          ingredients: {
-            beef: "Beef",
-            pork: "Pork",
-            chicken: "Chicken",
-            lamb: "Lamb",
-            duck: "Duck",
-            fish: "Fish",
-            shrimp: "Shrimp",
-            oyster: "Oyster",
-            crab: "Crab",
-            clam: "Clam",
-            egg: "Egg",
-            tofu: "Tofu",
-            tomato: "Tomato",
-            potato: "Potato",
-            cucumber: "Cucumber",
-            broccoli: "Broccoli",
-            cabbage: "Cabbage",
-            napa: "Napa Cabbage",
-            bokchoy: "Bok Choy",
-            lettuce: "Lettuce",
-            carrot: "Carrot",
-            eggplant: "Eggplant",
-            pepper: "Pepper",
-            mushroom: "Mushroom"
+          title: "AI Smart Kitchen",
+          subtitle: "Automated Meal Selection System",
+          spin: "START DRAW",
+          spinning: "ANALYZING...",
+          confirm: "Confirm Selection",
+          retry: "Back & Retry",
+          recommending: "Gemini is suggesting...",
+          recommendations: "You might also like:",
+          manage: "Manage Menu",
+          viewRecipe: "View Recipe",
+          searchMode: "Search Recipes",
+          wheelMode: "Wheel Mode",
+          backToSearch: "Back to Search",
+          searchPlaceholder: "Search for a recipe (e.g. Kung Pao Chicken)...",
+          searching: "Searching...",
+          library: "Library Management",
+          smartPlan: {
+            button: "AI Smart Plan",
+            title: "Smart Plan",
+            nutritionist: "AI Nutritionist",
+            personalized: "Personalized Menu Plan",
+            target: "Target",
+            fallbackTitle: "Priority Logic (Fallback)",
+            fallback1: "If you logged your weight in Fitness recently, AI prioritizes the latest log.",
+            fallback2: "If you explicitly set a different goal (e.g., 'Bulk') in your Fitness diet log today, AI recommends for that goal instead of your long-term User Profile goal.",
+            error: "Nutritional AI is busy. Try again later."
           },
-          styles: {
-            home: "Homestyle",
-            spicy: "Spicy",
-            sweet: "Sweet & Sour",
-            braised: "Braised",
-            steam: "Steamed",
-            fry: "Stir-fry"
+          form: {
+            add: "Add Dish",
+            edit: "Edit Dish",
+            name: "Dish Name",
+            image: "Image URL",
+            category: "Category",
+            tags: "Tags",
+            cancel: "Cancel",
+            save: "Save"
           },
-          cats: {
-            meat: "Meat",
-            seafood: "Seafood",
-            veggie: "Veggie"
+          filters: {
+            healthy: "Healthy Mode",
+            cooldown: "Variety Mode", // Cooldown
+            category: "Category",
+            calories: "Calories",
+            tags: "Tags",
+            options: {
+              any: "All",
+              lunch: "Lunch",
+              dinner: "Dinner",
+              supper: "Supper",
+              low: "Low Cal",
+              medium: "Medium",
+              high: "High Cal"
+            },
+            tooltips: {
+              healthy: "Prioritizes low-calorie and balanced meals.",
+              variety: "Avoids dishes eaten recently to ensure variety."
+            }
+          },
+          // Legacy mappings maintained for type safety if needed, but UI uses new structure
+          ingredients: {},
+          styles: {},
+          cats: {},
+          menu: {
+            add: "Add Dish",
+            edit: "Edit Dish",
+            name: "Dish Name",
+            category: "Category",
+            weight: "Priority (1-10)",
+            calories: "Calorie Level",
+            save: "Save Dish"
           }
         },
         pirate: {
@@ -370,6 +418,12 @@ export const resources = {
       fitness: {
         title: 'Fitness Space',
         subtitle: 'Track body & performance metrics.',
+        // 🔥 New: Fitness Goals
+        goals: {
+          cut: 'Fat Loss',
+          bulk: 'Muscle Gain',
+          maintain: 'Maintain'
+        },
         calendar: {
           weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
           holidays: {
@@ -384,13 +438,16 @@ export const resources = {
             "Minor Heat", "Major Heat", "Start of Autumn", "End of Heat", "White Dew", "Autumn Equinox", 
             "Cold Dew", "Frost's Descent", "Start of Winter", "Minor Snow", "Major Snow", "Winter Solstice"
           ],
-          noActivity: 'No activity'
+          noActivity: 'No activity',
+          summaryTitle: 'Daily Activity Summary'
         },
         photoWall: {
           title: 'Fitness Gallery',
           captured: '{n} Photos Captured This Month',
-          empty: 'No photos uploaded for this month',
-          view: 'View Day Photos'
+          empty: 'No photos uploaded for this range',
+          view: 'View Day Photos',
+          prev6: 'Prev 6 Months',
+          next6: 'Next 6 Months'
         },
         stats: {
           progress: 'Progress',
@@ -430,6 +487,7 @@ export const resources = {
         },
         status: {
           weight: 'Weight (kg)',
+          height: 'Height (cm)', // New
           sleep: 'Sleep (hours)',
           mood: 'Mood',
           moods: {
@@ -451,6 +509,7 @@ export const resources = {
           weightTitle: 'Weight Trend',
           duration: 'Duration',
           weight: 'Weight',
+          bmi: 'BMI'
         },
         save: 'Save Record',
         saved: 'Record Updated'
@@ -520,7 +579,7 @@ export const resources = {
         delete: "Delete",
         deleteConfirm: "Remove Photo?",
         pinTitle: "Pin New Memory",
-        captionLabel: "Caption",
+        captionLabel: "标题",
         captionPlaceholder: "Give it a name...",
         dateLabel: "Date",
         pinButton: "Pin It",
@@ -638,7 +697,15 @@ export const resources = {
       exportLogs: '一键导出日志',
       active: '活跃',
       vipBadge: 'VIP',
-      downloadBackup: '下载所有个人日志的 JSON 备份。'
+      downloadBackup: '下载所有个人日志的 JSON 备份。',
+      // New translations
+      height: '身高 (cm)',
+      fitnessGoal: '健身目标',
+      goals: {
+        cut: '减脂 (Cut)',
+        bulk: '增肌 (Bulk)',
+        maintain: '保持 (Maintain)'
+      }
     },
     settings: {
       title: '系统配置',
@@ -781,6 +848,14 @@ export const resources = {
         gallery: "胶囊相册",
         fitness: "运动空间"
       },
+      hotSearch: {
+        title: "资讯中心",
+        hot: "热搜榜",
+        finance: "财经快讯",
+        game: "游戏电竞",
+        updated: "已更新",
+        loading: "正在扫描网络..."
+      },
       leisure: {
         musicTitle: "音乐播放器",
         playUrl: "播放链接",
@@ -829,53 +904,75 @@ export const resources = {
           }
         },
         chefWheel: {
-          title: "大厨转盘",
-          subtitle: "今天吃什么？",
-          spin: "开始转动",
-          spinning: "...",
-          cooking: "大厨正在思考...",
-          selectIngredients: "选择食材 (可多选)",
-          instruction: "选好食材，点击转动生成食谱",
-          reset: "重置",
-          ingredients: {
-            beef: "牛肉",
-            pork: "猪肉",
-            chicken: "鸡肉",
-            lamb: "羊肉",
-            duck: "鸭肉",
-            fish: "鱼肉",
-            shrimp: "虾",
-            oyster: "生蚝",
-            crab: "螃蟹",
-            clam: "蛤蜊",
-            egg: "鸡蛋",
-            tofu: "豆腐",
-            tomato: "西红柿",
-            potato: "土豆",
-            cucumber: "黄瓜",
-            broccoli: "西兰花",
-            cabbage: "圆白菜",
-            napa: "娃娃菜/白菜",
-            bokchoy: "青菜/杭白菜",
-            lettuce: "生菜",
-            carrot: "胡萝卜",
-            eggplant: "茄子",
-            pepper: "青椒",
-            mushroom: "蘑菇"
+          title: "AI 智能厨房",
+          subtitle: "全自动膳食决策系统",
+          spin: "开始抽取",
+          spinning: "分析中...",
+          confirm: "确认选择",
+          retry: "返回重抽",
+          recommending: "Gemini 思考建议中...",
+          recommendations: "你可能也喜欢:",
+          manage: "管理菜单",
+          viewRecipe: "查看做法",
+          searchMode: "菜谱搜寻",
+          wheelMode: "大转盘",
+          backToSearch: "返回搜索",
+          searchPlaceholder: "输入菜名 (例如: 宫保鸡丁)...",
+          searching: "搜索中...",
+          library: "菜单库管理",
+          smartPlan: {
+            button: "AI 智能膳食",
+            title: "智能方案",
+            nutritionist: "AI 营养师",
+            personalized: "个性化菜单定制",
+            target: "目标",
+            fallbackTitle: "优先级逻辑 (Fallback)",
+            fallback1: "AI 优先参考您最近在「运动空间」记录的体重数据。",
+            fallback2: "如果您今日在饮食记录中明确设置了临时目标（如“增肌”），AI 将优先基于该目标推荐，而非个人档案中的长期目标。",
+            error: "营养师 AI 正忙，请稍后再试。"
           },
-          styles: {
-            home: "家常",
-            spicy: "麻辣",
-            sweet: "酸甜",
-            braised: "红烧",
-            steam: "清蒸",
-            fry: "煎炸"
+          form: {
+            add: "新增菜品",
+            edit: "编辑菜品",
+            name: "菜名",
+            image: "图片链接",
+            category: "分类",
+            tags: "标签",
+            cancel: "取消",
+            save: "保存"
           },
-          cats: {
-            meat: "肉类",
-            seafood: "海鲜",
-            veggie: "素菜"
-          }
+          filters: {
+            healthy: "健康模式",
+            cooldown: "多样化模式", // Cooldown
+            category: "分类",
+            calories: "热量",
+            tags: "标签",
+            options: {
+              any: "任意",
+              lunch: "午餐",
+              dinner: "晚餐",
+              supper: "夜宵",
+              low: "低热量",
+              medium: "中等",
+              high: "高热量"
+            },
+            tooltips: {
+              healthy: "优先选择低热量且营养均衡的餐食。",
+              variety: "避开最近吃过的菜品（冷却期生效）。"
+            }
+          },
+          menu: {
+            add: "新增菜品",
+            edit: "编辑菜品",
+            name: "菜名",
+            category: "分类",
+            weight: "权重 (1-10)",
+            calories: "热量等级",
+            save: "保存菜品"
+          },
+          ingredients: {},
+          styles: {},
+          cats: {}
         },
         pirate: {
           title: "四皇海战 (华容道)",
@@ -897,6 +994,12 @@ export const resources = {
       fitness: {
         title: '运动空间',
         subtitle: '追踪您的生理机能与训练数据。',
+        // 🔥 New: Fitness Goals
+        goals: {
+          cut: '减脂',
+          bulk: '增肌',
+          maintain: '保持'
+        },
         calendar: {
           weekdays: ['日', '一', '二', '三', '四', '五', '六'],
           holidays: {
@@ -909,13 +1012,16 @@ export const resources = {
             "小寒", "大寒", "立春", "雨水", "惊蛰", "春分", "清明", "谷雨", "立夏", "小满", "芒种", "夏至",
             "小暑", "大暑", "立秋", "处暑", "白露", "秋分", "寒露", "霜降", "立冬", "小雪", "大雪", "冬至"
           ],
-          noActivity: '无记录'
+          noActivity: '无记录',
+          summaryTitle: '每日运动摘要'
         },
         photoWall: {
           title: '运动光影墙',
           captured: '本月拍摄 {n} 张',
-          empty: '本月暂无照片',
-          view: '查看当日照片'
+          empty: '该时段暂无照片',
+          view: '查看当日照片',
+          prev6: '前半年',
+          next6: '后半年'
         },
         stats: {
           progress: '进度',
@@ -955,6 +1061,7 @@ export const resources = {
         },
         status: {
           weight: '体重 (kg)',
+          height: '身高 (cm)', // New
           sleep: '睡眠 (小时)',
           mood: '今日心情',
           moods: {
@@ -976,6 +1083,7 @@ export const resources = {
           weightTitle: '体重趋势',
           duration: '时长',
           weight: '体重',
+          bmi: 'BMI指数'
         },
         save: '保存记录',
         saved: '记录已更新'

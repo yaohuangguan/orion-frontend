@@ -39,6 +39,9 @@ export interface User {
   vip?: boolean;
   private_token?: string;
   date?: string;
+  // 🔥🔥🔥 New: Fitness Goal & Height
+  fitnessGoal?: 'cut' | 'bulk' | 'maintain';
+  height?: number; // cm
 }
 
 export interface AuditLog {
@@ -216,6 +219,7 @@ export interface PeriodResponse {
 // Fitness Types (Refactored)
 export interface FitnessBody {
   weight?: number; // kg
+  bmi?: number;
 }
 
 export interface FitnessWorkout {
@@ -251,6 +255,7 @@ export interface FitnessRecord {
 export interface FitnessStats {
   dates: string[];
   weights: (number | null)[];
+  bmis: (number | null)[]; // Added BMI
   durations: number[];
   water: (number | null)[];
   sleep: (number | null)[];
@@ -288,6 +293,71 @@ export interface FootprintStats {
   provinces: string[];
   citiesCount: number;
 }
+
+// --- Menu / Chef's Wheel Types ---
+export interface Menu {
+  _id: string;
+  name: string;
+  category: string; // '午餐', '晚餐', etc.
+  tags: string[];
+  image?: string;
+  timesEaten: number;
+  lastEaten?: string;
+  isActive: boolean;
+  weight: number; // 1-10
+  caloriesLevel: 'low' | 'medium' | 'high';
+  createdAt?: string;
+}
+
+export interface DrawResponse {
+  winner: Menu;
+  pool: Menu[];
+  meta: any;
+}
+
+// --- Smart Menu Recommendation Types ---
+export interface SmartMenuDish {
+  name: string;
+  tags: string[];
+  calories_estimate: string;
+  reason: string;
+}
+
+export interface SmartMenuResponse {
+  success: boolean;
+  based_on: {
+    weight: number | null;
+    goal: string;
+    source: 'fitness_record' | 'user_profile';
+  };
+  recommendation: {
+    nutrition_advice: string;
+    dishes: SmartMenuDish[];
+  };
+}
+
+// --- Hot Search & News Types ---
+export interface HotSearchItem {
+  title: string;
+  url: string;
+  hot?: string;
+  googleUrl?: string; // Backend provides googleUrl
+  index?: number;
+}
+
+// Unified API Response
+export type DailyListType = 'hotsearch' | 'finance' | 'game';
+
+export interface DailyListResponse {
+  type: DailyListType;
+  date: string;
+  list: HotSearchItem[];
+  source: string;
+}
+
+// Keeping aliases for compatibility if needed, but implementation uses DailyListResponse
+export type HotSearchResponse = DailyListResponse;
+export type FinanceNewsResponse = DailyListResponse;
 
 export enum Theme {
   LIGHT = 'light',

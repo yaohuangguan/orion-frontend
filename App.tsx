@@ -49,6 +49,20 @@ const App: React.FC = () => {
     }
     return Theme.LIGHT;
   });
+
+  useEffect(() => {
+    // 区分构建工具
+    const ver = import.meta.env?.VITE_APP_VERSION
+    
+    if (ver) {
+      console.log(
+        `%c ✅ Deployed Version: ${ver.substring(0, 7)} `,
+        'background:#333; color:#bada55; border-radius:4px; padding:4px;'
+      );
+    }
+  }, []);
+
+
   const [currentPage, setCurrentPage] = useState<PageView>(PageView.HOME);
   const [user, setUser] = useState<User | null>(null);
   const [selectedBlog, setSelectedBlog] = useState<BlogPost | null>(null);

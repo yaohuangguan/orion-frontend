@@ -1,10 +1,13 @@
 
+
+
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { CountDateWidget, TabType } from './CountDateWidget';
 import { JournalSpace } from './JournalSpace';
 import { LeisureSpace } from './LeisureSpace';
 import { PhotoGallery } from './PhotoGallery';
 import { FitnessSpace } from './FitnessSpace';
+import { HotSearchWidget } from './HotSearchWidget';
 import { BlogPost, User, PaginationData } from '../../types';
 import { useTranslation } from '../../i18n/LanguageContext';
 
@@ -42,9 +45,6 @@ export const PrivateSpaceDashboard: React.FC<PrivateSpaceDashboardProps> = ({
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<TabType>('JOURNAL');
   
-  // Manual Override State
-  const [manualHoliday, setManualHoliday] = useState<HolidayMode | null>(null);
-
   // --- Auto Holiday Logic ---
   const autoHoliday = useMemo<HolidayMode>(() => {
     const now = new Date();
@@ -60,15 +60,31 @@ export const PrivateSpaceDashboard: React.FC<PrivateSpaceDashboardProps> = ({
     return 'OFF';
   }, []);
 
-  // Determine active holiday (Manual takes precedence, else Auto)
+  // --- Theme State Initialization ---
+  const [manualHoliday, setManualHoliday] = useState<HolidayMode | null>(() => {
+    if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('private_theme');
+        if (saved && (saved === 'CHRISTMAS' || saved === 'CNY' || saved === 'OFF')) {
+            return saved as HolidayMode;
+        }
+    }
+    return null;
+  });
+
+  // Determine active holiday
   const activeHoliday = manualHoliday !== null ? manualHoliday : autoHoliday;
   const effectsEnabled = activeHoliday !== 'OFF';
 
   // Toggle Handler: Cycle through CHRISTMAS -> CNY -> OFF -> CHRISTMAS
+  // Save to localStorage on change
   const handleToggleEffects = () => {
-    if (activeHoliday === 'CHRISTMAS') setManualHoliday('CNY');
-    else if (activeHoliday === 'CNY') setManualHoliday('OFF');
-    else setManualHoliday('CHRISTMAS'); // If OFF, start with Christmas
+    let next: HolidayMode;
+    if (activeHoliday === 'CHRISTMAS') next = 'CNY';
+    else if (activeHoliday === 'CNY') next = 'OFF';
+    else next = 'CHRISTMAS';
+
+    setManualHoliday(next);
+    localStorage.setItem('private_theme', next);
   };
 
   // Fitness tab should scroll with the page, others have fixed internal layouts on desktop
@@ -87,6 +103,9 @@ export const PrivateSpaceDashboard: React.FC<PrivateSpaceDashboardProps> = ({
       ${getBackgroundClass()}
     `}>
       
+      {/* Floating News Widget - Persistent across tabs */}
+      <HotSearchWidget />
+
       {/* --- RENDER THEMES --- */}
       {activeHoliday === 'CHRISTMAS' && <ChristmasTheme />}
       {activeHoliday === 'CNY' && <NewYearTheme />}

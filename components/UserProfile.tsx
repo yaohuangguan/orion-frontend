@@ -13,6 +13,9 @@ interface UserProfileProps {
 export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) => {
   const { t } = useTranslation();
   const [displayName, setDisplayName] = useState(user.displayName);
+  const [height, setHeight] = useState<string>(user.height ? user.height.toString() : '');
+  const [fitnessGoal, setFitnessGoal] = useState<'cut' | 'bulk' | 'maintain'>(user.fitnessGoal || 'maintain');
+  
   const [isLoading, setIsLoading] = useState(false);
 
   // Avatar Upload State
@@ -43,6 +46,13 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
   // Check if current user is VIP Admin
   const isVipAdmin = user.vip && user.private_token === 'ilovechenfangting';
 
+  // Update local state when user prop changes (e.g. after refresh)
+  useEffect(() => {
+    setDisplayName(user.displayName);
+    setHeight(user.height ? user.height.toString() : '');
+    setFitnessGoal(user.fitnessGoal || 'maintain');
+  }, [user]);
+
   // --- ADMIN EFFECTS ---
   // Debounce search
   useEffect(() => {
@@ -57,7 +67,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
     if (!isVipAdmin) return;
     setAdminLoading(true);
     try {
-      // Sort by VIP first (backend support: sortBy='vip', order='desc')
+      // Sort by 'vip' first (backend support: sortBy='vip', order='desc')
       const { data, pagination } = await apiService.getUsers(page, 10, adminSearch, 'vip', 'desc');
       setAdminUsers(data);
       setAdminPagination(pagination);
@@ -147,10 +157,20 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
     
     setIsLoading(true);
     try {
-      // Update Profile (Name only)
-      await apiService.updateProfile(user._id, {
-        displayName
-      });
+      // Update Profile (Name, Height, Goal)
+      const payload: Partial<User> = {
+        displayName,
+        fitnessGoal
+      };
+      
+      if (height) {
+        const heightNum = parseFloat(height);
+        if (!isNaN(heightNum) && heightNum > 0) {
+           payload.height = heightNum;
+        }
+      }
+
+      await apiService.updateProfile(user._id, payload);
 
       // Re-fetch full user profile
       const fullUser = await apiService.getCurrentUser();
@@ -289,6 +309,31 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
                   onChange={(e) => setDisplayName(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all text-slate-900 dark:text-white font-medium"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                 <div>
+                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">{t.profile.height}</label>
+                    <input 
+                      type="number" 
+                      value={height}
+                      onChange={(e) => setHeight(e.target.value)}
+                      placeholder="e.g. 175"
+                      className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all text-slate-900 dark:text-white font-medium"
+                    />
+                 </div>
+                 <div>
+                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">{t.profile.fitnessGoal}</label>
+                    <select 
+                      value={fitnessGoal}
+                      onChange={(e) => setFitnessGoal(e.target.value as any)}
+                      className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all text-slate-900 dark:text-white font-medium"
+                    >
+                       <option value="cut">{t.profile.goals.cut}</option>
+                       <option value="maintain">{t.profile.goals.maintain}</option>
+                       <option value="bulk">{t.profile.goals.bulk}</option>
+                    </select>
+                 </div>
               </div>
 
               <div>
