@@ -184,7 +184,7 @@ export const PrivateSpaceDashboard: React.FC<PrivateSpaceDashboardProps> = ({
         {activeTab === 'LEISURE' && (
           can(user, PERM_KEYS.LEISURE_READ) ? (
             <div className="h-full animate-fade-in lg:overflow-hidden">
-               <LeisureSpace />
+               <LeisureSpace user={user} />
             </div>
           ) : <AccessRestricted permission={PERM_KEYS.LEISURE_READ} className="bg-white/80 backdrop-blur shadow-xl border-white/50" onSuccess={() => window.location.reload()} />
         )}

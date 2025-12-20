@@ -4,8 +4,13 @@ import { useTranslation } from '../../i18n/LanguageContext';
 import { PeriodTrackerWidget } from './leisure/PeriodTrackerWidget';
 import { AIChef } from './leisure/AIChef';
 import { PirateLordsGame } from './leisure/PirateLordsGame';
+import { User } from '../../types';
 
-export const LeisureSpace: React.FC = () => {
+interface LeisureSpaceProps {
+  user: User | null;
+}
+
+export const LeisureSpace: React.FC<LeisureSpaceProps> = ({ user }) => {
   const { t } = useTranslation();
   const [leftWidth, setLeftWidth] = useState(50); 
   const [isDragging, setIsDragging] = useState(false);
@@ -106,7 +111,7 @@ export const LeisureSpace: React.FC = () => {
 
             {/* Period Tracker */}
             <div className="h-[480px]">
-               <PeriodTrackerWidget />
+               <PeriodTrackerWidget user={user} />
             </div>
          </div>
 

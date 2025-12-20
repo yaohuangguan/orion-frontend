@@ -357,6 +357,10 @@ export const resources = {
           symptoms: "Symptoms",
           note: "Note",
           delete: "Delete Record",
+          // New I18n Keys
+          startDate: "Start Date",
+          endDate: "End Date",
+          color: "Color",
           flows: {
             light: "Light",
             medium: "Medium",
@@ -1002,6 +1006,10 @@ export const resources = {
           symptoms: "症状",
           note: "备注",
           delete: "删除记录",
+          // New I18n Keys
+          startDate: "开始日期",
+          endDate: "结束日期",
+          color: "经血颜色",
           flows: {
             light: "少量",
             medium: "中等",

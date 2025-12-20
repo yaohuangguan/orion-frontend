@@ -220,20 +220,22 @@ export const featureService = {
   },
 
   // --- Period / Cycle Tracker ---
-  getPeriodData: async (): Promise<PeriodResponse> => {
-    return await fetchClient<PeriodResponse>('/period');
+  getPeriodData: async (targetUserId?: string): Promise<PeriodResponse> => {
+    const q = targetUserId ? `?targetUserId=${targetUserId}` : '';
+    return await fetchClient<PeriodResponse>(`/period${q}`);
   },
 
-  savePeriodRecord: async (data: Partial<PeriodRecord>): Promise<PeriodResponse> => {
+  savePeriodRecord: async (data: Partial<PeriodRecord>, targetUserId?: string): Promise<PeriodResponse> => {
+    const body = { ...data, targetUserId };
     if (data._id) {
       return await fetchClient<PeriodResponse>(`/period/${data._id}`, {
         method: 'PUT',
-        body: JSON.stringify(data)
+        body: JSON.stringify(body)
       });
     } else {
       return await fetchClient<PeriodResponse>('/period', {
         method: 'POST',
-        body: JSON.stringify(data)
+        body: JSON.stringify(body)
       });
     }
   },

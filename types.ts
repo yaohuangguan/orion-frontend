@@ -256,6 +256,7 @@ export interface PeriodRecord {
   symptoms?: string[];
   flow?: 'light' | 'medium' | 'heavy';
   note?: string;
+  color?: string; // New field for period blood color code
   operator?: string; // ID of the user who logged this record
 }
 
