@@ -3,7 +3,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from '../../i18n/LanguageContext';
 import { featureService } from '../../services/featureService';
 import { User } from '../../types';
-import { BlogContent } from '../BlogContent';
 import { toast } from '../Toast';
 
 interface SecondBrainSpaceProps {
@@ -77,6 +76,15 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
     }
   }, [messages, isProcessing]);
 
+  // Highlight Code blocks when messages update
+  useEffect(() => {
+    if (window.hljs && scrollRef.current) {
+      scrollRef.current.querySelectorAll('pre code').forEach((block) => {
+        window.hljs.highlightElement(block as HTMLElement);
+      });
+    }
+  }, [messages]);
+
   // Auto-resize textarea
   useEffect(() => {
     if (inputRef.current) {
@@ -99,7 +107,7 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
       content: userText,
       timestamp: new Date(),
       avatar: user?.photoURL,
-      name: user?.displayName
+      name: user?.displayName || 'User'
     };
 
     setMessages(prev => [...prev, userMsg]);
@@ -110,7 +118,7 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
     if (inputRef.current) inputRef.current.style.height = 'auto';
 
     try {
-      // 2. Save User Message to Backend (Async, don't await blocking UI)
+      // 2. Save User Message to Backend (Async)
       featureService.saveAiChatMessage(userText, 'user').catch(err => console.error("Failed to save user message", err));
 
       // 3. Create Placeholder for AI Response
@@ -126,17 +134,14 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
       }]);
 
       // 4. Prepare Context & Stream
-      // Limit context to last 10 messages for efficiency
       const recentHistory = messages.slice(-10).map(m => ({
         role: m.role,
         content: m.content
       }));
-      // Add current user message
       recentHistory.push({ role: 'user', content: userText });
 
       let fullAiResponse = "";
 
-      // Stream with simulated smoothness
       await featureService.askLifeStream(userText, recentHistory, (chunk) => {
         fullAiResponse += chunk;
         setMessages(prev => prev.map(m => {
@@ -155,7 +160,6 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
     } catch (error) {
       console.error(error);
       setMessages(prev => {
-        // If last message is the empty AI placeholder, show error
         const last = prev[prev.length - 1];
         if (last.isStreaming && last.role === 'assistant') {
            return prev.map(m => m.id === last.id ? { ...m, content: m.content + "\n\n*[Connection Error: Brain Offline]*", isStreaming: false } : m);
@@ -169,20 +173,20 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
   };
 
   const handleClearHistory = async () => {
-    if (!confirm("Are you sure you want to permanently delete all memory from the database? This cannot be undone.")) return;
+    if (!confirm("Are you sure you want to permanently delete all memory from the database?")) return;
     try {
       await featureService.clearAiChatHistory();
       setMessages([
         {
           id: 'welcome-reset',
           role: 'assistant',
-          content: "Memory wiped from database. Starting fresh tabula rasa.",
+          content: "Memory wiped. Ready for new input.",
           timestamp: new Date(),
           avatar: DEFAULT_AI_AVATAR,
           name: 'Second Brain'
         }
       ]);
-      toast.success("Brain memory permanently cleared.");
+      toast.success("Brain memory cleared.");
     } catch (e) {
       toast.error("Failed to clear memory.");
     }
@@ -193,7 +197,7 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
         {
           id: 'new-session',
           role: 'assistant',
-          content: "Starting a new session context. (Previous history remains in database but is cleared from view).",
+          content: "New session started.",
           timestamp: new Date(),
           avatar: DEFAULT_AI_AVATAR,
           name: 'Second Brain'
@@ -215,205 +219,240 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
   };
 
   const handleFeedback = (type: 'like' | 'dislike') => {
-    toast.info(type === 'like' ? "Thanks for the feedback!" : "Noted. I'll try to improve.");
+    toast.info(type === 'like' ? "Feedback: Helpful" : "Feedback: Not Helpful");
+  };
+
+  // Custom Markdown Rendering logic (replacing BlogContent)
+  const renderMarkdown = (content: string) => {
+    if (!content) return { __html: '' };
+    if (window.marked) {
+      try {
+        return { __html: window.marked.parse(content) };
+      } catch (e) {
+        return { __html: content };
+      }
+    }
+    return { __html: content };
   };
 
   return (
-    <div className="flex flex-col h-full relative max-w-5xl mx-auto w-full">
+    <div className="flex flex-col h-full relative max-w-6xl mx-auto w-full">
       
-      {/* Background Ambience */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[2rem] z-0">
-         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px] animate-pulse"></div>
-         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-violet-500/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '2s' }}></div>
-      </div>
-
-      {/* Main Chat Container */}
-      <div className="flex-1 bg-white/40 backdrop-blur-xl border border-white/50 rounded-[2rem] shadow-2xl flex flex-col overflow-hidden relative z-10 min-h-0">
+      {/* Main Chat Container - ChatGPT Style Dark Theme */}
+      <div className="flex-1 bg-[#212121] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden relative z-10 min-h-0 border border-[#333]">
         
-        {/* Header */}
-        <div className="p-4 border-b border-indigo-100/50 flex items-center justify-between bg-white/40 shrink-0">
+        {/* Header (Minimalist) */}
+        <div className="p-4 flex items-center justify-between shrink-0 z-20 border-b border-white/5 bg-[#212121]">
            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 overflow-hidden border-2 border-white/20">
-                 <img src={DEFAULT_AI_AVATAR} alt="Brain" className="w-full h-full object-cover" />
-              </div>
-              <div>
-                 <h2 className="font-display font-bold text-slate-800 text-base leading-none">{t.privateSpace.secondBrain.title}</h2>
-                 <p className="text-[10px] text-indigo-500 font-mono uppercase tracking-widest mt-0.5 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                    Online
-                 </p>
-              </div>
+              <span className="text-sm font-bold text-gray-200">
+                 {t.privateSpace.secondBrain.title} <span className="opacity-50 font-normal">3.0</span>
+              </span>
            </div>
            
            <div className="flex gap-2">
               <button 
                 onClick={handleNewSession}
-                className="text-xs font-bold text-slate-500 hover:text-indigo-600 uppercase tracking-wider flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-indigo-50 transition-colors border border-transparent hover:border-indigo-100"
-                title="Start New Session (Clear View)"
+                className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                title="New Chat"
               >
-                <i className="fas fa-plus"></i> <span className="hidden sm:inline">New Session</span>
+                <i className="fas fa-edit text-sm"></i>
               </button>
               <button 
                 onClick={handleClearHistory}
-                className="text-xs font-bold text-slate-400 hover:text-red-500 uppercase tracking-wider flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors border border-transparent hover:border-red-100"
-                title="Permanently Delete History"
+                className="p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                title="Delete Memory"
               >
-                <i className="fas fa-trash-alt"></i>
+                <i className="fas fa-trash-alt text-sm"></i>
               </button>
            </div>
         </div>
 
         {/* Messages Area */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 custom-scrollbar scroll-smooth space-y-4">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto custom-scrollbar scroll-smooth">
            {isInitializing ? (
-              <div className="flex items-center justify-center h-full text-indigo-300 gap-2">
-                 <i className="fas fa-circle-notch fa-spin"></i> Loading memories...
+              <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-3">
+                 <div className="w-8 h-8 border-2 border-gray-600 border-t-gray-300 rounded-full animate-spin"></div>
+                 <p className="text-xs uppercase tracking-widest">Initializing Neural Net...</p>
               </div>
            ) : (
-             messages.map((msg) => {
-               const isUser = msg.role === 'user';
-               return (
-                 <div key={msg.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-fade-in group`}>
-                    <div className={`max-w-[95%] md:max-w-[85%] flex gap-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
-                       
-                       {/* Avatar */}
-                       <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-1 shadow-sm overflow-hidden border ${isUser ? 'bg-slate-200 border-white' : 'bg-white border-indigo-100'}`}>
-                          {isUser ? (
-                             <img src={user?.photoURL} alt="Me" className="w-full h-full object-cover" />
-                          ) : (
-                             <img src={msg.avatar || DEFAULT_AI_AVATAR} alt="AI" className="w-full h-full object-cover" />
-                          )}
-                       </div>
+             <div className="flex flex-col pb-4">
+                {messages.map((msg, idx) => {
+                  const isUser = msg.role === 'user';
+                  return (
+                    <div 
+                      key={msg.id} 
+                      className={`w-full py-8 px-4 md:px-12 border-b border-black/5 ${isUser ? 'bg-[#212121]' : 'bg-[#212121]'}`} // Keep background consistent for "layered" feel via spacing/indent
+                    >
+                       <div className="max-w-4xl mx-auto flex gap-6">
+                          
+                          {/* Avatar Column */}
+                          <div className={`shrink-0 flex flex-col items-center ${isUser ? 'order-2' : 'order-1'}`}>
+                             <div className={`w-8 h-8 rounded-sm overflow-hidden flex items-center justify-center ${isUser ? 'bg-transparent' : 'bg-green-500/10'}`}>
+                                <img 
+                                  src={msg.avatar} 
+                                  alt={msg.role} 
+                                  className="w-full h-full object-cover rounded-sm"
+                                  onError={(e) => (e.currentTarget.src = DEFAULT_AI_AVATAR)} 
+                                />
+                             </div>
+                          </div>
 
-                       {/* Bubble Container */}
-                       <div className="flex flex-col gap-1 min-w-0">
-                           <div className={`
-                              relative px-4 py-2.5 rounded-2xl text-sm leading-relaxed
-                              ${isUser 
-                                 ? 'bg-slate-800 text-white rounded-tr-sm shadow-md' 
-                                 : 'bg-transparent text-slate-800 pl-0 pt-1' // AI Message minimal style (ChatGPT-like)
-                              }
-                           `}>
-                              {/* Name Label */}
-                              {!isUser && msg.name && msg.name !== 'Second Brain' && (
-                                 <div className="text-[10px] font-bold text-indigo-500 mb-1 opacity-70 uppercase tracking-wider">{msg.name}</div>
-                              )}
+                          {/* Content Column */}
+                          <div className={`flex-1 min-w-0 ${isUser ? 'order-1 text-right' : 'order-2 text-left'}`}>
+                             {/* Name Header */}
+                             <div className={`text-xs font-bold mb-2 ${isUser ? 'text-gray-400' : 'text-gray-200'}`}>
+                                {msg.name}
+                             </div>
 
-                              {isUser ? (
-                                 <div className="whitespace-pre-wrap">{msg.content}</div>
-                              ) : (
-                                 <div className="markdown-body-chat relative">
-                                    {msg.content ? (
-                                       <>
-                                         <BlogContent content={msg.content} shadowClass="shadow-none border-none p-0" forceLight={true} clean={true} />
-                                         {/* Blinking Cursor for Streaming */}
-                                         {msg.isStreaming && (
-                                            <span className="inline-block w-2 h-4 bg-indigo-500 ml-1 align-middle animate-[blink_1s_step-end_infinite]"></span>
-                                         )}
-                                       </>
-                                    ) : msg.isStreaming ? (
-                                       <div className="flex gap-1 items-center h-5">
-                                          <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce"></span>
-                                          <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
-                                          <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></span>
-                                       </div>
-                                    ) : null}
-                                 </div>
-                              )}
-                           </div>
-                           
-                           {/* Message Footer: Timestamp & Actions */}
-                           <div className={`flex items-center gap-3 ${isUser ? 'justify-end pr-1' : 'justify-between pl-0'} opacity-50 group-hover:opacity-100 transition-opacity`}>
-                              {!isUser && !msg.isStreaming && msg.content && (
-                                 <div className="flex gap-3">
-                                    <button 
+                             {/* Message Body */}
+                             {isUser ? (
+                                <div className="inline-block bg-[#2f2f2f] text-gray-100 px-5 py-3 rounded-2xl rounded-tr-sm text-sm leading-relaxed whitespace-pre-wrap text-left shadow-sm">
+                                   {msg.content}
+                                </div>
+                             ) : (
+                                <div className="chat-content text-gray-300 text-[15px] leading-7 relative">
+                                   {msg.content ? (
+                                      <div dangerouslySetInnerHTML={renderMarkdown(msg.content)} />
+                                   ) : (
+                                      <div className="flex items-center gap-1 h-6">
+                                         <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></span>
+                                         <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></span>
+                                         <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></span>
+                                      </div>
+                                   )}
+                                   {msg.isStreaming && (
+                                      <span className="inline-block w-2 h-4 bg-gray-400 ml-1 align-middle animate-pulse"></span>
+                                   )}
+                                </div>
+                             )}
+
+                             {/* AI Actions Footer */}
+                             {!isUser && !msg.isStreaming && msg.content && (
+                                <div className="flex items-center gap-4 mt-3 pt-2">
+                                   <button 
                                       onClick={() => copyToClipboard(msg.content)} 
-                                      className="text-slate-400 hover:text-indigo-500 transition-colors"
-                                      title="Copy"
-                                    >
-                                       <i className="fas fa-copy text-xs"></i>
-                                    </button>
-                                    <button 
+                                      className="text-gray-500 hover:text-gray-300 transition-colors text-xs flex items-center gap-1"
+                                   >
+                                      <i className="fas fa-copy"></i>
+                                   </button>
+                                   <button 
                                       onClick={() => handleFeedback('like')} 
-                                      className="text-slate-400 hover:text-green-500 transition-colors"
-                                      title="Helpful"
-                                    >
-                                       <i className="fas fa-thumbs-up text-xs"></i>
-                                    </button>
-                                    <button 
+                                      className="text-gray-500 hover:text-gray-300 transition-colors text-xs"
+                                   >
+                                      <i className="fas fa-thumbs-up"></i>
+                                   </button>
+                                   <button 
                                       onClick={() => handleFeedback('dislike')} 
-                                      className="text-slate-400 hover:text-red-500 transition-colors"
-                                      title="Not Helpful"
-                                    >
-                                       <i className="fas fa-thumbs-down text-xs"></i>
-                                    </button>
-                                 </div>
-                              )}
-                           </div>
+                                      className="text-gray-500 hover:text-gray-300 transition-colors text-xs"
+                                   >
+                                      <i className="fas fa-thumbs-down"></i>
+                                   </button>
+                                </div>
+                             )}
+                          </div>
                        </div>
                     </div>
-                 </div>
-               )
-             })
+                  );
+                })}
+             </div>
            )}
         </div>
 
-        {/* Input Area - Fixed at bottom of container */}
-        <div className="p-4 bg-white/60 border-t border-indigo-100/50 shrink-0">
-           <div className="relative bg-white rounded-3xl border border-indigo-100 shadow-lg focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-300 transition-all flex items-end">
-              <textarea
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={t.privateSpace.secondBrain.placeholder}
-                className="w-full bg-transparent border-none outline-none py-3.5 pl-5 pr-14 text-slate-700 placeholder:text-slate-400 resize-none max-h-40 min-h-[52px] text-sm"
-                rows={1}
-                disabled={isProcessing}
-              />
-              <button
-                onClick={() => handleSubmit()}
-                disabled={!input.trim() || isProcessing}
-                className="absolute bottom-2 right-2 w-9 h-9 bg-indigo-500 text-white rounded-full flex items-center justify-center hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-indigo-500/30 transition-all"
-              >
-                 {isProcessing ? <i className="fas fa-stop text-[10px]"></i> : <i className="fas fa-arrow-up text-xs"></i>}
-              </button>
-           </div>
-           <div className="text-center mt-2">
-              <span className="text-[10px] text-slate-400 font-mono opacity-70">
-                 AI Access: Journal • Fitness • Projects • Resume
-              </span>
+        {/* Input Area */}
+        <div className="p-4 md:p-6 bg-[#212121] border-t border-white/5 shrink-0">
+           <div className="max-w-3xl mx-auto relative">
+              <div className="relative bg-[#2f2f2f] rounded-xl border border-gray-700 focus-within:border-gray-500 shadow-lg transition-colors">
+                 <textarea
+                   ref={inputRef}
+                   value={input}
+                   onChange={(e) => setInput(e.target.value)}
+                   onKeyDown={handleKeyDown}
+                   placeholder={t.privateSpace.secondBrain.placeholder}
+                   className="w-full bg-transparent border-none outline-none py-3 pl-4 pr-12 text-gray-200 placeholder:text-gray-500 resize-none max-h-48 min-h-[52px] text-sm leading-relaxed custom-scrollbar"
+                   rows={1}
+                   disabled={isProcessing}
+                 />
+                 <button
+                   onClick={() => handleSubmit()}
+                   disabled={!input.trim() || isProcessing}
+                   className={`absolute right-2 bottom-2 w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+                      !input.trim() 
+                      ? 'bg-transparent text-gray-600 cursor-not-allowed' 
+                      : 'bg-white text-black hover:bg-gray-200'
+                   }`}
+                 >
+                    {isProcessing ? <i className="fas fa-stop text-xs"></i> : <i className="fas fa-arrow-up text-xs"></i>}
+                 </button>
+              </div>
+              <p className="text-[10px] text-gray-500 text-center mt-2">
+                 AI can make mistakes. Consider checking important information.
+              </p>
            </div>
         </div>
 
       </div>
 
       <style>{`
-        /* Minimal override to ensure chat markdown fits nicely */
-        .markdown-body-chat .prose {
-           font-size: 0.925rem;
-           line-height: 1.6;
+        /* Chat Content Specific Styles (replacing BlogContent) */
+        .chat-content p {
+           margin-bottom: 1em;
         }
-        .markdown-body-chat .prose p {
+        .chat-content p:last-child {
+           margin-bottom: 0;
+        }
+        .chat-content h1, .chat-content h2, .chat-content h3 {
+           color: #f3f4f6; /* gray-100 */
+           font-weight: 700;
+           margin-top: 1.5em;
            margin-bottom: 0.5em;
         }
-        .markdown-body-chat .prose pre {
-           background-color: #1e293b !important;
-           border-radius: 0.5rem;
-           padding: 0.75rem;
-           margin: 0.5rem 0;
+        .chat-content ul, .chat-content ol {
+           margin-left: 1.5em;
+           margin-bottom: 1em;
+           list-style-type: disc;
         }
-        .markdown-body-chat .prose code {
+        .chat-content ol {
+           list-style-type: decimal;
+        }
+        .chat-content li {
+           margin-bottom: 0.25em;
+        }
+        .chat-content strong {
+           color: #fff;
+           font-weight: 700;
+        }
+        .chat-content blockquote {
+           border-left: 3px solid #4b5563;
+           padding-left: 1em;
+           color: #9ca3af;
+           font-style: italic;
+        }
+        .chat-content code {
+           background-color: #2f2f2f;
+           padding: 0.2em 0.4em;
+           border-radius: 4px;
+           font-family: monospace;
+           font-size: 0.9em;
+           color: #e5e7eb;
+        }
+        .chat-content pre {
+           background-color: #0d0d0d;
+           padding: 1em;
+           border-radius: 8px;
+           overflow-x: auto;
+           margin: 1em 0;
+           border: 1px solid #333;
+        }
+        .chat-content pre code {
+           background-color: transparent;
+           padding: 0;
+           border-radius: 0;
+           color: inherit;
            font-size: 0.85em;
         }
-        /* Hide the large decorative blobs from BlogContent in chat mode */
-        .markdown-body-chat .absolute.blur-\[100px\] {
-           display: none;
-        }
-        
-        @keyframes blink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0; }
+        .chat-content a {
+           color: #60a5fa;
+           text-decoration: underline;
         }
       `}</style>
     </div>
