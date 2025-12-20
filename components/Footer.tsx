@@ -1,10 +1,11 @@
 
 import React from 'react';
 import { useTranslation } from '../i18n/LanguageContext';
-import { PageView } from '../types';
+import { PageView, User, PERM_KEYS, can } from '../types';
 
 interface FooterProps {
   currentPage: PageView;
+  currentUser?: User | null;
 }
 
 // --- Heart Firework Effect Helper ---
@@ -47,8 +48,10 @@ const triggerHeartExplosion = (e: React.MouseEvent) => {
   }
 };
 
-export const Footer: React.FC<FooterProps> = ({ currentPage }) => {
-  const { t } = useTranslation();
+export const Footer: React.FC<FooterProps> = ({ currentPage, currentUser }) => {
+  const { t, language } = useTranslation();
+
+  const hasAccess = can(currentUser, PERM_KEYS.PRIVATE_ACCESS);
 
   return (
     <footer className={`relative overflow-hidden mt-20 transition-colors z-10 pointer-events-auto ${
@@ -78,17 +81,25 @@ export const Footer: React.FC<FooterProps> = ({ currentPage }) => {
       <div className="container mx-auto px-6 text-center relative z-10">
         <div className="mb-8">
           {currentPage === PageView.PRIVATE_SPACE ? (
-            <div className="flex items-center justify-center gap-3 font-display font-bold text-2xl text-rose-400">
-              <span>Sam Yao</span>
-              <span 
-                className="text-3xl text-rose-500 animate-pulse cursor-pointer hover:scale-125 transition-transform duration-300 inline-block"
-                onMouseEnter={triggerHeartExplosion}
-                onClick={triggerHeartExplosion}
-                style={{ textShadow: '0 0 20px rgba(244, 63, 94, 0.6)' }}
-              >
-                ❤
-              </span>
-              <span>Jennifer Chen</span>
+            <div className="flex flex-col items-center justify-center gap-3 font-display font-bold text-2xl text-rose-400">
+              {hasAccess ? (
+                <div className="flex items-center gap-3">
+                  <span>Sam Yao</span>
+                  <span 
+                    className="text-3xl text-rose-500 animate-pulse cursor-pointer hover:scale-125 transition-transform duration-300 inline-block"
+                    onMouseEnter={triggerHeartExplosion}
+                    onClick={triggerHeartExplosion}
+                    style={{ textShadow: '0 0 20px rgba(244, 63, 94, 0.6)' }}
+                  >
+                    ❤
+                  </span>
+                  <span>Jennifer Chen</span>
+                </div>
+              ) : (
+                <div className="text-xl opacity-80">
+                   {language === 'zh' ? '欢迎来到舰长室' : "Welcome to the Captain's Cabin"}
+                </div>
+              )}
             </div>
           ) : (
              <>

@@ -14,7 +14,7 @@ import { ChatRoom } from './components/ChatRoom';
 import { AuditLogViewer } from './components/AuditLogViewer';
 import { PortfolioPage } from './components/PortfolioPage';
 import { apiService } from './services/api';
-import { Theme, PageView, User, BlogPost, PaginationData, ChatUser } from './types';
+import { Theme, PageView, User, BlogPost, PaginationData, ChatUser, PERM_KEYS, can } from './types';
 import { useTranslation } from './i18n/LanguageContext';
 
 // New Component Imports
@@ -84,18 +84,6 @@ const App: React.FC = () => {
 
   // Socket State
   const [socket, setSocket] = useState<Socket | null>(null);
-
-  useEffect(() => {
-    // 区分构建工具
-    const ver = import.meta.env?.VITE_APP_VERSION
-    
-    if (ver) {
-      console.log(
-        `%c ✅ Deployed Version: ${ver.substring(0, 7)} `,
-        'background:#333; color:#bada55; border-radius:4px; padding:4px;'
-      );
-    }
-  }, []);
 
   useEffect(() => {
     // Load liked posts from localStorage
@@ -187,8 +175,8 @@ const App: React.FC = () => {
         fetchPrivateBlogs(privatePagination?.currentPage || 1);
       }
       
-      // Ensure user stays on private page only if valid
-      if (user.vip && user.private_token === 'ilovechenfangting') {
+      // Ensure user stays on private page only if valid perms
+      if (can(user, PERM_KEYS.PRIVATE_ACCESS)) {
          // authorized
       } else {
          setCurrentPage(PageView.HOME);
@@ -380,23 +368,23 @@ const App: React.FC = () => {
         theme={theme}
         toggleTheme={toggleTheme}
         setPage={(page) => {
-          // Extra security check on nav click
+          // Extra security check on nav click using PERMISSIONS
           if (page === PageView.PRIVATE_SPACE) {
-            if (!user?.vip || user?.private_token !== 'ilovechenfangting') {
+            if (!can(user, PERM_KEYS.PRIVATE_ACCESS)) {
               alert("Access Denied: You do not have the required clearance level.");
               return;
             }
           }
-          if (page === PageView.AUDIT_LOG && !user?.vip) {
-            alert("Access Denied: VIP Only.");
+          if (page === PageView.AUDIT_LOG && !can(user, PERM_KEYS.SYSTEM_LOGS)) {
+            alert("Access Denied: System Audit Clearance Required.");
             return;
           }
           if (page === PageView.FOOTPRINT && !user) {
              alert("Access Denied: Please Login.");
              return;
           }
-          if (page === PageView.SYSTEM && !user) {
-             alert("Access Denied: Please Login.");
+          if (page === PageView.SYSTEM && !can(user, PERM_KEYS.SYSTEM_LOGS)) {
+             alert("Access Denied: Admin Clearance Required.");
              return;
           }
           setCurrentPage(page);
@@ -502,7 +490,7 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {currentPage === PageView.AUDIT_LOG && user?.vip && (
+        {currentPage === PageView.AUDIT_LOG && can(user, PERM_KEYS.SYSTEM_LOGS) && (
           <div className="pointer-events-auto w-full min-h-screen">
             <AuditLogViewer />
           </div>
@@ -519,7 +507,7 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {currentPage === PageView.SYSTEM && user && (
+        {currentPage === PageView.SYSTEM && can(user, PERM_KEYS.SYSTEM_LOGS) && (
           <div className="pointer-events-auto w-full min-h-screen">
             <SystemManagement />
           </div>
@@ -534,7 +522,7 @@ const App: React.FC = () => {
         )}
       </main>
 
-      <Footer currentPage={currentPage} />
+      <Footer currentPage={currentPage} currentUser={user} />
 
       {/* Login Modal */}
       <LoginModal 

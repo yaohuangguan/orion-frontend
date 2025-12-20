@@ -1,8 +1,4 @@
 
-
-
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import { apiService } from '../../services/api';
 import { Todo } from '../../types';
@@ -24,6 +20,9 @@ export const TodoWidget: React.FC = () => {
     todo: '', description: '', status: 'todo', images: [], targetDate: ''
   });
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Deletion State for individual cards
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
 
   // Widget Expansion State (Mobile/Desktop view toggle)
   // Default to collapsed (false) as requested
@@ -98,17 +97,40 @@ export const TodoWidget: React.FC = () => {
 
   const handleDelete = async () => {
     if (!currentTodo._id) return;
-    if (!confirm(t.privateSpace.gallery.deleteConfirm)) return;
+    // Removed alert confirmation as requested
 
     setIsProcessing(true);
     try {
       await apiService.deleteTodo(currentTodo._id);
-      await fetchTodos(); // Refresh list
+      setTodos(prev => prev.filter(t => t._id !== currentTodo._id)); // Optimistic update
       setIsModalOpen(false);
+      toast.success("Wish deleted");
     } catch (e) {
       console.error(e);
+      toast.error("Failed to delete");
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleQuickDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (deletingIds.has(id)) return;
+
+    setDeletingIds(prev => new Set(prev).add(id));
+
+    try {
+        await apiService.deleteTodo(id);
+        setTodos(prev => prev.filter(t => t._id !== id));
+        toast.success("Wish deleted");
+    } catch (e) {
+        console.error(e);
+        toast.error("Failed to delete");
+        setDeletingIds(prev => {
+            const next = new Set(prev);
+            next.delete(id);
+            return next;
+        });
     }
   };
 
@@ -136,6 +158,28 @@ export const TodoWidget: React.FC = () => {
     const newImages = [...(currentTodo.images || [])];
     newImages.splice(index, 1);
     setCurrentTodo(prev => ({ ...prev, images: newImages }));
+  };
+
+  // Quick Status Update Handler
+  const handleQuickStatusUpdate = async (e: React.MouseEvent, todo: Todo, newStatus: TabType) => {
+    e.stopPropagation();
+    if (isProcessing) return;
+    
+    // We don't use global isProcessing here to avoid blocking other interactions if possible, 
+    // but preventing double clicks on same item is good.
+    // For now, reuse isProcessing is fine or we could track processingIds.
+    setIsProcessing(true); 
+    try {
+        // Pass only the status update
+        const updatedList = await apiService.updateTodo(todo._id, { status: newStatus });
+        setTodos(updatedList);
+        toast.success(`Updated status to ${t.privateSpace.bucketList.tabs[newStatus]}`);
+    } catch (e) {
+        console.error(e);
+        toast.error("Failed to update status");
+    } finally {
+        setIsProcessing(false);
+    }
   };
 
   // Filter Logic
@@ -204,52 +248,149 @@ export const TodoWidget: React.FC = () => {
                   <p className="text-xs">{t.privateSpace.bucketList.empty}</p>
                </div>
             ) : (
-               filteredTodos.map(todo => (
-                  <div 
-                    key={todo._id}
-                    onClick={() => handleOpenEdit(todo)}
-                    className="group bg-white p-4 rounded-2xl border border-pink-100 hover:border-pink-300 hover:shadow-md transition-all cursor-pointer relative overflow-hidden"
-                  >
-                     <div className="flex justify-between items-start gap-4 relative z-10">
-                        <div className="flex-1">
-                           <h4 className={`font-bold text-slate-800 ${todo.status === 'done' ? 'line-through opacity-60' : ''}`}>
-                              {todo.todo}
-                           </h4>
-                           {todo.targetDate && (
-                              <div className="mt-1 flex items-center gap-2 text-[10px] font-mono text-pink-400">
-                                 <i className="fas fa-clock"></i> {new Date(todo.targetDate).toLocaleDateString()}
-                              </div>
-                           )}
-                        </div>
-                        {/* Status Icon */}
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border-2 transition-colors ${
-                           todo.status === 'done' ? 'bg-amber-400 border-amber-400 text-white' : 
-                           todo.status === 'in_progress' ? 'bg-white border-pink-400 text-pink-400 animate-pulse' : 
-                           'bg-slate-100 border-slate-200 text-slate-300'
-                        }`}>
-                           {todo.status === 'done' && <i className="fas fa-check text-[10px]"></i>}
-                           {todo.status === 'in_progress' && <i className="fas fa-running text-[10px]"></i>}
-                        </div>
-                     </div>
-                     
-                     {/* Images Preview strip */}
-                     {todo.images && todo.images.length > 0 && (
-                        <div className="flex gap-2 mt-3 overflow-hidden h-12 relative z-10">
-                           {todo.images.slice(0, 3).map((img, i) => (
-                              <img key={i} src={img} className="w-12 h-12 rounded-lg object-cover border border-slate-100" />
-                           ))}
-                           {todo.images.length > 3 && (
-                              <div className="w-12 h-12 rounded-lg bg-pink-50 flex items-center justify-center text-[10px] text-pink-400 font-bold border border-pink-100">+{todo.images.length - 3}</div>
-                           )}
-                        </div>
-                     )}
+               filteredTodos.map(todo => {
+                  const authorAvatar = todo.user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(todo.user?.displayName || 'Anonymous')}&background=random`;
+                  const createdDate = todo.create_date || todo.timestamp;
+                  const itemStatus = todo.status || (todo.done ? 'done' : 'todo');
+                  const isDeleting = deletingIds.has(todo._id);
 
-                     {/* Progress Bar Decoration for In Progress */}
-                     {todo.status === 'in_progress' && (
-                        <div className="absolute bottom-0 left-0 h-1 bg-pink-400 w-1/3 animate-[shimmer_2s_infinite_linear]"></div>
-                     )}
-                  </div>
-               ))
+                  return (
+                    <div 
+                      key={todo._id}
+                      onClick={() => handleOpenEdit(todo)}
+                      className={`group bg-white p-4 rounded-2xl border border-pink-100 hover:border-pink-300 hover:shadow-md transition-all cursor-pointer relative overflow-hidden flex flex-col gap-2 ${isDeleting ? 'opacity-50 pointer-events-none' : ''}`}
+                    >
+                       {/* User Info Header */}
+                       <div className="flex items-center justify-between pb-2 border-b border-slate-50 mb-1">
+                          <div className="flex items-center gap-2">
+                             <div className="w-5 h-5 rounded-full overflow-hidden bg-slate-100">
+                                <img src={authorAvatar} alt="user" className="w-full h-full object-cover" />
+                             </div>
+                             <span className="text-[10px] font-bold text-slate-500">{todo.user?.displayName || 'Unknown'}</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                              <span className="text-[9px] text-slate-300 font-mono">
+                                 {createdDate ? new Date(createdDate).toLocaleDateString() : ''}
+                              </span>
+                              <button
+                                onClick={(e) => handleQuickDelete(e, todo._id)}
+                                className="w-5 h-5 flex items-center justify-center rounded-full text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                                title="Delete"
+                              >
+                                {isDeleting ? (
+                                    <i className="fas fa-circle-notch fa-spin text-[10px]"></i>
+                                ) : (
+                                    <i className="fas fa-trash text-[10px]"></i>
+                                )}
+                              </button>
+                          </div>
+                       </div>
+
+                       {/* Main Content */}
+                       <div className="flex justify-between items-start gap-4 relative z-10">
+                          <div className="flex-1 min-w-0">
+                             <h4 className={`font-bold text-slate-800 text-sm ${itemStatus === 'done' ? 'line-through opacity-60' : ''}`}>
+                                {todo.todo}
+                             </h4>
+                             {todo.description && (
+                                <p className="text-xs text-slate-500 mt-1 leading-relaxed break-words line-clamp-3">
+                                   {todo.description}
+                                </p>
+                             )}
+                             {todo.targetDate && (
+                                <div className="mt-2 flex items-center gap-2 text-[10px] font-mono text-pink-400 bg-pink-50 w-fit px-2 py-0.5 rounded">
+                                   <i className="fas fa-clock"></i> {new Date(todo.targetDate).toLocaleDateString()}
+                                </div>
+                             )}
+                          </div>
+                          {/* Status Icon */}
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border-2 transition-colors ${
+                             itemStatus === 'done' ? 'bg-amber-400 border-amber-400 text-white' : 
+                             itemStatus === 'in_progress' ? 'bg-white border-pink-400 text-pink-400 animate-pulse' : 
+                             'bg-slate-100 border-slate-200 text-slate-300'
+                          }`}>
+                             {itemStatus === 'done' && <i className="fas fa-check text-[10px]"></i>}
+                             {itemStatus === 'in_progress' && <i className="fas fa-running text-[10px]"></i>}
+                          </div>
+                       </div>
+                       
+                       {/* Images Preview strip */}
+                       {todo.images && todo.images.length > 0 && (
+                          <div className="flex gap-2 mt-2 overflow-hidden h-12 relative z-10 pt-2 border-t border-slate-50">
+                             {todo.images.slice(0, 3).map((img, i) => (
+                                <img key={i} src={img} className="w-12 h-12 rounded-lg object-cover border border-slate-100" />
+                             ))}
+                             {todo.images.length > 3 && (
+                                <div className="w-12 h-12 rounded-lg bg-pink-50 flex items-center justify-center text-[10px] text-pink-400 font-bold border border-pink-100">+{todo.images.length - 3}</div>
+                             )}
+                          </div>
+                       )}
+
+                       {/* Quick Actions Bar */}
+                       <div className="flex gap-2 mt-2 pt-2 border-t border-slate-50 relative z-20">
+                          {itemStatus === 'todo' && (
+                             <>
+                               <button 
+                                 onClick={(e) => handleQuickStatusUpdate(e, todo, 'in_progress')}
+                                 className="flex-1 py-1.5 rounded-lg bg-blue-50 text-blue-500 text-[10px] font-bold uppercase hover:bg-blue-100 transition-colors flex items-center justify-center gap-1"
+                                 title="Start Progress"
+                               >
+                                 <i className="fas fa-play"></i> {t.privateSpace.bucketList.actions.start}
+                               </button>
+                               <button 
+                                 onClick={(e) => handleQuickStatusUpdate(e, todo, 'done')}
+                                 className="flex-1 py-1.5 rounded-lg bg-emerald-50 text-emerald-500 text-[10px] font-bold uppercase hover:bg-emerald-100 transition-colors flex items-center justify-center gap-1"
+                                 title="Mark Complete"
+                               >
+                                 <i className="fas fa-check"></i> {t.privateSpace.bucketList.actions.complete}
+                               </button>
+                             </>
+                          )}
+                          {itemStatus === 'in_progress' && (
+                             <>
+                               <button 
+                                 onClick={(e) => handleQuickStatusUpdate(e, todo, 'todo')}
+                                 className="flex-1 py-1.5 rounded-lg bg-slate-50 text-slate-400 text-[10px] font-bold uppercase hover:bg-slate-100 transition-colors flex items-center justify-center gap-1"
+                                 title="Move back to Wishlist"
+                               >
+                                 <i className="fas fa-undo"></i> {t.privateSpace.bucketList.actions.later}
+                               </button>
+                               <button 
+                                 onClick={(e) => handleQuickStatusUpdate(e, todo, 'done')}
+                                 className="flex-1 py-1.5 rounded-lg bg-emerald-50 text-emerald-500 text-[10px] font-bold uppercase hover:bg-emerald-100 transition-colors flex items-center justify-center gap-1"
+                                 title="Mark Complete"
+                               >
+                                 <i className="fas fa-check"></i> {t.privateSpace.bucketList.actions.complete}
+                               </button>
+                             </>
+                          )}
+                          {itemStatus === 'done' && (
+                             <>
+                               <button 
+                                 onClick={(e) => handleQuickStatusUpdate(e, todo, 'todo')}
+                                 className="flex-1 py-1.5 rounded-lg bg-slate-50 text-slate-400 text-[10px] font-bold uppercase hover:bg-slate-100 transition-colors flex items-center justify-center gap-1"
+                                 title="Move back to Wishlist"
+                               >
+                                 <i className="fas fa-undo"></i> {t.privateSpace.bucketList.actions.wishlist}
+                               </button>
+                               <button 
+                                 onClick={(e) => handleQuickStatusUpdate(e, todo, 'in_progress')}
+                                 className="flex-1 py-1.5 rounded-lg bg-blue-50 text-blue-500 text-[10px] font-bold uppercase hover:bg-blue-100 transition-colors flex items-center justify-center gap-1"
+                                 title="Move to In Progress"
+                               >
+                                 <i className="fas fa-redo"></i> {t.privateSpace.bucketList.actions.restart}
+                               </button>
+                             </>
+                          )}
+                       </div>
+
+                       {/* Progress Bar Decoration for In Progress */}
+                       {itemStatus === 'in_progress' && (
+                          <div className="absolute bottom-0 left-0 h-0.5 bg-pink-400 w-1/3 animate-[shimmer_2s_infinite_linear]"></div>
+                       )}
+                    </div>
+                  );
+               })
             )}
          </div>
 

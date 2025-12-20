@@ -12,7 +12,7 @@ import { FitnessChart } from './fitness/FitnessChart';
 import { FitnessInputForm } from './fitness/FitnessInputForm';
 import { FitnessPhotoWall } from './fitness/FitnessPhotoWall';
 
-// Priority Users to Pin
+// Priority Users to Pin (Secondary fallback if logic needs it, but Role logic takes precedence now)
 const PRIORITY_EMAILS = ['yaob@miamioh.edu', 'cft_cool@hotmail.com'];
 
 const toLocalDateStr = (date: Date) => {
@@ -22,7 +22,11 @@ const toLocalDateStr = (date: Date) => {
   return `${y}-${m}-${d}`;
 };
 
-export const FitnessSpace: React.FC = () => {
+interface FitnessSpaceProps {
+  currentUser?: User | null;
+}
+
+export const FitnessSpace: React.FC<FitnessSpaceProps> = ({ currentUser }) => {
   const { t } = useTranslation();
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [viewDate, setViewDate] = useState<Date>(new Date());
@@ -59,15 +63,26 @@ export const FitnessSpace: React.FC = () => {
     if (isLoadingUsers) return;
     setIsLoadingUsers(true);
     try {
-      const { data, pagination } = await apiService.getUsers(page, 20, '', 'vip', 'desc');
+      // Fetch 50 users per page, sorted by role (server logic usually handles grouping), desc order
+      const { data, pagination } = await apiService.getUsers(page, 50, '', 'role', 'desc');
+      
       setUserList(prev => {
-        const all = page === 1 ? data : [...prev, ...data];
-        return Array.from(new Map(all.map(u => [u._id, u])).values());
+        // Use Map to deduplicate based on _id from API responses
+        const combined = page === 1 ? data : [...prev, ...data];
+        return Array.from(new Map(combined.map(u => [u._id, u])).values());
       });
       setHasMoreUsers(pagination.hasNextPage);
-      if (page === 1 && data.length > 0 && !selectedUser) {
-         const priority = data.find(u => PRIORITY_EMAILS.includes(u.email));
-         setSelectedUser(priority || data[0]);
+      
+      // Auto-select logic on first load
+      if (page === 1 && !selectedUser) {
+         // Default to Current User if available
+         if (currentUser) {
+             setSelectedUser(currentUser);
+         } else if (data.length > 0) {
+             // Fallback to priority emails or first user
+             const priority = data.find(u => PRIORITY_EMAILS.includes(u.email));
+             setSelectedUser(priority || data[0]);
+         }
       }
     } catch (e) {
       console.error(e);
@@ -87,21 +102,47 @@ export const FitnessSpace: React.FC = () => {
   };
 
   const displayUserList = useMemo(() => {
-    const list = [...userList];
+    // 1. Start with the fetched list
+    let list = [...userList];
+
+    // 2. Remove current user from the list (deduplicate)
+    if (currentUser) {
+        list = list.filter(u => u._id !== currentUser._id);
+    }
+
+    // 3. Sort the remaining users
     list.sort((a, b) => {
-       const emailA = (a.email || "").toLowerCase();
-       const emailB = (b.email || "").toLowerCase();
-       const isAPriority = PRIORITY_EMAILS.includes(emailA);
-       const isBPriority = PRIORITY_EMAILS.includes(emailB);
-       if (isAPriority && !isBPriority) return -1;
-       if (!isBPriority && isAPriority) return 1;
-       if (isAPriority && isBPriority) return PRIORITY_EMAILS.indexOf(emailA) - PRIORITY_EMAILS.indexOf(emailB);
-       if (a.vip && !b.vip) return -1;
-       if (!a.vip && b.vip) return 1;
+       // Helper to get role weight
+       const getRoleWeight = (role?: string) => {
+           if (role === 'super_admin') return 100;
+           if (role === 'admin') return 90;
+           // Newer users (User role) come next in the prompt logic logic implies standard role ordering
+           return 1; 
+       };
+
+       const weightA = getRoleWeight(a.role);
+       const weightB = getRoleWeight(b.role);
+
+       // 3.1 Sort by Role Weight
+       if (weightA !== weightB) {
+           return weightB - weightA; // Descending weight (Super Admin first)
+       }
+
+       // 3.2 Sort by Recency (Newer _id/createdDate first)
+       // MongoDB _id contains timestamp, lex sorting works for recency
+       if (a._id > b._id) return -1;
+       if (a._id < b._id) return 1;
+       
        return 0;
     });
+
+    // 4. Prepend Current User to the top
+    if (currentUser) {
+        return [currentUser, ...list];
+    }
+
     return list;
-  }, [userList]);
+  }, [userList, currentUser]);
 
   // --- Calendar Logic ---
   const handlePrevMonth = () => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1));

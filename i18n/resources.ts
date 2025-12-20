@@ -7,7 +7,7 @@ export const resources = {
       home: 'Home',
       blog: 'Journal',
       about: 'Profile',
-      privateSpace: 'Sanctuary',
+      privateSpace: "Captain's Cabin",
       chat: 'Comm Link',
       signOut: 'Disconnect',
       signIn: 'Connect',
@@ -120,7 +120,23 @@ export const resources = {
         cut: 'Fat Loss (Cut)',
         bulk: 'Muscle Gain (Bulk)',
         maintain: 'Maintain'
-      }
+      },
+      role: 'Role Authority',
+      updateRole: 'Update Role',
+      roles: {
+        user: 'User',
+        admin: 'Admin',
+        super_admin: 'Super Admin',
+        bot: 'Bot (Immutable)'
+      },
+      accessControl: 'Access & Permissions',
+      requestPermissionTitle: 'Request Permission',
+      permissionKey: 'Permission Key',
+      applyAdmin: 'Apply for Admin Role',
+      customRequest: 'Custom Permission Request',
+      reasonLabel: 'Reason for Request',
+      reasonPlaceholder: 'Please describe why you need this permission...',
+      submitRequest: 'Submit Request'
     },
     settings: {
       title: 'System Configuration',
@@ -145,7 +161,27 @@ export const resources = {
         transformations: 'Transformations',
         resources: 'Total Resources',
         lastUpdated: 'Last Updated'
+      },
+      requests: {
+        title: 'Access Requests',
+        pending: 'Pending Review',
+        approve: 'Approve',
+        reject: 'Reject',
+        noPending: 'No pending requests.',
+        permission: 'Requested Permission',
+        reason: 'Reason'
       }
+    },
+    access: {
+      denied: 'Access Denied',
+      restricted: 'Restricted Area',
+      message: 'You do not have the required security clearance to access this sector.',
+      request: 'Request Access',
+      requestTitle: 'Submit Access Request',
+      reasonPlaceholder: 'Why do you need access to this sector?',
+      submit: 'Submit Request',
+      cancel: 'Cancel',
+      pending: 'Access Request Pending Approval'
     },
     footprint: {
       title: 'Star Map',
@@ -191,7 +227,7 @@ export const resources = {
         profileDesc: 'A dossier of my journey: Big tech experience, startups, and financial exploration.',
         chatTitle: 'Interstellar Chat',
         chatDesc: 'Real-time quantum link. Login required. Connect and chat with other voyagers in the system.',
-        privateTitle: 'Private Sanctuary',
+        privateTitle: "Captain's Cabin",
         privateDesc: 'Encrypted vault for my personal love story and memories. Strictly for the Captain\'s eyes (haha).'
       },
       education: 'Database: Education',
@@ -544,6 +580,13 @@ export const resources = {
           in_progress: "In Progress",
           done: "Achieved"
         },
+        actions: {
+            start: "Start",
+            complete: "Complete",
+            later: "Later",
+            wishlist: "Wishlist",
+            restart: "Restart"
+        },
         add: "Make a Wish",
         edit: "Edit Wish",
         placeholder: "What's your dream?",
@@ -609,7 +652,7 @@ export const resources = {
       home: '主控台',
       blog: '日志',
       about: '档案',
-      privateSpace: '私域',
+      privateSpace: '舰长室',
       chat: '星际通讯',
       signOut: '断开',
       signIn: '接入',
@@ -722,7 +765,23 @@ export const resources = {
         cut: '减脂 (Cut)',
         bulk: '增肌 (Bulk)',
         maintain: '保持 (Maintain)'
-      }
+      },
+      role: '角色权限',
+      updateRole: '更新角色',
+      roles: {
+        user: '普通用户',
+        admin: '管理员',
+        super_admin: '超级管理员',
+        bot: '机器人 (不可变)'
+      },
+      accessControl: '访问与权限',
+      requestPermissionTitle: '申请权限',
+      permissionKey: '权限代码',
+      applyAdmin: '申请管理员角色',
+      customRequest: '自定义权限申请',
+      reasonLabel: '申请理由',
+      reasonPlaceholder: '请说明申请该权限的具体原因...',
+      submitRequest: '提交申请'
     },
     settings: {
       title: '系统配置',
@@ -747,7 +806,27 @@ export const resources = {
         transformations: '图像转换',
         resources: '资源总数',
         lastUpdated: '最后更新'
+      },
+      requests: {
+        title: '权限申请',
+        pending: '待审核',
+        approve: '批准',
+        reject: '拒绝',
+        noPending: '无待处理申请',
+        permission: '申请权限',
+        reason: '理由'
       }
+    },
+    access: {
+      denied: '访问被拒绝',
+      restricted: '受限区域',
+      message: '您没有足够的安全许可进入该扇区。',
+      request: '申请访问',
+      requestTitle: '提交访问申请',
+      reasonPlaceholder: '请说明您需要访问该扇区的理由...',
+      submit: '提交申请',
+      cancel: '取消',
+      pending: '申请审核中'
     },
     footprint: {
       title: '星图计划',
@@ -793,7 +872,7 @@ export const resources = {
         profileDesc: '关于我的详细经历：大厂历练、创业搞钱之路。',
         chatTitle: '星际通讯',
         chatDesc: '登陆后即可接入聊天室，与其他探索者实时畅聊。',
-        privateTitle: '私域模式',
+        privateTitle: '舰长室',
         privateDesc: '加密的爱情档案库，用来保存属于我的珍贵回忆，仅供舰长本人查阅（哈哈）。'
       },
       education: '数据库：教育',
@@ -1142,6 +1221,13 @@ export const resources = {
           todo: "心愿单",
           in_progress: "进行中",
           done: "已达成"
+        },
+        actions: {
+            start: "开始",
+            complete: "完成",
+            later: "稍后",
+            wishlist: "心愿单",
+            restart: "重开"
         },
         add: "许下愿望",
         edit: "编辑愿望",

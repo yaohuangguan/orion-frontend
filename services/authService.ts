@@ -1,8 +1,7 @@
 
-
 import { fetchClient, API_BASE_URL } from './core';
 import { toast } from '../components/Toast';
-import { User, AuditLog, PaginationData, PaginatedResponse } from '../types';
+import { User, AuditLog, PaginationData, PaginatedResponse, PermissionRequest } from '../types';
 
 export const authService = {
   // --- Auth & Subscription ---
@@ -89,6 +88,13 @@ export const authService = {
     });
   },
 
+  updateUserRole: async (id: string, role: string): Promise<any> => {
+    return await fetchClient(`/users/${id}/role`, {
+      method: 'PUT',
+      body: JSON.stringify({ role })
+    });
+  },
+
   backupLogs: async (type?: string): Promise<void> => {
     const token = localStorage.getItem('auth_token');
     const urlEndpoint = type ? `${API_BASE_URL}/backup?type=${type}` : `${API_BASE_URL}/backup`;
@@ -152,6 +158,41 @@ export const authService = {
       method: 'PUT',
       body: JSON.stringify(data)
     });
+  },
+
+  // --- Permission Requests ---
+  submitPermissionRequest: async (permission: string, reason: string): Promise<void> => {
+    await fetchClient('/permission-requests', {
+      method: 'POST',
+      body: JSON.stringify({ permission, reason })
+    });
+    toast.success('Permission request submitted successfully.');
+  },
+
+  submitRoleRequest: async (role: string, reason: string): Promise<void> => {
+    await fetchClient('/permission-requests/role', {
+      method: 'POST',
+      body: JSON.stringify({ role, reason })
+    });
+    toast.success(`Role request for ${role} submitted successfully.`);
+  },
+
+  getPermissionRequests: async (status: string = 'pending'): Promise<PermissionRequest[]> => {
+    return await fetchClient<PermissionRequest[]>(`/permission-requests?status=${status}`);
+  },
+
+  approvePermissionRequest: async (id: string): Promise<void> => {
+    await fetchClient(`/permission-requests/${id}/approve`, {
+      method: 'PUT'
+    });
+    toast.success('Permission granted.');
+  },
+
+  rejectPermissionRequest: async (id: string): Promise<void> => {
+    await fetchClient(`/permission-requests/${id}/reject`, {
+      method: 'PUT'
+    });
+    toast.success('Permission rejected.');
   },
 
   // --- Audit Logs ---

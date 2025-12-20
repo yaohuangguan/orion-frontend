@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Theme, PageView, User, AuditLog, ChatUser } from '../types';
+import { Theme, PageView, User, AuditLog, ChatUser, PERM_KEYS, can } from '../types';
 import { useTranslation } from '../i18n/LanguageContext';
 import { Socket } from 'socket.io-client';
 import { toast } from './Toast';
@@ -42,7 +42,7 @@ export const Header: React.FC<HeaderProps> = ({
   useEffect(() => {
     // Listen for VIP Operation Logs via Socket directly (Admin feature)
     const handleLog = (data: { message: string, log: AuditLog }) => {
-       if (currentUser?.vip) {
+       if (can(currentUser, PERM_KEYS.SYSTEM_LOGS)) {
           setNotifications(prev => [{
               type: 'audit',
               message: data.message,
@@ -145,8 +145,8 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  // Strict VIP Logic: Must be logged in, vip=true, and correct token
-  const canAccessPrivateSpace = currentUser?.vip && currentUser?.private_token === 'ilovechenfangting';
+  // Logic: Must have PRIVATE_ACCESS permission
+  const canAccessPrivateSpace = can(currentUser, PERM_KEYS.PRIVATE_ACCESS);
 
   const navLinks = [
     { label: t.header.home, value: PageView.HOME, code: '01' },
@@ -389,12 +389,16 @@ export const Header: React.FC<HeaderProps> = ({
                       >
                          <i className="fas fa-id-card w-4 text-center"></i> {t.header.profile}
                       </button>
-                      <button 
-                        onClick={() => setPage(PageView.SYSTEM)}
-                        className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-colors flex items-center gap-3 ${isPrivate ? 'text-rose-700 hover:bg-rose-50 font-medium' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-primary-600 dark:hover:text-primary-400'}`}
-                      >
-                         <i className="fas fa-server w-4 text-center"></i> {t.header.system}
-                      </button>
+                      
+                      {can(currentUser, PERM_KEYS.SYSTEM_LOGS) && (
+                        <button 
+                          onClick={() => setPage(PageView.SYSTEM)}
+                          className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-colors flex items-center gap-3 ${isPrivate ? 'text-rose-700 hover:bg-rose-50 font-medium' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-primary-600 dark:hover:text-primary-400'}`}
+                        >
+                           <i className="fas fa-server w-4 text-center"></i> {t.header.system}
+                        </button>
+                      )}
+                      
                       <button 
                         onClick={() => setPage(PageView.SETTINGS)}
                         className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-colors flex items-center gap-3 ${isPrivate ? 'text-rose-700 hover:bg-rose-50 font-medium' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-primary-600 dark:hover:text-primary-400'}`}
@@ -402,8 +406,7 @@ export const Header: React.FC<HeaderProps> = ({
                          <i className="fas fa-cog w-4 text-center"></i> {t.header.settings}
                       </button>
                       
-                      {/* VIP ONLY: Audit Log Link */}
-                      {currentUser.vip && (
+                      {can(currentUser, PERM_KEYS.SYSTEM_LOGS) && (
                          <button 
                             onClick={() => setPage(PageView.AUDIT_LOG)}
                             className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-colors flex items-center gap-3 ${isPrivate ? 'text-rose-700 hover:bg-rose-50 font-medium' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-primary-600 dark:hover:text-primary-400'}`}
@@ -477,12 +480,16 @@ export const Header: React.FC<HeaderProps> = ({
                   >
                     <i className="fas fa-id-card text-xs"></i> {t.header.profile}
                   </button>
-                  <button
-                    onClick={() => { setPage(PageView.SYSTEM); setIsMobileMenuOpen(false); }}
-                    className={`text-left text-lg font-mono uppercase tracking-widest flex items-center gap-2 ${isPrivate ? 'text-slate-600' : 'text-slate-500 dark:text-slate-400'}`}
-                  >
-                    <i className="fas fa-server text-xs"></i> {t.header.system}
-                  </button>
+                  
+                  {can(currentUser, PERM_KEYS.SYSTEM_LOGS) && (
+                    <button
+                      onClick={() => { setPage(PageView.SYSTEM); setIsMobileMenuOpen(false); }}
+                      className={`text-left text-lg font-mono uppercase tracking-widest flex items-center gap-2 ${isPrivate ? 'text-slate-600' : 'text-slate-500 dark:text-slate-400'}`}
+                    >
+                      <i className="fas fa-server text-xs"></i> {t.header.system}
+                    </button>
+                  )}
+                  
                   <button
                     onClick={() => { setPage(PageView.SETTINGS); setIsMobileMenuOpen(false); }}
                     className={`text-left text-lg font-mono uppercase tracking-widest flex items-center gap-2 ${isPrivate ? 'text-slate-600' : 'text-slate-500 dark:text-slate-400'}`}
@@ -490,7 +497,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <i className="fas fa-cog text-xs"></i> {t.header.settings}
                   </button>
                   
-                  {currentUser.vip && (
+                  {can(currentUser, PERM_KEYS.SYSTEM_LOGS) && (
                     <button
                       onClick={() => { setPage(PageView.AUDIT_LOG); setIsMobileMenuOpen(false); }}
                       className={`text-left text-lg font-mono uppercase tracking-widest flex items-center gap-2 ${isPrivate ? 'text-slate-600' : 'text-primary-600 dark:text-primary-400'}`}

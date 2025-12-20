@@ -41,7 +41,55 @@ export interface User {
   // 🔥🔥🔥 New: Fitness Goal & Height
   fitnessGoal?: 'cut' | 'bulk' | 'maintain';
   height?: number; // cm
+  // 🛡️ Role Management
+  role?: 'user' | 'admin' | 'super_admin' | 'bot';
+  // 🔐 Permissions
+  permissions?: string[];
 }
+
+// --- PERMISSIONS CONFIG ---
+export const PERM_KEYS = {
+  // --- User Basis ---
+  USER_UPDATE: 'user:update_self',
+  BLOG_INTERACT: 'blog:interact',
+
+  // --- Private Domain ---
+  PRIVATE_ACCESS: 'private_domain:access',
+  
+  // --- Private Logs ---
+  PRIVATE_POST_USE: 'private_post:use',
+  PRIVATE_POST_READ: 'private_post:read',
+
+  // --- Second Brain ---
+  BRAIN_USE: 'brain:use',
+
+  // --- Capsule Gallery ---
+  CAPSULE_USE: 'capsule:use',
+
+  // --- Leisure Space ---
+  LEISURE_READ: 'leisure:read',
+  LEISURE_MANAGE: 'leisure:manage',
+
+  // --- Fitness Space ---
+  FITNESS_USE: 'fitness:use',       // Self check-in
+  FITNESS_READ_ALL: 'fitness:read_all', // Admin View
+  FITNESS_EDIT_ALL: 'fitness:edit_all', // Admin Edit
+
+  // --- System/Logs (Top Secret) ---
+  SYSTEM_LOGS: 'system:logs',
+  USER_MANAGE: 'system:user_manage', // Implied for managing users
+};
+
+/**
+ * Check if a user has a specific permission.
+ */
+export const can = (user: User | null | undefined, permission: string): boolean => {
+  if (!user || !user.permissions) return false;
+  // 1. Super Admin Wildcard
+  if (user.permissions.includes('*')) return true;
+  // 2. Exact Match
+  return user.permissions.includes(permission);
+};
 
 export interface AuditLog {
   _id: string;
@@ -54,6 +102,16 @@ export interface AuditLog {
   ipAddress?: string;
   status?: string;
   message?: string; // From socket event
+}
+
+export interface PermissionRequest {
+  _id: string;
+  user: User;
+  permission: string;
+  reason: string;
+  status: 'pending' | 'approved' | 'rejected';
+  reviewedBy?: string;
+  createdAt: string;
 }
 
 export interface Project {
@@ -184,6 +242,7 @@ export interface Todo {
   timestamp: number | string;
   create_date?: string;
   complete_date?: string;
+  user?: User; // Added user field
 }
 
 // Period / Cycle Types

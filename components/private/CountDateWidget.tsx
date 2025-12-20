@@ -11,6 +11,7 @@ interface CountDateWidgetProps {
   holidayType: 'CHRISTMAS' | 'CNY' | null;
   effectsEnabled: boolean;
   onToggleEffects: () => void;
+  hasAccess?: boolean; // New Prop for Permission
 }
 
 export const CountDateWidget: React.FC<CountDateWidgetProps> = ({ 
@@ -19,7 +20,8 @@ export const CountDateWidget: React.FC<CountDateWidgetProps> = ({
   onTabChange,
   holidayType,
   effectsEnabled,
-  onToggleEffects
+  onToggleEffects,
+  hasAccess = false
 }) => {
   const [timeLeft, setTimeLeft] = useState({
     years: 0,
@@ -28,35 +30,43 @@ export const CountDateWidget: React.FC<CountDateWidgetProps> = ({
     minutes: 0,
     seconds: 0
   });
+  
+  // For non-VIP: Just show current time
+  const [currentTime, setCurrentTime] = useState(new Date());
+
   const [showSurprise, setShowSurprise] = useState(false);
   const { t } = useTranslation();
 
   useEffect(() => {
     const calculateTime = () => {
-      const start = new Date(fromDate).getTime();
-      const now = new Date().getTime();
-      const diff = now - start;
+      const now = new Date();
+      setCurrentTime(now);
 
-      const oneYear = 1000 * 60 * 60 * 24 * 365.25;
-      const oneDay = 1000 * 60 * 60 * 24;
-      const oneHour = 1000 * 60 * 60;
-      const oneMinute = 1000 * 60;
+      if (hasAccess) {
+        const start = new Date(fromDate).getTime();
+        const diff = now.getTime() - start;
 
-      const years = Math.floor(diff / oneYear);
-      const remainingTimeAfterYears = diff % oneYear;
-      const days = Math.floor(remainingTimeAfterYears / oneDay);
-      const remainingTimeAfterDays = remainingTimeAfterYears % oneDay;
-      const hours = Math.floor(remainingTimeAfterDays / oneHour);
-      const minutes = Math.floor((remainingTimeAfterDays % oneHour) / oneMinute);
-      const seconds = Math.floor((remainingTimeAfterDays % oneMinute) / 1000);
+        const oneYear = 1000 * 60 * 60 * 24 * 365.25;
+        const oneDay = 1000 * 60 * 60 * 24;
+        const oneHour = 1000 * 60 * 60;
+        const oneMinute = 1000 * 60;
 
-      setTimeLeft({ years, days, hours, minutes, seconds });
+        const years = Math.floor(diff / oneYear);
+        const remainingTimeAfterYears = diff % oneYear;
+        const days = Math.floor(remainingTimeAfterYears / oneDay);
+        const remainingTimeAfterDays = remainingTimeAfterYears % oneDay;
+        const hours = Math.floor(remainingTimeAfterDays / oneHour);
+        const minutes = Math.floor((remainingTimeAfterDays % oneHour) / oneMinute);
+        const seconds = Math.floor((remainingTimeAfterDays % oneMinute) / 1000);
+
+        setTimeLeft({ years, days, hours, minutes, seconds });
+      }
     };
 
     calculateTime();
     const timer = setInterval(calculateTime, 1000);
     return () => clearInterval(timer);
-  }, [fromDate]);
+  }, [fromDate, hasAccess]);
 
   const handleSurprise = () => {
     setShowSurprise(true);
@@ -111,36 +121,52 @@ export const CountDateWidget: React.FC<CountDateWidgetProps> = ({
       
       <div className="relative z-10 flex flex-col md:flex-row items-center justify-between px-2 md:px-6 py-2 gap-4">
         
-        {/* Left: Together Counter */}
+        {/* Left: Together Counter or Clock */}
         <div className="flex items-center gap-4 shrink-0">
-          <div 
-             className="flex flex-col items-start cursor-pointer group/title"
-             onClick={handleSurprise}
-          >
-             <span className="text-[10px] uppercase opacity-80 tracking-widest flex items-center gap-2">
-                {t.privateSpace.together} 
-                {holidayLabel && <span className="bg-white/20 px-1.5 rounded text-[8px] font-bold shadow-sm">{holidayLabel}</span>}
-             </span>
-             <h3 className="text-lg md:text-xl font-bold font-display text-white transition-all shadow-black/5 drop-shadow-md">
-                {showSurprise 
-                  ? t.privateSpace.loveMsg 
-                  : (
-                    <span>
-                      {timeLeft.years} <span className="text-sm font-normal opacity-80">{t.privateSpace.years}</span> 
-                      &nbsp;{timeLeft.days} <span className="text-sm font-normal opacity-80">{t.privateSpace.days}</span>
-                    </span>
-                  )
-                }
-             </h3>
-          </div>
-          <div className="h-8 w-px bg-white/30 hidden sm:block"></div>
-          <div className="hidden sm:flex items-baseline gap-2 font-mono text-sm opacity-90 text-shadow-sm">
-             <span>{timeLeft.hours.toString().padStart(2, '0')}h</span>
-             <span>:</span>
-             <span>{timeLeft.minutes.toString().padStart(2, '0')}m</span>
-             <span>:</span>
-             <span>{timeLeft.seconds.toString().padStart(2, '0')}s</span>
-          </div>
+          {hasAccess ? (
+            <div 
+               className="flex flex-col items-start cursor-pointer group/title"
+               onClick={handleSurprise}
+            >
+               <span className="text-[10px] uppercase opacity-80 tracking-widest flex items-center gap-2">
+                  {t.privateSpace.together} 
+                  {holidayLabel && <span className="bg-white/20 px-1.5 rounded text-[8px] font-bold shadow-sm">{holidayLabel}</span>}
+               </span>
+               <h3 className="text-lg md:text-xl font-bold font-display text-white transition-all shadow-black/5 drop-shadow-md">
+                  {showSurprise 
+                    ? t.privateSpace.loveMsg 
+                    : (
+                      <span>
+                        {timeLeft.years} <span className="text-sm font-normal opacity-80">{t.privateSpace.years}</span> 
+                        &nbsp;{timeLeft.days} <span className="text-sm font-normal opacity-80">{t.privateSpace.days}</span>
+                      </span>
+                    )
+                  }
+               </h3>
+            </div>
+          ) : (
+            <div className="flex flex-col items-start">
+               <span className="text-[10px] uppercase opacity-80 tracking-widest">
+                  System Time
+               </span>
+               <h3 className="text-lg md:text-xl font-bold font-mono text-white transition-all">
+                  {currentTime.toLocaleTimeString()}
+               </h3>
+            </div>
+          )}
+
+          {hasAccess && (
+            <>
+              <div className="h-8 w-px bg-white/30 hidden sm:block"></div>
+              <div className="hidden sm:flex items-baseline gap-2 font-mono text-sm opacity-90 text-shadow-sm">
+                 <span>{timeLeft.hours.toString().padStart(2, '0')}h</span>
+                 <span>:</span>
+                 <span>{timeLeft.minutes.toString().padStart(2, '0')}m</span>
+                 <span>:</span>
+                 <span>{timeLeft.seconds.toString().padStart(2, '0')}s</span>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Center/Right: Navigation Tabs (Integrated) */}

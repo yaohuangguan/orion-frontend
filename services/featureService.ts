@@ -96,7 +96,8 @@ export const featureService = {
     if (!token) throw new Error("No auth token");
 
     try {
-      const response = await fetch(`${API_BASE_URL}/ask-life/stream`, {
+      // Updated endpoint path to include /ai prefix
+      const response = await fetch(`${API_BASE_URL}/ai/ask-life/stream`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

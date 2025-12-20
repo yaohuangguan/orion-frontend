@@ -7,7 +7,8 @@ import { PhotoGallery } from './PhotoGallery';
 import { FitnessSpace } from './FitnessSpace';
 import { SecondBrainSpace } from './SecondBrainSpace';
 import { NewsWidget } from './HotSearchWidget';
-import { BlogPost, User, PaginationData } from '../../types';
+import { AccessRestricted } from '../AccessRestricted';
+import { BlogPost, User, PaginationData, PERM_KEYS, can } from '../../types';
 import { useTranslation } from '../../i18n/LanguageContext';
 
 // Import Theme Components (Static)
@@ -96,6 +97,12 @@ export const PrivateSpaceDashboard: React.FC<PrivateSpaceDashboardProps> = ({
     return 'bg-gradient-to-br from-pink-200 via-rose-200 to-pink-200 text-slate-900';
   };
 
+  const hasPrivateAccess = can(user, PERM_KEYS.PRIVATE_ACCESS);
+  
+  // Permission Check for Together Time Widget
+  // Only VIP users or Super Admins can see the special timer. Everyone else sees System Time.
+  const canViewTogetherTime = !!(user?.vip || user?.role === 'super_admin');
+
   return (
     <div className={`
       min-h-screen pt-24 pb-6 px-4 md:px-6 relative flex flex-col gap-6 transition-colors duration-1000
@@ -143,18 +150,25 @@ export const PrivateSpaceDashboard: React.FC<PrivateSpaceDashboardProps> = ({
           holidayType={activeHoliday === 'OFF' ? null : activeHoliday}
           effectsEnabled={effectsEnabled}
           onToggleEffects={handleToggleEffects}
+          // Display "Together Time" only for VIP or Super Admin
+          hasAccess={canViewTogetherTime}
         />
       </div>
 
       {/* Main Content Area */}
       <div className={`container mx-auto flex-1 max-w-[1600px] relative z-10 ${isFixedLayout ? 'lg:min-h-0 pb-10 lg:pb-0' : 'pb-20'}`}>
+        
         {activeTab === 'SECOND_BRAIN' && (
-          <div className="h-full animate-fade-in lg:overflow-hidden">
-             <SecondBrainSpace user={user} />
-          </div>
+          can(user, PERM_KEYS.BRAIN_USE) ? (
+            <div className="h-full animate-fade-in lg:overflow-hidden">
+               <SecondBrainSpace user={user} />
+            </div>
+          ) : <AccessRestricted permission={PERM_KEYS.BRAIN_USE} className="bg-white/80 backdrop-blur shadow-xl border-white/50" onSuccess={() => window.location.reload()} />
         )}
 
         {activeTab === 'JOURNAL' && (
+          // Journal base access implied by Private Space, but individual actions might need check
+          // We assume if they can see private space, they can see the list at least.
           <JournalSpace 
             user={user} 
             blogs={blogs} 
@@ -168,21 +182,27 @@ export const PrivateSpaceDashboard: React.FC<PrivateSpaceDashboardProps> = ({
         )}
         
         {activeTab === 'LEISURE' && (
-          <div className="h-full animate-fade-in lg:overflow-hidden">
-             <LeisureSpace />
-          </div>
+          can(user, PERM_KEYS.LEISURE_READ) ? (
+            <div className="h-full animate-fade-in lg:overflow-hidden">
+               <LeisureSpace />
+            </div>
+          ) : <AccessRestricted permission={PERM_KEYS.LEISURE_READ} className="bg-white/80 backdrop-blur shadow-xl border-white/50" onSuccess={() => window.location.reload()} />
         )}
 
         {activeTab === 'GALLERY' && (
-          <div className="h-full animate-fade-in lg:overflow-hidden">
-             <PhotoGallery />
-          </div>
+          can(user, PERM_KEYS.CAPSULE_USE) ? (
+            <div className="h-full animate-fade-in lg:overflow-hidden">
+               <PhotoGallery />
+            </div>
+          ) : <AccessRestricted permission={PERM_KEYS.CAPSULE_USE} className="bg-white/80 backdrop-blur shadow-xl border-white/50" onSuccess={() => window.location.reload()} />
         )}
 
         {activeTab === 'FITNESS' && (
-          <div className="animate-fade-in w-full">
-             <FitnessSpace />
-          </div>
+          can(user, PERM_KEYS.FITNESS_USE) || can(user, PERM_KEYS.FITNESS_READ_ALL) ? (
+            <div className="animate-fade-in w-full">
+               <FitnessSpace currentUser={user} />
+            </div>
+          ) : <AccessRestricted permission={PERM_KEYS.FITNESS_READ_ALL} className="bg-white/80 backdrop-blur shadow-xl border-white/50" onSuccess={() => window.location.reload()} />
         )}
       </div>
       

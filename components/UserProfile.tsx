@@ -1,5 +1,7 @@
+
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { User, PaginationData } from '../types';
+import { createPortal } from 'react-dom';
+import { User, PaginationData, PERM_KEYS } from '../types';
 import { useTranslation } from '../i18n/LanguageContext';
 import { apiService } from '../services/api';
 import { toast } from './Toast';
@@ -27,24 +29,15 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
   const [newPassword, setNewPassword] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
-  // --- ADMIN CONSOLE STATE ---
-  const [adminUsers, setAdminUsers] = useState<User[]>([]);
-  const [adminSearch, setAdminSearch] = useState('');
-  const [adminPage, setAdminPage] = useState(1);
-  const [adminPagination, setAdminPagination] = useState<PaginationData | null>(null);
-  const [adminLoading, setAdminLoading] = useState(false);
-  const [targetUser, setTargetUser] = useState<User | null>(null);
-  const [isProcessingVip, setIsProcessingVip] = useState(false);
-  
-  // VIP Verification Modal State
-  const [showVipModal, setShowVipModal] = useState(false);
-
   // Export Log State
   const [isExporting, setIsExporting] = useState(false);
   const [exportType, setExportType] = useState('');
 
-  // Check if current user is VIP Admin
-  const isVipAdmin = user.vip && user.private_token === 'ilovechenfangting';
+  // Permission Request State
+  const [isPermModalOpen, setIsPermModalOpen] = useState(false);
+  const [permRequest, setPermRequest] = useState({ permission: '', role: 'admin', reason: '' });
+  const [requestType, setRequestType] = useState<'ROLE' | 'PERM'>('ROLE'); // Toggle state
+  const [isSubmittingPerm, setIsSubmittingPerm] = useState(false);
 
   // Update local state when user prop changes (e.g. after refresh)
   useEffect(() => {
@@ -52,67 +45,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
     setHeight(user.height ? user.height.toString() : '');
     setFitnessGoal(user.fitnessGoal || 'maintain');
   }, [user]);
-
-  // --- ADMIN EFFECTS ---
-  // Debounce search
-  useEffect(() => {
-    if (!isVipAdmin) return;
-    const timer = setTimeout(() => {
-        fetchAdminUsers(1);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [adminSearch]);
-
-  const fetchAdminUsers = async (page: number) => {
-    if (!isVipAdmin) return;
-    setAdminLoading(true);
-    try {
-      // Sort by 'vip' first (backend support: sortBy='vip', order='desc')
-      const { data, pagination } = await apiService.getUsers(page, 10, adminSearch, 'vip', 'desc');
-      setAdminUsers(data);
-      setAdminPagination(pagination);
-      setAdminPage(page);
-    } catch (e) {
-      console.error("Admin fetch failed", e);
-    } finally {
-      setAdminLoading(false);
-    }
-  };
-
-  const handleVipActionClick = () => {
-    if (!targetUser) return;
-    setShowVipModal(true);
-  };
-
-  const handleVipActionConfirm = async (secret?: string) => {
-    if (!targetUser || !secret) return;
-    setIsProcessingVip(true);
-    
-    try {
-      // 1. Verify Secret
-      await apiService.verifySecret(secret);
-      
-      // 2. Perform VIP Action
-      if (targetUser.vip) {
-         await apiService.revokeVip(targetUser.email);
-         toast.success(`VIP revoked for ${targetUser.displayName}`);
-      } else {
-         await apiService.grantVip(targetUser.email);
-         toast.success(`VIP granted to ${targetUser.displayName}`);
-      }
-      
-      // 3. Refresh and Cleanup
-      fetchAdminUsers(adminPage);
-      setTargetUser(null);
-      setShowVipModal(false);
-    } catch (e: any) {
-      console.error(e);
-      // Ensure modal doesn't close on error so they can retry, or rely on toast
-      // Usually error handling is in apiService but verifySecret might throw specific error
-    } finally {
-      setIsProcessingVip(false);
-    }
-  };
 
   const handleAvatarClick = () => {
     if (isUploadingAvatar) return;
@@ -217,21 +149,62 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
     }
   };
 
+  const handlePermSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!permRequest.reason.trim()) return;
+
+    setIsSubmittingPerm(true);
+    try {
+      if (requestType === 'ROLE') {
+         await apiService.submitRoleRequest(permRequest.role, permRequest.reason);
+      } else {
+         if (!permRequest.permission.trim()) {
+             toast.error("Please select a permission key.");
+             setIsSubmittingPerm(false);
+             return;
+         }
+         await apiService.submitPermissionRequest(permRequest.permission, permRequest.reason);
+      }
+      
+      setIsPermModalOpen(false);
+      setPermRequest({ permission: '', role: 'admin', reason: '' });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSubmittingPerm(false);
+    }
+  };
+
+  const openPermissionModal = (type: 'ROLE' | 'PERM', defaultVal = '') => {
+    setRequestType(type);
+    setPermRequest({ permission: defaultVal, role: 'admin', reason: '' });
+    setIsPermModalOpen(true);
+  };
+
+  const getRoleColorClass = (role?: string) => {
+      switch (role) {
+          case 'super_admin': return 'bg-purple-500 text-white border-purple-400';
+          case 'admin': return 'bg-blue-500 text-white border-blue-400';
+          case 'bot': return 'bg-slate-500 text-white border-slate-400';
+          default: return 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700';
+      }
+  };
+
+  const getRoleLabel = (role?: string) => {
+      if (!role) return 'User';
+      // @ts-ignore
+      return t.profile.roles[role] || role;
+  };
+
+  // Convert PERM_KEYS object to array for dropdown
+  const availablePermissions = Object.entries(PERM_KEYS).map(([key, value]) => ({
+    label: key,
+    value: value
+  }));
+
   return (
     <div className="container mx-auto px-6 py-24 pt-32 max-w-4xl animate-fade-in relative z-10">
       
-      {/* Verification Modal for VIP Actions */}
-      <DeleteModal 
-        isOpen={showVipModal}
-        onClose={() => setShowVipModal(false)}
-        onConfirm={handleVipActionConfirm}
-        title="Security Verification"
-        message="Please enter the system secret key to authorize this privilege escalation."
-        isSecret={true}
-        confirmKeyword=""
-        buttonText="Verify & Execute"
-      />
-
       <div className="mb-12 border-b border-slate-200 dark:border-slate-800 pb-8">
         <h1 className="text-4xl font-display font-bold text-slate-900 dark:text-white mb-2">
           {t.profile.title}
@@ -283,12 +256,22 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
             <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{user.displayName}</h2>
             <p className="text-sm font-mono text-slate-500 mb-4">{user.email}</p>
             
-            <div className="inline-flex items-center px-3 py-1 bg-emerald-500/10 text-emerald-500 rounded-full text-xs font-bold uppercase tracking-widest border border-emerald-500/20">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
-              {t.profile.active}
+            <div className="flex gap-2 justify-center flex-wrap">
+                <div className="inline-flex items-center px-3 py-1 bg-emerald-500/10 text-emerald-500 rounded-full text-xs font-bold uppercase tracking-widest border border-emerald-500/20">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
+                {t.profile.active}
+                </div>
+                
+                {/* Role Badge */}
+                {user.role && user.role !== 'user' && (
+                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest border ${getRoleColorClass(user.role)} bg-opacity-10 border-opacity-20`}>
+                        {getRoleLabel(user.role)}
+                    </div>
+                )}
             </div>
+
             {user.vip && (
-              <div className="mt-3 inline-flex items-center px-3 py-1 bg-amber-500/10 text-amber-500 rounded-full text-xs font-bold uppercase tracking-widest border border-amber-500/20">
+              <div className="mt-2 inline-flex items-center px-3 py-1 bg-amber-500/10 text-amber-500 rounded-full text-xs font-bold uppercase tracking-widest border border-amber-500/20">
                  <i className="fas fa-crown mr-2"></i> {t.profile.vipBadge}
               </div>
             )}
@@ -363,6 +346,38 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
                 </button>
               </div>
             </form>
+          </div>
+
+          {/* Access Control & Permissions */}
+          <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-md rounded-3xl p-8 border border-slate-200 dark:border-slate-800">
+             <div className="flex items-center gap-3 mb-6">
+                <i className="fas fa-key text-blue-500 text-xl"></i>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t.profile.accessControl}</h3>
+             </div>
+
+             <div className="space-y-4">
+                <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-xl flex justify-between items-center">
+                   <div className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">{t.profile.role}</div>
+                   <div className="font-bold text-slate-800 dark:text-white uppercase text-sm">{getRoleLabel(user.role)}</div>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                   {user.role !== 'admin' && user.role !== 'super_admin' && (
+                      <button 
+                        onClick={() => openPermissionModal('ROLE', 'role:admin')} 
+                        className="flex-1 px-4 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-bold uppercase text-xs tracking-widest transition-all shadow-lg shadow-indigo-500/20"
+                      >
+                         {t.profile.applyAdmin}
+                      </button>
+                   )}
+                   <button 
+                     onClick={() => openPermissionModal('PERM', '')}
+                     className="flex-1 px-4 py-3 bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 rounded-xl font-bold uppercase text-xs tracking-widest transition-all"
+                   >
+                      {t.profile.customRequest}
+                   </button>
+                </div>
+             </div>
           </div>
 
           {/* Security Protocol: Change Password */}
@@ -449,129 +464,110 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
             </div>
           )}
 
-          {/* Admin Console: Enhanced User Manager */}
-          {isVipAdmin && (
-             <div className="bg-rose-50/50 dark:bg-rose-900/10 backdrop-blur-md rounded-3xl p-8 border border-rose-200 dark:border-rose-900/30 flex flex-col h-[600px]">
-                <div className="flex items-center gap-3 mb-6">
-                   <div className="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center text-xl shadow-lg shadow-rose-500/30">
-                      <i className="fas fa-crown"></i>
-                   </div>
-                   <div>
-                      <h3 className="text-xl font-bold text-rose-800 dark:text-rose-400">{t.profile.admin}</h3>
-                      <p className="text-xs text-rose-400 dark:text-rose-500/70 font-mono uppercase tracking-widest">Clearance Level: OMEGA</p>
-                   </div>
-                </div>
-                
-                {/* Search Bar */}
-                <div className="mb-4 relative">
-                   <input 
-                     type="text" 
-                     value={adminSearch}
-                     onChange={(e) => setAdminSearch(e.target.value)}
-                     className="w-full bg-white dark:bg-slate-950 border border-rose-200 dark:border-rose-800 rounded-xl px-4 py-3 pl-10 focus:ring-2 focus:ring-rose-500/30 outline-none transition-all placeholder-rose-300 text-sm"
-                     placeholder="Search agents by name or email..."
-                   />
-                   <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-rose-300"></i>
-                </div>
-
-                {/* Main Content Area: Split View */}
-                <div className="flex-1 flex gap-4 min-h-0">
-                   
-                   {/* Left: User List */}
-                   <div className="w-1/2 bg-white/60 dark:bg-slate-900/60 border border-rose-100 dark:border-rose-900/20 rounded-2xl overflow-y-auto custom-scrollbar p-2 space-y-2">
-                      {adminLoading ? (
-                         <div className="text-center py-10 text-rose-400 animate-pulse">Scanning...</div>
-                      ) : adminUsers.length === 0 ? (
-                         <div className="text-center py-10 text-rose-300 text-sm">No records found.</div>
-                      ) : (
-                         <>
-                           {adminUsers.map(u => (
-                              <button
-                                 key={u._id}
-                                 onClick={() => setTargetUser(u)}
-                                 className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left group ${
-                                    targetUser?._id === u._id 
-                                       ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30' 
-                                       : 'hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm text-slate-600 dark:text-slate-300'
-                                 }`}
-                              >
-                                 <div className={`w-8 h-8 rounded-full overflow-hidden border-2 shrink-0 ${targetUser?._id === u._id ? 'border-rose-200' : 'border-transparent group-hover:border-rose-200'}`}>
-                                    <img src={u.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.displayName)}&background=random`} className="w-full h-full object-cover" />
-                                 </div>
-                                 <div className="min-w-0 flex-1">
-                                    <div className="font-bold text-xs truncate flex items-center gap-1">
-                                       {u.displayName}
-                                       {u.vip && <i className={`fas fa-star text-[8px] ${targetUser?._id === u._id ? 'text-yellow-300' : 'text-amber-500'}`}></i>}
-                                    </div>
-                                    <div className={`text-[10px] truncate ${targetUser?._id === u._id ? 'text-rose-100' : 'text-slate-400'}`}>{u.email}</div>
-                                 </div>
-                              </button>
-                           ))}
-                           
-                           {/* Pagination Controls inside list */}
-                           {adminPagination && adminPagination.totalPages > 1 && (
-                              <div className="flex justify-center gap-2 pt-2">
-                                 <button disabled={!adminPagination.hasPrevPage} onClick={() => fetchAdminUsers(adminPage - 1)} className="w-8 h-8 rounded-full bg-white border border-rose-100 text-rose-400 disabled:opacity-50 flex items-center justify-center hover:bg-rose-50"><i className="fas fa-chevron-left text-xs"></i></button>
-                                 <button disabled={!adminPagination.hasNextPage} onClick={() => fetchAdminUsers(adminPage + 1)} className="w-8 h-8 rounded-full bg-white border border-rose-100 text-rose-400 disabled:opacity-50 flex items-center justify-center hover:bg-rose-50"><i className="fas fa-chevron-right text-xs"></i></button>
-                              </div>
-                           )}
-                         </>
-                      )}
-                   </div>
-
-                   {/* Right: User Detail & Action */}
-                   <div className="w-1/2 flex flex-col items-center justify-center bg-white/40 dark:bg-slate-900/40 border border-rose-100 dark:border-rose-900/20 rounded-2xl p-6 text-center relative overflow-hidden">
-                      {!targetUser ? (
-                         <div className="text-rose-300">
-                            <i className="fas fa-user-astronaut text-4xl mb-4 opacity-50"></i>
-                            <p className="text-xs font-mono uppercase">Select an agent to manage clearance.</p>
-                         </div>
-                      ) : (
-                         <div className="z-10 w-full animate-fade-in">
-                            <div className="w-20 h-20 rounded-full mx-auto mb-4 border-4 border-white shadow-xl relative">
-                               <img src={targetUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(targetUser.displayName)}&background=random`} className="w-full h-full rounded-full object-cover" />
-                               {targetUser.vip && (
-                                  <div className="absolute -bottom-2 -right-2 bg-amber-500 text-white w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-md text-xs">
-                                     <i className="fas fa-crown"></i>
-                                  </div>
-                               )}
-                            </div>
-                            
-                            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">{targetUser.displayName}</h3>
-                            <p className="text-xs text-slate-500 font-mono mb-6 break-all">{targetUser.email}</p>
-                            
-                            <div className="bg-rose-50 dark:bg-slate-800 rounded-xl p-3 mb-6 border border-rose-100 dark:border-slate-700">
-                               <p className="text-[10px] font-bold uppercase text-slate-400 mb-1">Current Status</p>
-                               <div className={`text-sm font-bold ${targetUser.vip ? 'text-amber-500' : 'text-slate-500'}`}>
-                                  {targetUser.vip ? 'VIP ACCESS GRANTED' : 'STANDARD ACCESS'}
-                               </div>
-                            </div>
-
-                            <button 
-                              onClick={handleVipActionClick}
-                              disabled={isProcessingVip}
-                              className={`w-full py-3 rounded-xl font-bold uppercase tracking-wider text-xs shadow-lg transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
-                                 targetUser.vip 
-                                    ? 'bg-red-500 hover:bg-red-600 text-white shadow-red-500/30'
-                                    : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/30'
-                              }`}
-                            >
-                               {isProcessingVip ? <i className="fas fa-circle-notch fa-spin"></i> : targetUser.vip ? 'Revoke VIP' : 'Grant VIP'}
-                            </button>
-                         </div>
-                      )}
-                      
-                      {/* Background Decor */}
-                      <div className="absolute -bottom-10 -right-10 text-9xl text-rose-500 opacity-[0.03] rotate-12 pointer-events-none">
-                         <i className="fas fa-fingerprint"></i>
-                      </div>
-                   </div>
-                </div>
-             </div>
-          )}
-
         </div>
       </div>
+
+      {/* Permission Request Modal */}
+      {isPermModalOpen && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
+           <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl p-8 border border-slate-200 dark:border-slate-800 relative">
+              <button 
+                onClick={() => setIsPermModalOpen(false)}
+                className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+              >
+                 <i className="fas fa-times text-lg"></i>
+              </button>
+
+              <div className="text-center mb-6">
+                 <div className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-4">
+                    <i className="fas fa-user-lock text-xl"></i>
+                 </div>
+                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t.profile.requestPermissionTitle}</h3>
+              </div>
+
+              <form onSubmit={handlePermSubmit} className="space-y-4">
+                 
+                 {/* Type Switcher */}
+                 <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-4">
+                    <button
+                       type="button"
+                       onClick={() => { setRequestType('ROLE'); setPermRequest(p => ({...p, role: 'admin'})); }}
+                       className={`flex-1 py-2 text-xs font-bold uppercase rounded-lg transition-all ${requestType === 'ROLE' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-500' : 'text-slate-500'}`}
+                    >
+                       Role Upgrade
+                    </button>
+                    <button
+                       type="button"
+                       onClick={() => { setRequestType('PERM'); setPermRequest(p => ({...p, permission: ''})); }}
+                       className={`flex-1 py-2 text-xs font-bold uppercase rounded-lg transition-all ${requestType === 'PERM' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-500' : 'text-slate-500'}`}
+                    >
+                       Specific Permission
+                    </button>
+                 </div>
+
+                 <div>
+                    <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-2">
+                        {requestType === 'ROLE' ? 'Target Role' : t.profile.permissionKey}
+                    </label>
+                    {requestType === 'ROLE' ? (
+                        <select
+                           value={permRequest.role}
+                           onChange={(e) => setPermRequest({...permRequest, role: e.target.value})}
+                           className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-mono text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/50"
+                        >
+                           <option value="admin">Admin</option>
+                           <option value="user">User</option>
+                        </select>
+                    ) : (
+                        <select 
+                           value={permRequest.permission}
+                           onChange={(e) => setPermRequest({...permRequest, permission: e.target.value})}
+                           className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-mono text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/50"
+                           required
+                        >
+                           <option value="" disabled>Select Permission Key</option>
+                           {availablePermissions.map((perm) => (
+                              <option key={perm.value} value={perm.value}>
+                                 {perm.label} ({perm.value})
+                              </option>
+                           ))}
+                        </select>
+                    )}
+                 </div>
+
+                 <div>
+                    <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-2">{t.profile.reasonLabel}</label>
+                    <textarea 
+                       value={permRequest.reason}
+                       onChange={(e) => setPermRequest({...permRequest, reason: e.target.value})}
+                       placeholder={t.profile.reasonPlaceholder}
+                       className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl p-4 outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none h-32 text-slate-800 dark:text-slate-200 text-sm"
+                       required
+                    />
+                 </div>
+
+                 <div className="flex gap-3 pt-2">
+                    <button 
+                      type="button" 
+                      onClick={() => setIsPermModalOpen(false)}
+                      className="flex-1 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs uppercase hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                    >
+                       {t.access.cancel}
+                    </button>
+                    <button 
+                      type="submit"
+                      disabled={isSubmittingPerm || !permRequest.reason.trim() || (requestType === 'PERM' && !permRequest.permission.trim())}
+                      className="flex-1 py-3 rounded-xl bg-indigo-500 text-white font-bold text-xs uppercase shadow-lg shadow-indigo-500/20 hover:bg-indigo-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                       {isSubmittingPerm && <i className="fas fa-circle-notch fa-spin"></i>}
+                       {t.profile.submitRequest}
+                    </button>
+                 </div>
+              </form>
+           </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };

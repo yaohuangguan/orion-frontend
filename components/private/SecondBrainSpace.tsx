@@ -16,7 +16,11 @@ interface BrainMessage {
   content: string;
   timestamp: Date;
   isStreaming?: boolean;
+  avatar?: string;
+  name?: string;
 }
+
+const DEFAULT_AI_AVATAR = "https://cdn-icons-png.flaticon.com/512/4712/4712027.png";
 
 export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
   const { t } = useTranslation();
@@ -37,8 +41,10 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
           const mappedMessages: BrainMessage[] = historyData.map((msg: any) => ({
             id: msg._id,
             role: (msg.user && (msg.user.id === 'ai_assistant' || msg.user._id === 'ai_assistant')) ? 'assistant' : 'user',
-            content: msg.text || '',
-            timestamp: new Date(msg.createdDate || Date.now())
+            content: msg.content || msg.text || '',
+            timestamp: new Date(msg.createdDate || Date.now()),
+            avatar: msg.user?.photoURL || (msg.user?.id === 'ai_assistant' ? DEFAULT_AI_AVATAR : undefined),
+            name: msg.user?.displayName
           }));
           setMessages(mappedMessages);
         } else {
@@ -48,7 +54,9 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
               id: 'welcome',
               role: 'assistant',
               content: t.privateSpace.secondBrain.welcome || "Hello. I am your Second Brain. I have access to your journal, fitness logs, and project data. How can I assist you?",
-              timestamp: new Date()
+              timestamp: new Date(),
+              avatar: DEFAULT_AI_AVATAR,
+              name: 'Second Brain'
             }
           ]);
         }
@@ -89,7 +97,9 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
       id: tempId,
       role: 'user',
       content: userText,
-      timestamp: new Date()
+      timestamp: new Date(),
+      avatar: user?.photoURL,
+      name: user?.displayName
     };
 
     setMessages(prev => [...prev, userMsg]);
@@ -110,7 +120,9 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
         role: 'assistant',
         content: '',
         timestamp: new Date(),
-        isStreaming: true
+        isStreaming: true,
+        avatar: DEFAULT_AI_AVATAR,
+        name: 'Second Brain'
       }]);
 
       // 4. Prepare Context & Stream
@@ -124,6 +136,9 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
 
       let fullAiResponse = "";
 
+      // Stream with simulated smoothness
+      // We'll update the state on every chunk, but React's render cycle usually handles this "typing" feel naturally
+      // if the chunks are small. If the API sends large chunks, it might feel jumpy.
       await featureService.askLifeStream(userText, recentHistory, (chunk) => {
         fullAiResponse += chunk;
         setMessages(prev => prev.map(m => {
@@ -164,7 +179,9 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
           id: 'welcome-reset',
           role: 'assistant',
           content: "Memory wiped from database. Starting fresh tabula rasa.",
-          timestamp: new Date()
+          timestamp: new Date(),
+          avatar: DEFAULT_AI_AVATAR,
+          name: 'Second Brain'
         }
       ]);
       toast.success("Brain memory permanently cleared.");
@@ -179,7 +196,9 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
           id: 'new-session',
           role: 'assistant',
           content: "Starting a new session context. (Previous history remains in database but is cleared from view).",
-          timestamp: new Date()
+          timestamp: new Date(),
+          avatar: DEFAULT_AI_AVATAR,
+          name: 'Second Brain'
         }
       ]);
       toast.info("New session started.");
@@ -207,8 +226,8 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
         {/* Header */}
         <div className="p-4 border-b border-indigo-100/50 flex items-center justify-between bg-white/40 shrink-0">
            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
-                 <i className="fas fa-brain"></i>
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 overflow-hidden border-2 border-white/20">
+                 <img src={DEFAULT_AI_AVATAR} alt="Brain" className="w-full h-full object-cover" />
               </div>
               <div>
                  <h2 className="font-display font-bold text-slate-800 text-lg leading-none">{t.privateSpace.secondBrain.title}</h2>
@@ -251,11 +270,11 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
                     <div className={`max-w-[90%] md:max-w-[80%] flex gap-3 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
                        
                        {/* Avatar */}
-                       <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-1 shadow-sm ${isUser ? 'bg-slate-200' : 'bg-indigo-100'}`}>
+                       <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-1 shadow-sm overflow-hidden border ${isUser ? 'bg-slate-200 border-white' : 'bg-white border-indigo-100'}`}>
                           {isUser ? (
-                             <img src={user?.photoURL} alt="Me" className="w-full h-full rounded-full object-cover" />
+                             <img src={user?.photoURL} alt="Me" className="w-full h-full object-cover" />
                           ) : (
-                             <i className="fas fa-robot text-indigo-500 text-xs"></i>
+                             <img src={msg.avatar || DEFAULT_AI_AVATAR} alt="AI" className="w-full h-full object-cover" />
                           )}
                        </div>
 
@@ -267,12 +286,23 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
                              : 'bg-white text-slate-800 rounded-tl-sm border border-white/60'
                           }
                        `}>
+                          {/* Name Label */}
+                          {!isUser && msg.name && msg.name !== 'Second Brain' && (
+                             <div className="text-[10px] font-bold text-indigo-500 mb-1 opacity-70 uppercase tracking-wider">{msg.name}</div>
+                          )}
+
                           {isUser ? (
                              <div className="whitespace-pre-wrap">{msg.content}</div>
                           ) : (
-                             <div className="markdown-body-chat">
+                             <div className="markdown-body-chat relative">
                                 {msg.content ? (
-                                   <BlogContent content={msg.content} shadowClass="shadow-none border-none p-0" forceLight={true} />
+                                   <>
+                                     <BlogContent content={msg.content} shadowClass="shadow-none border-none p-0" forceLight={true} />
+                                     {/* Blinking Cursor for Streaming */}
+                                     {msg.isStreaming && (
+                                        <span className="inline-block w-2 h-4 bg-indigo-500 ml-1 align-middle animate-[blink_1s_step-end_infinite]"></span>
+                                     )}
+                                   </>
                                 ) : msg.isStreaming ? (
                                    <div className="flex gap-1 items-center h-5">
                                       <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce"></span>
@@ -341,6 +371,11 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
         /* Hide the large decorative blobs from BlogContent in chat mode */
         .markdown-body-chat .absolute.blur-\[100px\] {
            display: none;
+        }
+        
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
         }
       `}</style>
     </div>
