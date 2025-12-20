@@ -1,5 +1,5 @@
 
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useMemo } from 'react';
 
 interface BlogContentProps {
   content: string;
@@ -10,12 +10,13 @@ interface BlogContentProps {
 }
 
 export const BlogContent: React.FC<BlogContentProps> = ({ content, isLoading, shadowClass = 'shadow-2xl', forceLight = false, clean = false }) => {
-  const contentRef = useRef<HTMLDivElement>(null);
-
-  // Process markdown if available
+  
+  // Custom Markdown Rendering logic
   const renderedContent = useMemo(() => {
     if (isLoading) return '<div class="flex items-center gap-3 text-slate-400 animate-pulse font-mono py-12 justify-center"><i class="fas fa-circle-notch fa-spin"></i> Retrieving data stream...</div>';
-    if (window.marked && content) {
+    if (!content) return '';
+    
+    if (window.marked) {
       try {
         return window.marked.parse(content);
       } catch (e) {
@@ -26,65 +27,160 @@ export const BlogContent: React.FC<BlogContentProps> = ({ content, isLoading, sh
     return content;
   }, [content, isLoading]);
 
-  // Effect to trigger syntax highlighting and enforce container styling
-  useEffect(() => {
-    if (window.hljs && contentRef.current) {
-      const blocks = contentRef.current.querySelectorAll('pre code');
-      blocks.forEach((block) => {
-        const el = block as HTMLElement;
-
-        // 1. Run Syntax Highlighting
-        if (!el.classList.contains('hljs')) {
-           window.hljs.highlightElement(el);
-        }
-
-        // 2. Enforce Background AND Text Color on Parent <pre> tag
-        const pre = el.parentElement;
-        if (pre && pre.tagName === 'PRE') {
-           // Always use dark theme for code blocks for readability, regardless of page theme
-           pre.style.backgroundColor = '#1e293b'; 
-           pre.style.color = '#f8fafc'; 
-           pre.style.borderRadius = '1rem';
-           pre.style.padding = '1.5rem';
-           pre.style.overflowX = 'auto';
-           pre.style.border = '1px solid rgba(51, 65, 85, 0.5)';
-           pre.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
-           
-           el.style.backgroundColor = 'transparent';
-           el.style.color = 'inherit';
-           el.style.padding = '0';
-           el.style.fontFamily = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace';
-        }
-      });
+  // Dynamic CSS to support Light/Dark modes while adhering to the requested design style
+  const customStyles = `
+    .blog-content-wrapper {
+      /* Light Mode Defaults */
+      --bc-text: #374151; /* gray-700 */
+      --bc-heading: #111827; /* gray-900 */
+      --bc-bold: #000;
+      --bc-quote-border: #e5e7eb;
+      --bc-quote-text: #6b7280;
+      --bc-code-bg: #f3f4f6;
+      --bc-code-text: #db2777; /* pink-600 for inline code in light mode */
+      --bc-pre-bg: #1e1e1e; /* Dark pre blocks by default even in light mode for contrast */
+      --bc-pre-border: #374151;
+      --bc-pre-text: #f3f4f6;
+      --bc-link: #2563eb;
+      --bc-img-border: #e5e7eb;
     }
-  });
 
-  // Base styling classes
+    ${!forceLight ? `
+    .dark .blog-content-wrapper {
+      /* Dark Mode Overrides (Matching provided snippet) */
+      --bc-text: #d1d5db; /* gray-300 */
+      --bc-heading: #f3f4f6; /* gray-100 */
+      --bc-bold: #fff;
+      --bc-quote-border: #4b5563;
+      --bc-quote-text: #9ca3af;
+      --bc-code-bg: #2f2f2f;
+      --bc-code-text: #e5e7eb;
+      --bc-pre-bg: #0d0d0d;
+      --bc-pre-border: #333;
+      --bc-pre-text: #e5e7eb;
+      --bc-link: #60a5fa;
+      --bc-img-border: #333;
+    }
+    ` : ''}
+
+    .blog-content-body {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 1.125rem; /* text-lg */
+      line-height: 1.8;
+      color: var(--bc-text);
+    }
+
+    .blog-content-body p {
+      margin-bottom: 1.5em;
+    }
+    .blog-content-body p:last-child {
+      margin-bottom: 0;
+    }
+
+    .blog-content-body h1, 
+    .blog-content-body h2, 
+    .blog-content-body h3, 
+    .blog-content-body h4 {
+      color: var(--bc-heading);
+      font-weight: 700;
+      margin-top: 2em;
+      margin-bottom: 0.75em;
+      line-height: 1.3;
+      font-family: 'Sen', sans-serif;
+    }
+    
+    .blog-content-body h1 { font-size: 2.25rem; letter-spacing: -0.025em; }
+    .blog-content-body h2 { font-size: 1.875rem; letter-spacing: -0.025em; }
+    .blog-content-body h3 { font-size: 1.5rem; }
+    .blog-content-body h4 { font-size: 1.25rem; }
+
+    .blog-content-body ul, 
+    .blog-content-body ol {
+      margin-left: 1.5em;
+      margin-bottom: 1.5em;
+    }
+    .blog-content-body ul { list-style-type: disc; }
+    .blog-content-body ol { list-style-type: decimal; }
+    .blog-content-body li { margin-bottom: 0.5em; }
+
+    .blog-content-body strong {
+      color: var(--bc-bold);
+      font-weight: 700;
+    }
+
+    .blog-content-body blockquote {
+      border-left: 4px solid var(--bc-quote-border);
+      padding-left: 1.5em;
+      color: var(--bc-quote-text);
+      font-style: italic;
+      margin: 2em 0;
+      background: rgba(128, 128, 128, 0.05);
+      padding: 1em 1em 1em 1.5em;
+      border-radius: 0 12px 12px 0;
+    }
+
+    .blog-content-body code {
+      background-color: var(--bc-code-bg);
+      padding: 0.2em 0.4em;
+      border-radius: 6px;
+      font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+      font-size: 0.9em;
+      color: var(--bc-code-text);
+    }
+
+    .blog-content-body pre {
+      background-color: var(--bc-pre-bg);
+      padding: 1.5em;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 2em 0;
+      border: 1px solid var(--bc-pre-border);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .blog-content-body pre code {
+      background-color: transparent;
+      padding: 0;
+      border-radius: 0;
+      color: var(--bc-pre-text);
+      font-size: 0.9em;
+      font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+    }
+
+    .blog-content-body a {
+      color: var(--bc-link);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      transition: opacity 0.2s;
+    }
+    .blog-content-body a:hover {
+      opacity: 0.8;
+    }
+
+    .blog-content-body img {
+      border-radius: 12px;
+      margin: 2em auto;
+      display: block;
+      max-width: 100%;
+      border: 1px solid var(--bc-img-border);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .blog-content-body hr {
+      border-color: var(--bc-quote-border);
+      margin: 3em 0;
+    }
+  `;
+
+  // Base styling classes for the card container
   const containerClasses = forceLight
-    ? `bg-white rounded-[2rem] p-8 md:p-16 border border-slate-200 ${shadowClass} relative overflow-hidden group transition-colors duration-500`
-    : `bg-white dark:bg-[#050914] rounded-[2rem] p-8 md:p-16 border border-slate-200 dark:border-slate-800 ${shadowClass} relative overflow-hidden group transition-colors duration-500`;
-
-  // When forceLight is true, we use minimal prose overrides to allow the HTML (e.g. from editor) to dictate colors.
-  // We only keep structural styling (images, blockquotes layout) and use standard prose-slate defaults.
-  const proseClasses = forceLight
-    ? `prose prose-lg md:prose-xl prose-slate max-w-none relative z-10 text-slate-900
-       prose-img:rounded-2xl prose-img:shadow-lg prose-img:my-12 prose-img:border prose-img:border-slate-100
-       prose-pre:text-slate-100 prose-pre:bg-transparent
-       /* Explicitly ensure links are visible but not overriding inline styles if present */
-       prose-a:text-pink-600 prose-a:no-underline hover:prose-a:underline
-       `
-    : `prose prose-lg md:prose-xl prose-slate dark:prose-invert max-w-none relative z-10
-       prose-headings:font-display prose-headings:font-bold prose-headings:text-slate-900 dark:prose-headings:text-white
-       prose-p:leading-loose prose-p:text-slate-600 dark:prose-p:text-slate-300 prose-p:mb-8
-       prose-a:text-primary-600 dark:prose-a:text-primary-400 prose-a:no-underline hover:prose-a:underline
-       prose-img:rounded-2xl prose-img:shadow-lg prose-img:my-12 prose-img:border prose-img:border-slate-100 dark:prose-img:border-slate-800
-       prose-blockquote:border-l-4 prose-blockquote:border-primary-500 prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:bg-slate-50 dark:prose-blockquote:bg-slate-900/50 prose-blockquote:py-4 prose-blockquote:pr-4 prose-blockquote:rounded-r-xl
-       prose-li:text-slate-600 dark:prose-li:text-slate-300
-       prose-pre:text-slate-100 prose-pre:bg-transparent
-       prose-code:text-rose-600 dark:prose-code:text-rose-400 prose-code:bg-slate-100 dark:prose-code:bg-slate-800/50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none`;
+    ? `bg-white rounded-[2rem] p-8 md:p-16 border border-slate-200 ${shadowClass} relative overflow-hidden group transition-colors duration-500 blog-content-wrapper`
+    : `bg-white dark:bg-[#050914] rounded-[2rem] p-8 md:p-16 border border-slate-200 dark:border-slate-800 ${shadowClass} relative overflow-hidden group transition-colors duration-500 blog-content-wrapper`;
 
   return (
     <div className={containerClasses}>
+        <style>{customStyles}</style>
+        
         {/* Subtle decorative gradient - Only if clean is false */}
         {!clean && (
           <>
@@ -94,12 +190,7 @@ export const BlogContent: React.FC<BlogContentProps> = ({ content, isLoading, sh
         )}
 
         <div 
-            ref={contentRef}
-            className={`${proseClasses}
-            /* Override prose-code styles specifically for code blocks (pre > code) */
-            [&_pre_code]:text-inherit [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:font-normal
-            /* Icon Protection */
-            [&_.fa]:font-sans [&_.fas]:font-sans [&_.fab]:font-sans [&_.far]:font-sans`} 
+            className="blog-content-body relative z-10"
             dangerouslySetInnerHTML={{ __html: renderedContent }} 
         />
     </div>
