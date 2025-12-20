@@ -180,9 +180,18 @@ export const Header: React.FC<HeaderProps> = ({
     <header className={headerClasses}>
       {/* Container - max-w-[1600px] to prevent elements being too far apart, centered */}
       <div className="w-full px-6 md:px-12 max-w-[1600px] mx-auto flex justify-between items-center relative">
+        
+        {/* Mobile Toggle - Moved to LEFT */}
+        <button 
+          className={`xl:hidden mr-4 ${isPrivate ? 'text-rose-600' : 'text-slate-800 dark:text-white'}`}
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          <i className="fas fa-bars text-xl"></i>
+        </button>
+
         {/* Logo - ps5.space */}
         <div 
-          className="flex items-center gap-3 cursor-pointer group z-20 relative"
+          className="flex items-center gap-3 cursor-pointer group z-20 relative mr-auto"
           onClick={() => setPage(PageView.HOME)}
         >
           <div className="relative w-10 h-10 flex items-center justify-center">
@@ -438,14 +447,6 @@ export const Header: React.FC<HeaderProps> = ({
               {t.header.signIn}
             </button>
           )}
-
-          {/* Mobile Toggle - Keep XL breakpoint */}
-          <button 
-            className={`xl:hidden ${isPrivate ? 'text-rose-600' : 'text-slate-800 dark:text-white'}`}
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            <i className="fas fa-bars text-xl"></i>
-          </button>
         </div>
       </div>
 

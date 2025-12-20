@@ -136,13 +136,13 @@ export const featureService = {
     }
   },
 
-  addTodo: async (todo: string, description?: string, targetDate?: string, images?: string[]): Promise<Todo[]> => {
+  addTodo: async (todo: string, description?: string, targetDate?: string, images?: string[], type?: 'wish' | 'routine'): Promise<Todo[]> => {
     try {
       const res = await fetchClient<Todo[]>('/todo', {
         method: 'POST',
-        body: JSON.stringify({ todo, description, targetDate, images })
+        body: JSON.stringify({ todo, description, targetDate, images, type })
       });
-      toast.success('Wish added to the bucket list!');
+      toast.success('Added to the list!');
       return res;
     } catch (e) {
       throw e;
@@ -165,7 +165,7 @@ export const featureService = {
     await fetchClient(`/todo/${id}`, {
       method: 'DELETE'
     });
-    toast.success('Wish removed.');
+    toast.success('Removed from list.');
   },
 
   toggleTodo: async (id: string): Promise<Todo[]> => {

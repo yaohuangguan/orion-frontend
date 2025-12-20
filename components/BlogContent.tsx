@@ -6,9 +6,10 @@ interface BlogContentProps {
   isLoading?: boolean;
   shadowClass?: string;
   forceLight?: boolean;
+  clean?: boolean;
 }
 
-export const BlogContent: React.FC<BlogContentProps> = ({ content, isLoading, shadowClass = 'shadow-2xl', forceLight = false }) => {
+export const BlogContent: React.FC<BlogContentProps> = ({ content, isLoading, shadowClass = 'shadow-2xl', forceLight = false, clean = false }) => {
   const contentRef = useRef<HTMLDivElement>(null);
 
   // Process markdown if available
@@ -84,9 +85,13 @@ export const BlogContent: React.FC<BlogContentProps> = ({ content, isLoading, sh
 
   return (
     <div className={containerClasses}>
-        {/* Subtle decorative gradient - Pinkish for forced light (Private), Blue for standard */}
-        <div className={`absolute -top-32 -right-32 w-96 h-96 rounded-full blur-[100px] pointer-events-none transition-colors duration-700 ${forceLight ? 'bg-pink-500/10' : 'bg-primary-500/5'}`}></div>
-        <div className={`absolute -bottom-32 -left-32 w-96 h-96 rounded-full blur-[100px] pointer-events-none transition-colors duration-700 ${forceLight ? 'bg-rose-500/10' : 'bg-blue-500/5'}`}></div>
+        {/* Subtle decorative gradient - Only if clean is false */}
+        {!clean && (
+          <>
+            <div className={`absolute -top-32 -right-32 w-96 h-96 rounded-full blur-[100px] pointer-events-none transition-colors duration-700 ${forceLight ? 'bg-pink-500/10' : 'bg-primary-500/5'}`}></div>
+            <div className={`absolute -bottom-32 -left-32 w-96 h-96 rounded-full blur-[100px] pointer-events-none transition-colors duration-700 ${forceLight ? 'bg-rose-500/10' : 'bg-blue-500/5'}`}></div>
+          </>
+        )}
 
         <div 
             ref={contentRef}

@@ -7,25 +7,26 @@ import { createPortal } from 'react-dom';
 import { toast } from '../Toast';
 
 type TabType = 'todo' | 'in_progress' | 'done';
+type ViewType = 'wish' | 'routine';
 
 export const TodoWidget: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('todo');
+  const [viewType, setViewType] = useState<ViewType>('wish');
   
   // Modal & Edit State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentTodo, setCurrentTodo] = useState<Partial<Todo>>({
-    todo: '', description: '', status: 'todo', images: [], targetDate: ''
+    todo: '', description: '', status: 'todo', images: [], targetDate: '', type: 'wish'
   });
   const [isProcessing, setIsProcessing] = useState(false);
   
   // Deletion State for individual cards
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
 
-  // Widget Expansion State (Mobile/Desktop view toggle)
-  // Default to collapsed (false) as requested
+  // Widget Expansion State
   const [isExpanded, setIsExpanded] = useState(false);
 
   const { t } = useTranslation();
@@ -40,11 +41,13 @@ export const TodoWidget: React.FC = () => {
       const data = await apiService.getTodos();
       // Normalize legacy data if needed (map legacy done=true to status='done')
       const normalized = data.map(item => {
-        if (!item.status) {
-           if (item.done) return { ...item, status: 'done' as const };
-           return { ...item, status: 'todo' as const };
+        const itemType = item.type || 'wish'; // Default to wish if type is missing
+        let status = item.status;
+        if (!status) {
+           if (item.done) status = 'done';
+           else status = 'todo';
         }
-        return item;
+        return { ...item, status, type: itemType };
       });
       setTodos(normalized);
     } catch (error) {
@@ -55,7 +58,7 @@ export const TodoWidget: React.FC = () => {
   };
 
   const handleOpenAdd = () => {
-    setCurrentTodo({ todo: '', description: '', status: activeTab, images: [], targetDate: '' });
+    setCurrentTodo({ todo: '', description: '', status: activeTab, images: [], targetDate: '', type: viewType });
     setIsEditing(false);
     setIsModalOpen(true);
   };
@@ -74,7 +77,6 @@ export const TodoWidget: React.FC = () => {
     try {
       if (isEditing && currentTodo._id) {
         // Update existing
-        // Note: backend endpoint for updates is typically POST /done/:id in this architecture
         const updatedList = await apiService.updateTodo(currentTodo._id, currentTodo);
         setTodos(updatedList);
       } else {
@@ -83,7 +85,8 @@ export const TodoWidget: React.FC = () => {
            currentTodo.todo!, 
            currentTodo.description, 
            currentTodo.targetDate, 
-           currentTodo.images
+           currentTodo.images,
+           currentTodo.type
         );
         setTodos(updatedList);
       }
@@ -97,7 +100,6 @@ export const TodoWidget: React.FC = () => {
 
   const handleDelete = async () => {
     if (!currentTodo._id) return;
-    // Removed alert confirmation as requested
 
     setIsProcessing(true);
     try {
@@ -165,12 +167,8 @@ export const TodoWidget: React.FC = () => {
     e.stopPropagation();
     if (isProcessing) return;
     
-    // We don't use global isProcessing here to avoid blocking other interactions if possible, 
-    // but preventing double clicks on same item is good.
-    // For now, reuse isProcessing is fine or we could track processingIds.
     setIsProcessing(true); 
     try {
-        // Pass only the status update
         const updatedList = await apiService.updateTodo(todo._id, { status: newStatus });
         setTodos(updatedList);
         toast.success(`Updated status to ${t.privateSpace.bucketList.tabs[newStatus]}`);
@@ -182,15 +180,17 @@ export const TodoWidget: React.FC = () => {
     }
   };
 
-  // Filter Logic
+  // Filter Logic: Filter by both Status (Tab) and Type (Wish/Routine)
   const filteredTodos = todos.filter(item => {
     const itemStatus = item.status || (item.done ? 'done' : 'todo');
-    return itemStatus === activeTab;
+    const itemType = item.type || 'wish';
+    return itemStatus === activeTab && itemType === viewType;
   });
 
   const getStats = () => {
-    const doneCount = todos.filter(t => t.status === 'done' || t.done).length;
-    const total = todos.length;
+    const relevantTodos = todos.filter(t => (t.type || 'wish') === viewType);
+    const doneCount = relevantTodos.filter(t => t.status === 'done' || t.done).length;
+    const total = relevantTodos.length;
     return { doneCount, total };
   };
 
@@ -204,15 +204,16 @@ export const TodoWidget: React.FC = () => {
       >
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-pink-400 to-rose-500 flex items-center justify-center text-white shadow-md">
-            <i className="fas fa-list-ul"></i>
+            <i className={`fas ${viewType === 'wish' ? 'fa-list-ul' : 'fa-clipboard-list'}`}></i>
           </div>
           <div>
-             <h3 className="text-lg font-bold text-slate-800 leading-none">{t.privateSpace.bucketList.title}</h3>
+             <h3 className="text-lg font-bold text-slate-800 leading-none">{viewType === 'wish' ? t.privateSpace.bucketList.title : 'Daily Routine'}</h3>
              <p className="text-[10px] text-pink-500 font-mono uppercase tracking-widest mt-1">
                 {getStats().doneCount} / {getStats().total} {t.privateSpace.bucketList.tabs.done}
              </p>
           </div>
         </div>
+        
         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-pink-400 hover:bg-pink-100 transition-all duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
            <i className="fas fa-chevron-down"></i>
         </div>
@@ -221,13 +222,31 @@ export const TodoWidget: React.FC = () => {
       {/* Main Content */}
       <div className={`flex flex-col flex-1 min-h-0 bg-white/30 relative transition-opacity duration-300 ${isExpanded ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
          
+         {/* View Switcher - Moved Inside Collapsible Area */}
+         <div className="px-4 pt-3 pb-1">
+            <div className="flex bg-white/60 p-1 rounded-xl shadow-sm border border-pink-100/50">
+                <button 
+                    onClick={() => setViewType('wish')} 
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold uppercase transition-all ${viewType === 'wish' ? 'bg-pink-500 text-white shadow-sm' : 'text-slate-400 hover:text-pink-500'}`}
+                >
+                    Wishlist
+                </button>
+                <button 
+                    onClick={() => setViewType('routine')} 
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold uppercase transition-all ${viewType === 'routine' ? 'bg-pink-500 text-white shadow-sm' : 'text-slate-400 hover:text-pink-500'}`}
+                >
+                    Routine
+                </button>
+            </div>
+         </div>
+
          {/* Tabs */}
-         <div className="flex p-2 gap-2 shrink-0">
+         <div className="flex px-4 py-2 gap-2 shrink-0">
             {(['todo', 'in_progress', 'done'] as TabType[]).map(tab => (
                <button
                  key={tab}
                  onClick={() => setActiveTab(tab)}
-                 className={`flex-1 py-2 text-xs font-bold uppercase rounded-xl transition-all border ${
+                 className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-xl transition-all border ${
                     activeTab === tab 
                       ? 'bg-white text-rose-500 border-rose-200 shadow-sm' 
                       : 'bg-transparent text-slate-400 border-transparent hover:bg-white/50'
@@ -239,11 +258,11 @@ export const TodoWidget: React.FC = () => {
          </div>
 
          {/* List Area */}
-         <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-3">
+         <div className="flex-1 overflow-y-auto px-4 pb-4 custom-scrollbar space-y-3">
             {isLoading ? (
-               <div className="text-center py-10 text-pink-300 text-xs animate-pulse">Loading dreams...</div>
+               <div className="text-center py-10 text-pink-300 text-xs animate-pulse">Loading list...</div>
             ) : filteredTodos.length === 0 ? (
-               <div className="text-center py-10 text-slate-400 flex flex-col items-center gap-2 border-2 border-dashed border-pink-100 rounded-2xl mx-4">
+               <div className="text-center py-10 text-slate-400 flex flex-col items-center gap-2 border-2 border-dashed border-pink-100 rounded-2xl">
                   <i className="fas fa-cloud text-3xl text-pink-100"></i>
                   <p className="text-xs">{t.privateSpace.bucketList.empty}</p>
                </div>
@@ -420,6 +439,22 @@ export const TodoWidget: React.FC = () => {
                {/* Form Content */}
                <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
                   
+                  {/* Type Selector in Modal */}
+                  <div className="flex bg-slate-100 p-1 rounded-xl">
+                      <button 
+                          onClick={() => setCurrentTodo(prev => ({...prev, type: 'wish'}))}
+                          className={`flex-1 py-2 text-xs font-bold uppercase rounded-lg transition-all ${currentTodo.type === 'wish' ? 'bg-white text-rose-500 shadow-sm' : 'text-slate-400'}`}
+                      >
+                          Wish
+                      </button>
+                      <button 
+                          onClick={() => setCurrentTodo(prev => ({...prev, type: 'routine'}))}
+                          className={`flex-1 py-2 text-xs font-bold uppercase rounded-lg transition-all ${currentTodo.type === 'routine' ? 'bg-white text-rose-500 shadow-sm' : 'text-slate-400'}`}
+                      >
+                          Routine
+                      </button>
+                  </div>
+
                   {/* Title */}
                   <input 
                      type="text" 

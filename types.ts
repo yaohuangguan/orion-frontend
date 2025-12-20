@@ -235,6 +235,7 @@ export interface Todo {
   todo: string; // The Title
   description?: string;
   status?: 'todo' | 'in_progress' | 'done';
+  type?: 'wish' | 'routine'; // New Type Field
   images?: string[];
   targetDate?: string;
   order?: number;
