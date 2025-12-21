@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
   <head>
@@ -27,6 +28,9 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     
+    <!-- React Phone Input 2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/react-phone-input-2@2.15.1/lib/style.css" rel="stylesheet" />
+
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
       tailwind.config = {
@@ -203,11 +207,86 @@
         border-radius: 0.5rem;
         font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
       }
+
+      /* React Phone Input Customization for Dark Mode & Consistency */
+      .react-tel-input .form-control {
+        width: 100% !important;
+        height: 50px !important; /* Matched to LoginModal inputs */
+        border-radius: 0.75rem !important;
+        border: 1px solid #e2e8f0 !important;
+        background-color: #f8fafc !important;
+        font-family: 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', "Liberation Mono", "Courier New", 'monospace' !important;
+        font-size: 0.875rem !important;
+        color: #0f172a !important;
+      }
+      .dark .react-tel-input .form-control {
+        background-color: #0a0f1e !important;
+        border-color: #1e293b !important;
+        color: white !important;
+      }
+      .react-tel-input .flag-dropdown {
+        border-color: #e2e8f0 !important;
+        border-radius: 0.75rem 0 0 0.75rem !important;
+        background-color: transparent !important;
+      }
+      .dark .react-tel-input .flag-dropdown {
+        border-color: #1e293b !important;
+        background-color: transparent !important;
+      }
+      .react-tel-input .selected-flag:hover, .react-tel-input .selected-flag.open {
+        background-color: rgba(0,0,0,0.05) !important;
+        border-radius: 0.75rem 0 0 0.75rem !important;
+      }
+      .dark .react-tel-input .selected-flag:hover, .dark .react-tel-input .selected-flag.open {
+        background-color: rgba(255,255,255,0.05) !important;
+      }
+      .react-tel-input .country-list {
+        border-radius: 0.5rem !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+        font-family: 'Inter', sans-serif !important;
+        background-color: white !important;
+        color: #334155 !important;
+        border: 1px solid #e2e8f0 !important;
+      }
+      .dark .react-tel-input .country-list {
+        background-color: #0f172a !important;
+        color: #e2e8f0 !important;
+        border-color: #1e293b !important;
+      }
+      .react-tel-input .country-list .country:hover {
+        background-color: #f1f5f9 !important;
+      }
+      .dark .react-tel-input .country-list .country:hover {
+        background-color: #1e293b !important;
+      }
+      .react-tel-input .country-list .country.highlight {
+        background-color: #e2e8f0 !important;
+      }
+      .dark .react-tel-input .country-list .country.highlight {
+        background-color: #334155 !important;
+      }
     </style>
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://aistudiocdn.com/react@^19.2.0",
+        "react/": "https://aistudiocdn.com/react@^19.2.0/",
+        "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
+        "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+        "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+        "quill": "https://cdn.jsdelivr.net/npm/quill@2.0.3/+esm",
+        "socket.io-client": "https://cdn.socket.io/4.7.4/socket.io.esm.min.js",
+        "recharts": "https://esm.sh/recharts@2.12.0?external=react,react-dom",
+        "echarts": "https://esm.sh/echarts@5.5.0",
+        "leaflet": "https://esm.sh/leaflet@1.9.4",
+        "react-phone-input-2": "https://esm.sh/react-phone-input-2@2.15.1?external=react,react-dom"
+      }
+    }
+    </script>
   </head>
   <body class="bg-milky-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-500 overflow-x-hidden">
-    <script type="module" src="index.tsx"></script>
     <div id="root"></div>
+    <script type="module" src="index.tsx"></script>
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {

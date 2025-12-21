@@ -50,6 +50,7 @@ export interface User {
   _id: string;
   displayName: string;
   email: string;
+  phone?: string;
   photoURL?: string;
   token?: string;
   vip?: boolean;
@@ -458,7 +459,7 @@ export enum Theme {
   DARK = 'dark'
 }
 
-export type Language = 'en' | 'zh' | 'fr' | 'zh-TW' | 'ja' | 'ru' | 'de' | 'es';
+export type Language = 'en' | 'zh' | 'fr' | 'zh-HK' | 'ja' | 'ru' | 'de' | 'es';
 
 export enum PageView {
   HOME = 'HOME',

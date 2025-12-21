@@ -39,7 +39,7 @@ export const authService = {
     }
   },
 
-  register: async (displayName: string, email: string, password: string, passwordConf: string): Promise<{ token: string, user?: User }> => {
+  register: async (displayName: string, email: string, password: string, passwordConf: string, phone?: string): Promise<{ token: string, user?: User }> => {
     try {
       const response = await fetchClient<{ token: string, user?: User }>('/users', {
         method: 'POST',
@@ -47,7 +47,8 @@ export const authService = {
           displayName, 
           email, 
           password, 
-          passwordConf 
+          passwordConf,
+          phone 
         }),
       });
       if (response.token) {

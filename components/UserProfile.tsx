@@ -93,7 +93,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
     }
   }, [isPermModalOpen, requestType]);
 
-  // Fix 2: Fetch roles dynamically when role modal opens
+  // Fetch roles dynamically when role modal opens
   useEffect(() => {
     if (isPermModalOpen && requestType === 'ROLE' && availableRoles.length === 0) {
        const fetchRoles = async () => {
@@ -250,7 +250,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
 
   const openPermissionModal = (type: 'ROLE' | 'PERM', defaultVal = '') => {
     setRequestType(type);
-    setPermRequest({ permission: defaultVal, role: 'admin', reason: '' });
+    setPermRequest({ permission: type === 'PERM' ? defaultVal : '', role: type === 'ROLE' ? (defaultVal || 'admin') : 'admin', reason: '' });
     setIsPermModalOpen(true);
   };
 
@@ -322,6 +322,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
 
             <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{user.displayName}</h2>
             <p className="text-sm font-mono text-slate-500 mb-4">{user.email}</p>
+            {user.phone && <p className="text-xs font-mono text-slate-400 mb-4">{user.phone}</p>}
             
             <div className="flex gap-2 justify-center flex-wrap">
                 <div className="inline-flex items-center px-3 py-1 bg-emerald-500/10 text-emerald-500 rounded-full text-xs font-bold uppercase tracking-widest border border-emerald-500/20">
@@ -411,14 +412,26 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">{t.profile.email}</label>
-                <input 
-                  type="text" 
-                  value={user.email}
-                  disabled
-                  className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 text-slate-500 cursor-not-allowed font-mono text-sm"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">{t.profile.email}</label>
+                  <input 
+                    type="text" 
+                    value={user.email}
+                    disabled
+                    className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 text-slate-500 cursor-not-allowed font-mono text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">{t.profile.phone}</label>
+                  <input 
+                    type="text" 
+                    value={user.phone || ''}
+                    disabled
+                    placeholder="Not linked"
+                    className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 text-slate-500 cursor-not-allowed font-mono text-sm"
+                  />
+                </div>
               </div>
 
               <div>
@@ -571,82 +584,59 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
               </button>
 
               <div className="text-center mb-6">
-                 <div className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-4">
-                    <i className="fas fa-user-lock text-xl"></i>
+                 <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto mb-4">
+                    <i className="fas fa-unlock-alt text-xl"></i>
                  </div>
-                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t.profile.requestPermissionTitle}</h3>
+                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                    {t.profile.requestPermissionTitle}
+                 </h3>
+                 <p className="text-sm text-slate-500 mt-2">
+                    {requestType === 'ROLE' ? 'Request a specific role change' : 'Request specific permission access'}
+                 </p>
               </div>
 
               <form onSubmit={handlePermSubmit} className="space-y-4">
-                 
-                 {/* Type Switcher */}
-                 <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-4">
-                    <button
-                       type="button"
-                       onClick={() => { setRequestType('ROLE'); setPermRequest(p => ({...p, role: 'admin'})); }}
-                       className={`flex-1 py-2 text-xs font-bold uppercase rounded-lg transition-all ${requestType === 'ROLE' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-500' : 'text-slate-500'}`}
-                    >
-                       Role Upgrade
-                    </button>
-                    <button
-                       type="button"
-                       onClick={() => { setRequestType('PERM'); setPermRequest(p => ({...p, permission: ''})); }}
-                       className={`flex-1 py-2 text-xs font-bold uppercase rounded-lg transition-all ${requestType === 'PERM' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-500' : 'text-slate-500'}`}
-                    >
-                       Specific Permission
-                    </button>
-                 </div>
-
                  <div>
                     <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-2">
                         {requestType === 'ROLE' ? 'Target Role' : t.profile.permissionKey}
                     </label>
                     {requestType === 'ROLE' ? (
-                        <select
-                           value={permRequest.role}
-                           onChange={(e) => setPermRequest({...permRequest, role: e.target.value})}
-                           className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-mono text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/50"
-                        >
-                           {/* Fix 2: Dynamically map roles, filtering out super_admin and bot */}
-                           {availableRoles.length > 0 ? (
-                               availableRoles
-                                .filter(r => !['super_admin', 'bot'].includes(r.name)) // Filter out restricted roles
-                                .map(r => (
-                                   <option key={r._id} value={r.name}>{r.name}</option>
+                       <div className="flex gap-2">
+                          <select 
+                             className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/50 text-slate-900 dark:text-white"
+                             value={permRequest.role}
+                             onChange={(e) => setPermRequest({...permRequest, role: e.target.value})}
+                          >
+                             {availableRoles.length > 0 ? (
+                                availableRoles.map(role => (
+                                   <option key={role._id} value={role.name}>{role.name}</option>
                                 ))
-                           ) : (
-                               // Fallback default
-                               <>
-                                <option value="admin">admin</option>
-                                <option value="user">user</option>
-                               </>
-                           )}
-                        </select>
+                             ) : (
+                                <>
+                                   <option value="admin">admin</option>
+                                   <option value="super_admin">super_admin</option>
+                                   <option value="user">user</option>
+                                </>
+                             )}
+                          </select>
+                       </div>
                     ) : (
-                        <select 
-                           value={permRequest.permission}
-                           onChange={(e) => setPermRequest({...permRequest, permission: e.target.value})}
-                           className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-mono text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/50"
-                           required
-                        >
-                           <option value="" disabled>Select Permission Key</option>
-                           {backendPermissions.length > 0 ? (
-                              backendPermissions
-                                .filter(p => p.key !== '*') // Fix 2: Filter out wildcard permission
-                                .map((perm) => (
-                                <option key={perm._id} value={perm.key}>
-                                   {perm.name} ({perm.key})
-                                </option>
-                              ))
-                           ) : (
-                              // Fallback if fetch failed or empty
-                              Object.entries(PERM_KEYS).map(([key, value]) => (
-                                <option key={value} value={value}>
-                                   {key} ({value})
-                                </option>
-                              ))
-                           )}
-                        </select>
+                        // If selecting raw permission keys
+                        <div className="flex gap-2">
+                           <input 
+                              type="text" 
+                              list="perms-list"
+                              value={permRequest.permission}
+                              onChange={(e) => setPermRequest({...permRequest, permission: e.target.value})}
+                              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/50 text-slate-900 dark:text-white font-mono text-sm"
+                              placeholder="e.g. system:logs"
+                           />
+                           <datalist id="perms-list">
+                              {backendPermissions.map(p => (
+                                 <option key={p.key} value={p.key}>{p.name}</option>
+                              ))}
+                           </datalist>
+                        </div>
                     )}
                  </div>
 
@@ -656,7 +646,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
                        value={permRequest.reason}
                        onChange={(e) => setPermRequest({...permRequest, reason: e.target.value})}
                        placeholder={t.profile.reasonPlaceholder}
-                       className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl p-4 outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none h-32 text-slate-800 dark:text-slate-200 text-sm"
+                       className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl p-4 outline-none focus:ring-2 focus:ring-blue-500/50 resize-none h-32 text-slate-800 dark:text-slate-200"
                        required
                     />
                  </div>
@@ -665,14 +655,14 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
                     <button 
                       type="button" 
                       onClick={() => setIsPermModalOpen(false)}
-                      className="flex-1 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs uppercase hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                      className="flex-1 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-sm uppercase hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                     >
                        {t.access.cancel}
                     </button>
                     <button 
                       type="submit"
-                      disabled={isSubmittingPerm || !permRequest.reason.trim() || (requestType === 'PERM' && !permRequest.permission.trim())}
-                      className="flex-1 py-3 rounded-xl bg-indigo-500 text-white font-bold text-xs uppercase shadow-lg shadow-indigo-500/20 hover:bg-indigo-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      disabled={isSubmittingPerm || !permRequest.reason.trim()}
+                      className="flex-1 py-3 rounded-xl bg-blue-500 text-white font-bold text-sm uppercase shadow-lg shadow-blue-500/20 hover:bg-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                        {isSubmittingPerm && <i className="fas fa-circle-notch fa-spin"></i>}
                        {t.profile.submitRequest}

@@ -23,7 +23,7 @@ const getFlagUrl = (code: string) => `https://flagcdn.com/w40/${code}.png`;
 const LANGUAGES: { code: Language; label: string; flags: string[] }[] = [
   { code: 'en', label: 'English', flags: ['us', 'gb'] },
   { code: 'zh', label: '简体中文', flags: ['cn'] },
-  { code: 'zh-TW', label: '繁體中文', flags: ['hk'] },
+  { code: 'zh-HK', label: '繁體中文', flags: ['hk'] },
   { code: 'fr', label: 'Français', flags: ['fr'] },
   { code: 'ja', label: '日本語', flags: ['jp'] },
   { code: 'ru', label: 'Русский', flags: ['ru'] },
