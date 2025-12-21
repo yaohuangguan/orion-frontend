@@ -91,7 +91,9 @@ export const PermissionManagement: React.FC = () => {
                                 <td className="px-4 py-3 text-xs opacity-80">{perm.description}</td>
                                 <td className="px-4 py-3 text-right">
                                     <button onClick={() => setEditingPerm(perm)} className="text-blue-500 hover:text-blue-600 mr-3"><i className="fas fa-edit"></i></button>
-                                    <button onClick={() => setPermToDelete(perm.key)} className="text-red-500 hover:text-red-600"><i className="fas fa-trash"></i></button>
+                                    {perm.key !== '*' && (
+                                        <button onClick={() => setPermToDelete(perm.key)} className="text-red-500 hover:text-red-600"><i className="fas fa-trash"></i></button>
+                                    )}
                                 </td>
                             </tr>
                         ))}

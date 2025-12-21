@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { User, PaginationData, PERM_KEYS } from '../types';
+import { User, PaginationData, PERM_KEYS, Permission, Role } from '../types';
 import { useTranslation } from '../i18n/LanguageContext';
 import { apiService } from '../services/api';
 import { toast } from './Toast';
@@ -54,6 +54,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
   const [permRequest, setPermRequest] = useState({ permission: '', role: 'admin', reason: '' });
   const [requestType, setRequestType] = useState<'ROLE' | 'PERM'>('ROLE'); // Toggle state
   const [isSubmittingPerm, setIsSubmittingPerm] = useState(false);
+  
+  // Dynamic Permission List & Role List
+  const [backendPermissions, setBackendPermissions] = useState<Permission[]>([]);
+  const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
 
   // Guard to prevent double fetching in React Strict Mode
   const hasFetchedRef = useRef(false);
@@ -73,6 +77,36 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
     };
     fetchLatest();
   }, []);
+
+  // Fetch permissions when permission modal opens
+  useEffect(() => {
+    if (isPermModalOpen && requestType === 'PERM' && backendPermissions.length === 0) {
+       const fetchPerms = async () => {
+          try {
+             const list = await apiService.getAllPermissions();
+             setBackendPermissions(list);
+          } catch (e) {
+             console.error("Failed to fetch permissions", e);
+          }
+       };
+       fetchPerms();
+    }
+  }, [isPermModalOpen, requestType]);
+
+  // Fix 2: Fetch roles dynamically when role modal opens
+  useEffect(() => {
+    if (isPermModalOpen && requestType === 'ROLE' && availableRoles.length === 0) {
+       const fetchRoles = async () => {
+          try {
+             const list = await apiService.getAllRoles();
+             setAvailableRoles(list);
+          } catch (e) {
+             console.error("Failed to fetch roles", e);
+          }
+       };
+       fetchRoles();
+    }
+  }, [isPermModalOpen, requestType]);
 
   // Update local state when user prop changes (e.g. after refresh)
   useEffect(() => {
@@ -234,12 +268,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
       // @ts-ignore
       return t.profile.roles[role] || role;
   };
-
-  // Convert PERM_KEYS object to array for dropdown
-  const availablePermissions = Object.entries(PERM_KEYS).map(([key, value]) => ({
-    label: key,
-    value: value
-  }));
 
   return (
     <div className="container mx-auto px-6 py-24 pt-32 max-w-4xl animate-fade-in relative z-10">
@@ -579,8 +607,20 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
                            onChange={(e) => setPermRequest({...permRequest, role: e.target.value})}
                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-mono text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/50"
                         >
-                           <option value="admin">Admin</option>
-                           <option value="user">User</option>
+                           {/* Fix 2: Dynamically map roles, filtering out super_admin and bot */}
+                           {availableRoles.length > 0 ? (
+                               availableRoles
+                                .filter(r => !['super_admin', 'bot'].includes(r.name)) // Filter out restricted roles
+                                .map(r => (
+                                   <option key={r._id} value={r.name}>{r.name}</option>
+                                ))
+                           ) : (
+                               // Fallback default
+                               <>
+                                <option value="admin">admin</option>
+                                <option value="user">user</option>
+                               </>
+                           )}
                         </select>
                     ) : (
                         <select 
@@ -590,11 +630,22 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
                            required
                         >
                            <option value="" disabled>Select Permission Key</option>
-                           {availablePermissions.map((perm) => (
-                              <option key={perm.value} value={perm.value}>
-                                 {perm.label} ({perm.value})
-                              </option>
-                           ))}
+                           {backendPermissions.length > 0 ? (
+                              backendPermissions
+                                .filter(p => p.key !== '*') // Fix 2: Filter out wildcard permission
+                                .map((perm) => (
+                                <option key={perm._id} value={perm.key}>
+                                   {perm.name} ({perm.key})
+                                </option>
+                              ))
+                           ) : (
+                              // Fallback if fetch failed or empty
+                              Object.entries(PERM_KEYS).map(([key, value]) => (
+                                <option key={value} value={value}>
+                                   {key} ({value})
+                                </option>
+                              ))
+                           )}
                         </select>
                     )}
                  </div>

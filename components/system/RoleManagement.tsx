@@ -63,7 +63,8 @@ export const RoleManagement: React.FC = () => {
     } catch (e) { console.error(e); }
   };
 
-  const groupedPermissions = useMemo(() => {
+  // Fix 1: Explicitly type this to avoid 'map does not exist on type unknown'
+  const groupedPermissions: Record<string, Permission[]> = useMemo(() => {
     const groups: Record<string, Permission[]> = {};
     permList.forEach(p => {
         const cat = p.category || 'General';
@@ -72,6 +73,15 @@ export const RoleManagement: React.FC = () => {
     });
     return groups;
   }, [permList]);
+
+  // Fix 3: Ensure permissions is initialized properly when editing
+  const handleEditClick = (role: Role) => {
+      setEditingRole({
+          ...role,
+          // Create a new array to ensure state updates trigger re-renders correctly
+          permissions: role.permissions ? [...role.permissions] : []
+      });
+  };
 
   return (
     <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xl animate-fade-in min-h-[600px]">
@@ -92,7 +102,7 @@ export const RoleManagement: React.FC = () => {
                         <div className="flex justify-between items-start mb-2">
                             <h4 className="font-bold text-lg text-slate-800 dark:text-white uppercase tracking-wider">{role.name}</h4>
                             <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button onClick={() => setEditingRole(role)} className="text-slate-400 hover:text-blue-500"><i className="fas fa-edit"></i></button>
+                                <button onClick={() => handleEditClick(role)} className="text-slate-400 hover:text-blue-500"><i className="fas fa-edit"></i></button>
                                 {!['super_admin', 'user', 'bot'].includes(role.name) && (
                                     <button onClick={() => setRoleToDelete(role.name)} className="text-slate-400 hover:text-red-500"><i className="fas fa-trash"></i></button>
                                 )}
@@ -147,20 +157,27 @@ export const RoleManagement: React.FC = () => {
                                         <div key={category} className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
                                             <h5 className="text-xs font-bold uppercase text-primary-500 mb-2">{category}</h5>
                                             <div className="grid grid-cols-2 gap-2">
-                                                {perms.map(p => {
-                                                    const isChecked = editingRole.permissions?.includes(p.key);
+                                                {perms.map((p: Permission) => {
+                                                    // Fix 3: Robust check for checkbox state
+                                                    const currentPerms = editingRole.permissions || [];
+                                                    const isChecked = currentPerms.includes(p.key);
+                                                    
                                                     return (
                                                         <label key={p.key} className={`flex items-center gap-2 p-2 rounded-lg border transition-all cursor-pointer ${isChecked ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-slate-300'}`}>
                                                             <input 
                                                                 type="checkbox" 
                                                                 className="accent-primary-500"
-                                                                checked={isChecked || false}
+                                                                checked={isChecked}
                                                                 onChange={e => {
+                                                                    const checked = e.target.checked;
                                                                     const current = editingRole.permissions || [];
-                                                                    const newPerms = e.target.checked 
-                                                                        ? [...current, p.key]
-                                                                        : current.filter(k => k !== p.key);
-                                                                    setEditingRole({...editingRole, permissions: newPerms});
+                                                                    let newPerms;
+                                                                    if (checked) {
+                                                                        newPerms = [...current, p.key];
+                                                                    } else {
+                                                                        newPerms = current.filter(k => k !== p.key);
+                                                                    }
+                                                                    setEditingRole(prev => prev ? ({...prev, permissions: newPerms}) : null);
                                                                 }}
                                                             />
                                                             <div className="min-w-0">
