@@ -371,20 +371,20 @@ const App: React.FC = () => {
           // Extra security check on nav click using PERMISSIONS
           if (page === PageView.PRIVATE_SPACE) {
             if (!can(user, PERM_KEYS.PRIVATE_ACCESS)) {
-              alert("Access Denied: You do not have the required clearance level.");
+              toast.error("Access Denied: You do not have the required clearance level.");
               return;
             }
           }
           if (page === PageView.AUDIT_LOG && !can(user, PERM_KEYS.SYSTEM_LOGS)) {
-            alert("Access Denied: System Audit Clearance Required.");
+            toast.error("Access Denied: System Audit Clearance Required.");
             return;
           }
           if (page === PageView.FOOTPRINT && !user) {
-             alert("Access Denied: Please Login.");
+             toast.error("Access Denied: Please Login.");
              return;
           }
           if (page === PageView.SYSTEM && !can(user, PERM_KEYS.SYSTEM_LOGS)) {
-             alert("Access Denied: Admin Clearance Required.");
+             toast.error("Access Denied: Admin Clearance Required.");
              return;
           }
           setCurrentPage(page);

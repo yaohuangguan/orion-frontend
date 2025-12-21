@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from '../i18n/LanguageContext';
@@ -30,6 +31,9 @@ export const SystemManagement: React.FC = () => {
   // --- Permission Requests State ---
   const [requests, setRequests] = useState<PermissionRequest[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(false);
+  
+  // Reject Confirm State
+  const [requestToReject, setRequestToReject] = useState<string | null>(null);
 
   // Library State
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
@@ -132,10 +136,12 @@ export const SystemManagement: React.FC = () => {
     }
   };
 
-  const handleRejectRequest = async (id: string) => {
-    if (!confirm("Are you sure you want to reject this request?")) return;
+  const confirmRejectRequest = async () => {
+    if (!requestToReject) return;
+    const id = requestToReject;
     try {
       await apiService.rejectPermissionRequest(id);
+      setRequestToReject(null);
       fetchRequests();
     } catch (e) {
       console.error(e);
@@ -259,6 +265,16 @@ export const SystemManagement: React.FC = () => {
         confirmKeyword=""
         buttonText="Verify & Execute"
         zIndexClass="z-[9999]"
+      />
+
+      <DeleteModal 
+         isOpen={!!requestToReject}
+         onClose={() => setRequestToReject(null)}
+         onConfirm={confirmRejectRequest}
+         title="Reject Request?"
+         message="Are you sure you want to reject this permission request?"
+         requireInput={false}
+         buttonText="Reject"
       />
 
       {/* Header */}
@@ -635,7 +651,7 @@ export const SystemManagement: React.FC = () => {
 
                         <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
                            <button 
-                              onClick={() => handleRejectRequest(req._id)}
+                              onClick={() => setRequestToReject(req._id)}
                               className="flex-1 py-2 text-red-500 bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-xs font-bold uppercase transition-colors"
                            >
                               {t.system.requests.reject}

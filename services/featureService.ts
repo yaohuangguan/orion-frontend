@@ -1,7 +1,7 @@
 
 import { fetchClient, API_BASE_URL } from './core';
 import { toast } from '../components/Toast';
-import { ChatMessage, Todo, FitnessRecord, FitnessStats, PeriodRecord, PeriodResponse, Footprint, FootprintStats, Menu, DrawResponse, DailyListResponse, DailyListType, SmartMenuResponse, CloudinaryUsage } from '../types';
+import { ChatMessage, Todo, FitnessRecord, FitnessStats, PeriodRecord, PeriodResponse, Footprint, FootprintStats, Menu, DrawResponse, DailyListResponse, DailyListType, SmartMenuResponse, CloudinaryUsage, Conversation } from '../types';
 
 export const featureService = {
   // --- Chat ---
@@ -68,19 +68,42 @@ export const featureService = {
     }
   },
 
-  // --- AI Chat History (New) ---
-  getAiChatHistory: async (page = 1, limit = 20): Promise<any[]> => {
-    return await fetchClient<any[]>(`/chat/ai?page=${page}&limit=${limit}`);
+  // --- AI Chat History (Session Based) ---
+  
+  // Get List of Conversations
+  getAiConversations: async (): Promise<Conversation[]> => {
+    return await fetchClient<Conversation[]>('/chat/ai/conversations');
   },
 
-  saveAiChatMessage: async (text: string, role: 'user' | 'ai'): Promise<any> => {
+  // Get messages for a specific session
+  getAiChatHistory: async (sessionId?: string, page = 1, limit = 20): Promise<any[]> => {
+    const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString()
+    });
+    if (sessionId) {
+        params.append('sessionId', sessionId);
+    }
+    return await fetchClient<any[]>(`/chat/ai?${params.toString()}`);
+  },
+
+  // Save message to specific session
+  saveAiChatMessage: async (text: string, role: 'user' | 'ai', sessionId: string, image?: string): Promise<any> => {
     return await fetchClient('/chat/ai/save', {
       method: 'POST',
-      body: JSON.stringify({ text, role })
+      body: JSON.stringify({ text, role, sessionId, image })
+    });
+  },
+
+  // Delete a conversation session
+  deleteAiConversation: async (sessionId: string): Promise<any> => {
+    return await fetchClient(`/chat/ai/conversation/${sessionId}`, {
+      method: 'DELETE'
     });
   },
 
   clearAiChatHistory: async (): Promise<any> => {
+    // Legacy: Clears ALL history (dangerous, kept for admin or legacy support)
     return await fetchClient('/chat/ai', {
       method: 'DELETE'
     });
@@ -104,6 +127,8 @@ export const featureService = {
           'Content-Type': 'application/json',
           'x-auth-token': token
         },
+        // We pass the prompt, history, and image to the streaming endpoint.
+        // The backend processes this logic separately from the chat storage.
         body: JSON.stringify({ prompt, history, image })
       });
 

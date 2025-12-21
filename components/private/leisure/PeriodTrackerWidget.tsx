@@ -6,6 +6,7 @@ import { PeriodRecord, PeriodResponse, User } from '../../../types';
 import { toast } from '../../Toast';
 import { createPortal } from 'react-dom';
 import { PERIOD_COLOR_OPTIONS } from '../../../constants/periodColors';
+import { DeleteModal } from '../../DeleteModal';
 
 const toDateStr = (date: Date) => {
   const y = date.getFullYear();
@@ -29,6 +30,9 @@ export const PeriodTrackerWidget: React.FC<PeriodTrackerWidgetProps> = ({ onRefr
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [activeRecord, setActiveRecord] = useState<Partial<PeriodRecord>>({});
+  
+  // Delete Confirm State
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Super Admin Multi-user State
   const [userList, setUserList] = useState<User[]>([]);
@@ -150,11 +154,11 @@ export const PeriodTrackerWidget: React.FC<PeriodTrackerWidgetProps> = ({ onRefr
 
   const handleDeleteRecord = async () => {
      if (!activeRecord._id) return;
-     if (!confirm("Delete this log?")) return;
      try {
         await apiService.deletePeriodRecord(activeRecord._id);
         toast.success("Deleted");
         setIsModalOpen(false);
+        setShowDeleteConfirm(false);
         fetchData();
      } catch (e) {
         toast.error("Failed to delete");
@@ -263,6 +267,17 @@ export const PeriodTrackerWidget: React.FC<PeriodTrackerWidgetProps> = ({ onRefr
     <div className="bg-white rounded-[2rem] p-6 border-4 border-pink-100 shadow-xl h-full flex flex-col relative overflow-hidden group">
        <div className="absolute -top-10 -right-10 w-40 h-40 bg-pink-50 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
        
+       <DeleteModal 
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={handleDeleteRecord}
+          title="Delete Log?"
+          message="Are you sure you want to remove this record?"
+          buttonText="Delete"
+          requireInput={false}
+          zIndexClass="z-[10000]"
+       />
+
        {/* User Selection Bar (Super Admin Only) */}
        {isSuperAdmin && userList.length > 0 && (
           <div className="mb-4 flex gap-2 overflow-x-auto pb-2 custom-scrollbar border-b border-slate-100">
@@ -446,7 +461,7 @@ export const PeriodTrackerWidget: React.FC<PeriodTrackerWidgetProps> = ({ onRefr
                       {activeRecord._id && (
                          <button 
                            type="button" 
-                           onClick={handleDeleteRecord}
+                           onClick={() => setShowDeleteConfirm(true)}
                            className="px-4 py-3 bg-red-50 text-red-500 rounded-xl font-bold text-xs uppercase hover:bg-red-100"
                          >
                             <i className="fas fa-trash"></i>

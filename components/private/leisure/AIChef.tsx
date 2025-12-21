@@ -5,6 +5,7 @@ import { useTranslation } from '../../../i18n/LanguageContext';
 import { apiService } from '../../../services/api';
 import { Menu, SmartMenuResponse } from '../../../types';
 import { toast } from '../../Toast';
+import { DeleteModal } from '../../DeleteModal';
 
 // Wheel Colors
 const WHEEL_COLORS = [
@@ -81,6 +82,9 @@ export const AIChef: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editMenu, setEditMenu] = useState<Partial<Menu>>({});
   
+  // Delete State
+  const [menuToDelete, setMenuToDelete] = useState<string | null>(null);
+
   // View Mode
   const [viewMode, setViewMode] = useState<'WHEEL' | 'RECIPE_AI' | 'RECIPE_EXT' | 'SEARCH' | 'SMART_RECOMMEND'>('WHEEL');
   
@@ -284,11 +288,12 @@ export const AIChef: React.FC = () => {
     } catch (e) { toast.error("Failed to save menu."); }
   };
 
-  const handleDeleteMenu = async (id: string) => {
-    if (!confirm("Remove this dish?")) return;
+  const confirmDeleteMenu = async () => {
+    if (!menuToDelete) return;
     try {
-      await apiService.deleteMenu(id);
+      await apiService.deleteMenu(menuToDelete);
       fetchMenuList();
+      setMenuToDelete(null);
     } catch (e) { toast.error("Delete failed."); }
   };
 
@@ -856,6 +861,18 @@ export const AIChef: React.FC = () => {
 
                {/* Modal Content */}
                <div className="flex-1 overflow-y-auto custom-scrollbar p-5 bg-white text-slate-900">
+                  
+                  <DeleteModal 
+                     isOpen={!!menuToDelete}
+                     onClose={() => setMenuToDelete(null)}
+                     onConfirm={confirmDeleteMenu}
+                     title="Remove Dish?"
+                     message="Are you sure you want to remove this dish from the menu?"
+                     requireInput={false}
+                     buttonText="Delete"
+                     zIndexClass="z-[10000]"
+                  />
+
                   {isEditing ? (
                      <form onSubmit={handleSaveMenu}>
                         <div className="space-y-4">
@@ -957,7 +974,7 @@ export const AIChef: React.FC = () => {
                               </div>
                               <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                  <button onClick={() => openEdit(m)} className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-100 flex items-center justify-center transition-colors"><i className="fas fa-pencil-alt text-xs"></i></button>
-                                 <button onClick={() => handleDeleteMenu(m._id)} className="w-8 h-8 rounded-full bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors"><i className="fas fa-trash text-xs"></i></button>
+                                 <button onClick={() => setMenuToDelete(m._id)} className="w-8 h-8 rounded-full bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors"><i className="fas fa-trash text-xs"></i></button>
                               </div>
                            </div>
                         ))}

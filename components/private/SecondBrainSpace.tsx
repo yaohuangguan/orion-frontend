@@ -3,8 +3,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from '../../i18n/LanguageContext';
 import { featureService } from '../../services/featureService';
 import { compressImage } from '../../services/media';
-import { User } from '../../types';
+import { User, Conversation } from '../../types';
 import { toast } from '../Toast';
+import { DeleteModal } from '../DeleteModal';
 
 interface SecondBrainSpaceProps {
   user: User | null;
@@ -23,8 +24,29 @@ interface BrainMessage {
 
 const DEFAULT_AI_AVATAR = "https://cdn-icons-png.flaticon.com/512/4712/4712027.png";
 
+// Helper to generate UUID-like string if crypto.randomUUID is not available in some contexts
+const generateUUID = () => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+};
+
 export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
   const { t } = useTranslation();
+  
+  // Session State
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile sidebar toggle
+  
+  // Delete Modal State
+  const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
+
+  // Chat State
   const [messages, setMessages] = useState<BrainMessage[]>([]);
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -38,55 +60,100 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Load History
+  // --- 1. Load Conversations List on Mount ---
   useEffect(() => {
-    const fetchHistory = async () => {
+    const init = async () => {
+      setIsInitializing(true);
       try {
-        const historyData = await featureService.getAiChatHistory();
-        
-        if (historyData && historyData.length > 0) {
-          const mappedMessages: BrainMessage[] = historyData.map((msg: any) => ({
-            id: msg._id,
-            role: (msg.user && (msg.user.id === 'ai_assistant' || msg.user._id === 'ai_assistant')) ? 'assistant' : 'user',
-            content: msg.content || msg.text || '',
-            timestamp: new Date(msg.createdDate || Date.now()),
-            avatar: msg.user?.photoURL || (msg.user?.id === 'ai_assistant' ? DEFAULT_AI_AVATAR : undefined),
-            name: msg.user?.displayName,
-            // Only user messages might have images in the new format, handled by backend usually
-            image: msg.image 
-          }));
-          setMessages(mappedMessages);
+        const list = await featureService.getAiConversations();
+        setConversations(list);
+
+        if (list.length > 0) {
+          // Auto-select first (most recent) session
+          handleSwitchSession(list[0].sessionId);
         } else {
-          // If no history, show welcome message
-          setMessages([
-            {
-              id: 'welcome',
-              role: 'assistant',
-              content: t.privateSpace.secondBrain.welcome || "Hello. I am your Second Brain. I have access to your journal, fitness logs, and project data. How can I assist you?",
-              timestamp: new Date(),
-              avatar: DEFAULT_AI_AVATAR,
-              name: 'Second Brain'
-            }
-          ]);
+          // No history, start fresh (ghost session)
+          handleNewChat();
         }
       } catch (err) {
-        console.error("Failed to load Second Brain history", err);
+        console.error("Failed to init brain:", err);
+        handleNewChat(); // Fallback
       } finally {
         setIsInitializing(false);
       }
     };
+    init();
+  }, []);
 
-    fetchHistory();
-  }, [t]);
+  // --- 2. Action: Switch Session ---
+  const handleSwitchSession = async (sessionId: string) => {
+    setCurrentSessionId(sessionId);
+    setIsSidebarOpen(false); // Close mobile sidebar on select
+    setMessages([]); // Clear view while loading
+    
+    // Fetch History
+    try {
+      const historyData = await featureService.getAiChatHistory(sessionId, 1, 50);
+      
+      if (historyData && historyData.length > 0) {
+        const mappedMessages: BrainMessage[] = historyData.map((msg: any) => ({
+          id: msg._id,
+          role: (msg.user && (msg.user.id === 'ai_assistant' || msg.user._id === 'ai_assistant')) ? 'assistant' : 'user',
+          content: msg.content || msg.text || '',
+          timestamp: new Date(msg.createdDate || Date.now()),
+          avatar: msg.user?.photoURL || (msg.user?.id === 'ai_assistant' ? DEFAULT_AI_AVATAR : undefined),
+          name: msg.user?.displayName,
+          image: msg.image && msg.image.length > 0 ? msg.image[0] : undefined // Backend stores array, take first
+        }));
+        setMessages(mappedMessages);
+      } else {
+        setMessages([]); // Empty session
+      }
+    } catch (e) {
+      console.error("Failed to load session history", e);
+    }
+  };
 
-  // Auto-scroll
+  // --- 3. Action: New Chat (Ghost Session) ---
+  const handleNewChat = () => {
+    const newId = generateUUID();
+    setCurrentSessionId(newId);
+    setMessages([]); // Clear screen
+    setIsSidebarOpen(false);
+    // Don't add to `conversations` list yet. Backend creates it on first message.
+  };
+
+  // --- 4. Action: Delete Session ---
+  const confirmDeleteSession = async () => {
+    if (!sessionToDelete) return;
+    const sessionId = sessionToDelete;
+
+    try {
+      await featureService.deleteAiConversation(sessionId);
+      setConversations(prev => prev.filter(c => c.sessionId !== sessionId));
+      setSessionToDelete(null);
+      
+      // If deleted active session, switch to new
+      if (currentSessionId === sessionId) {
+        const remaining = conversations.filter(c => c.sessionId !== sessionId);
+        if (remaining.length > 0) {
+          handleSwitchSession(remaining[0].sessionId);
+        } else {
+          handleNewChat();
+        }
+      }
+    } catch (e) {
+      toast.error("Failed to delete session");
+    }
+  };
+
+  // --- Auto-scroll & Syntax Highlighting ---
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, isProcessing, selectedImage]); // Added selectedImage to scroll if preview appears
+  }, [messages, isProcessing, selectedImage]);
 
-  // Highlight Code blocks when messages update
   useEffect(() => {
     if (window.hljs && scrollRef.current) {
       scrollRef.current.querySelectorAll('pre code').forEach((block) => {
@@ -109,12 +176,9 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
         toast.error("Only image files are supported.");
         return;
     }
-    
     try {
-        // Compress to base64, max width 1024, quality 0.7 for bandwidth efficiency
         const compressedBase64 = await compressImage(file, 0.7, 1024);
         setSelectedImage(compressedBase64);
-        // Focus input after selection
         inputRef.current?.focus();
     } catch (e) {
         console.error("Image processing failed", e);
@@ -124,10 +188,7 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-        processFile(file);
-    }
-    // Reset so same file can be selected again if cleared
+    if (file) processFile(file);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -138,46 +199,38 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
             const file = items[i].getAsFile();
             if (file) {
                 processFile(file);
-                e.preventDefault(); // Prevent pasting the file object as text
+                e.preventDefault();
             }
         }
     }
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
+  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
+  const handleDragLeave = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(false); };
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-        processFile(files[0]);
-    }
-  };
-
-  const removeSelectedImage = () => {
-      setSelectedImage(null);
+    if (files && files.length > 0) processFile(files[0]);
   };
 
   // --- Submission Logic ---
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    // Allow submit if there is text OR an image
     if ((!input.trim() && !selectedImage) || isProcessing) return;
 
+    // Ensure we have a session ID (should always be true via handleNewChat or init)
+    let activeSessionId = currentSessionId;
+    if (!activeSessionId) {
+        activeSessionId = generateUUID();
+        setCurrentSessionId(activeSessionId);
+    }
+
     const userText = input.trim();
-    const userImage = selectedImage; // Capture current image before clearing
+    const userImage = selectedImage; 
     const tempId = Date.now().toString();
 
-    // 1. Add User Message to UI
+    // 1. Optimistic Update (User Msg)
     const userMsg: BrainMessage = {
       id: tempId,
       role: 'user',
@@ -190,18 +243,15 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
 
     setMessages(prev => [...prev, userMsg]);
     setInput('');
-    setSelectedImage(null); // Clear image immediately after sending
+    setSelectedImage(null);
     setIsProcessing(true);
-    
-    // Reset textarea height
     if (inputRef.current) inputRef.current.style.height = 'auto';
 
     try {
-      // 2. Save User Message to Backend (Async) - Note: Only saving text history for now if backend strictly expects text
-      // Ideally backend saves the image too, but for "Thinking Agent" flow, the prompt is key.
-      featureService.saveAiChatMessage(userText + (userImage ? " [Image Sent]" : ""), 'user').catch(err => console.error("Failed to save user message", err));
+      // 2. Save User Message & Create Session in Backend
+      await featureService.saveAiChatMessage(userText + (userImage ? " [Image Sent]" : ""), 'user', activeSessionId, userImage || undefined);
 
-      // 3. Create Placeholder for AI Response
+      // 3. AI Placeholder
       const aiMsgId = (Date.now() + 1).toString();
       setMessages(prev => [...prev, {
         id: aiMsgId,
@@ -213,18 +263,17 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
         name: 'Second Brain'
       }]);
 
-      // 4. Prepare Context & Stream
+      // 4. Stream AI Response
+      // Note: We maintain history client-side for the stream context, 
+      // but rely on `saveAiChatMessage` to persist to DB linked to sessionId.
       const recentHistory = messages.slice(-10).map(m => ({
         role: m.role,
         content: m.content
       }));
-      // Note: We don't send past images in history array to save tokens/bandwidth, 
-      // only the CURRENT image is sent via the `image` parameter to `askLifeStream`.
       recentHistory.push({ role: 'user', content: userText });
 
       let fullAiResponse = "";
 
-      // Pass image if exists
       await featureService.askLifeStream(userText, recentHistory, (chunk) => {
         fullAiResponse += chunk;
         setMessages(prev => prev.map(m => {
@@ -235,9 +284,26 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
         }));
       }, userImage);
 
-      // 5. Stream Complete - Save AI Response
+      // 5. Save AI Response to Backend
       if (fullAiResponse) {
-         await featureService.saveAiChatMessage(fullAiResponse, 'ai');
+         await featureService.saveAiChatMessage(fullAiResponse, 'ai', activeSessionId);
+      }
+
+      // 6. Refresh Sidebar if new session
+      const knownSession = conversations.find(c => c.sessionId === activeSessionId);
+      if (!knownSession) {
+         // It was a ghost session, now it's real. Refresh list to get the generated title.
+         // Small delay to allow async title generation on backend
+         setTimeout(async () => {
+             const updatedList = await featureService.getAiConversations();
+             setConversations(updatedList);
+         }, 2000);
+      } else {
+         // Update timestamp locally to bump to top (optimistic sort)
+         setConversations(prev => {
+             const others = prev.filter(c => c.sessionId !== activeSessionId);
+             return [{ ...knownSession, lastActiveAt: new Date().toISOString() }, ...others];
+         });
       }
 
     } catch (error) {
@@ -255,40 +321,6 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
     }
   };
 
-  const handleClearHistory = async () => {
-    if (!confirm("Are you sure you want to permanently delete all memory from the database?")) return;
-    try {
-      await featureService.clearAiChatHistory();
-      setMessages([
-        {
-          id: 'welcome-reset',
-          role: 'assistant',
-          content: "Memory wiped. Ready for new input.",
-          timestamp: new Date(),
-          avatar: DEFAULT_AI_AVATAR,
-          name: 'Second Brain'
-        }
-      ]);
-      toast.success("Brain memory cleared.");
-    } catch (e) {
-      toast.error("Failed to clear memory.");
-    }
-  };
-
-  const handleNewSession = () => {
-      setMessages([
-        {
-          id: 'new-session',
-          role: 'assistant',
-          content: "New session started.",
-          timestamp: new Date(),
-          avatar: DEFAULT_AI_AVATAR,
-          name: 'Second Brain'
-        }
-      ]);
-      toast.info("New session started.");
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -299,10 +331,6 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast.success("Copied to clipboard");
-  };
-
-  const handleFeedback = (type: 'like' | 'dislike') => {
-    toast.info(type === 'like' ? "Feedback: Helpful" : "Feedback: Not Helpful");
   };
 
   // Custom Markdown Rendering logic
@@ -319,35 +347,84 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
   };
 
   return (
-    <div className="flex flex-col h-full relative max-w-6xl mx-auto w-full">
+    <div className="flex h-full relative max-w-7xl mx-auto w-full bg-[#171717] rounded-[2rem] border border-[#333] shadow-2xl overflow-hidden">
       
-      {/* Main Chat Container - ChatGPT Style Dark Theme */}
-      <div className="flex-1 bg-[#212121] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden relative z-10 min-h-0 border border-[#333]">
+      <DeleteModal 
+         isOpen={!!sessionToDelete}
+         onClose={() => setSessionToDelete(null)}
+         onConfirm={confirmDeleteSession}
+         title="Delete Conversation?"
+         message="This action cannot be undone."
+         requireInput={false}
+         buttonText="Delete"
+      />
+
+      {/* --- LEFT SIDEBAR (History) --- */}
+      <div 
+        className={`
+          absolute inset-y-0 left-0 z-30 w-72 bg-[#171717] border-r border-[#333] transform transition-transform duration-300 md:relative md:translate-x-0
+          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}
+      >
+         <div className="flex flex-col h-full">
+            {/* New Chat Button */}
+            <div className="p-4 border-b border-[#333]">
+                <button 
+                  onClick={handleNewChat}
+                  className="w-full flex items-center gap-3 px-4 py-3 bg-white hover:bg-gray-200 text-black rounded-xl font-bold transition-all text-sm"
+                >
+                   <i className="fas fa-plus"></i> New Chat
+                </button>
+            </div>
+
+            {/* List */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
+                {conversations.map(conv => (
+                   <div 
+                     key={conv.sessionId}
+                     className={`group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${currentSessionId === conv.sessionId ? 'bg-[#2f2f2f] text-white' : 'text-gray-400 hover:bg-[#212121] hover:text-gray-200'}`}
+                     onClick={() => handleSwitchSession(conv.sessionId)}
+                   >
+                      <div className="flex items-center gap-3 truncate min-w-0">
+                         <i className="fas fa-message text-xs"></i>
+                         <span className="text-sm truncate">{conv.title || "New Chat"}</span>
+                      </div>
+                      
+                      {/* Delete Button (Visible on Hover or Active) */}
+                      {(currentSessionId === conv.sessionId) && (
+                         <button 
+                           onClick={(e) => { e.stopPropagation(); setSessionToDelete(conv.sessionId); }}
+                           className="opacity-60 hover:opacity-100 hover:text-red-400 transition-opacity p-1"
+                         >
+                            <i className="fas fa-trash text-xs"></i>
+                         </button>
+                      )}
+                   </div>
+                ))}
+                {conversations.length === 0 && (
+                   <div className="text-center text-gray-600 text-xs py-10">No history yet</div>
+                )}
+            </div>
+
+            {/* Mobile Close */}
+            <button 
+              className="md:hidden absolute top-4 right-4 text-gray-400"
+              onClick={() => setIsSidebarOpen(false)}
+            >
+               <i className="fas fa-times"></i>
+            </button>
+         </div>
+      </div>
+
+      {/* --- RIGHT MAIN CHAT --- */}
+      <div className="flex-1 flex flex-col min-w-0 bg-[#212121] relative">
         
-        {/* Header (Minimalist) */}
-        <div className="p-4 flex items-center justify-between shrink-0 z-20 border-b border-white/5 bg-[#212121]">
-           <div className="flex items-center gap-3">
-              <span className="text-sm font-bold text-gray-200">
-                 {t.privateSpace.secondBrain.title} <span className="opacity-50 font-normal">3.0</span>
-              </span>
-           </div>
-           
-           <div className="flex gap-2">
-              <button 
-                onClick={handleNewSession}
-                className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
-                title="New Chat"
-              >
-                <i className="fas fa-edit text-sm"></i>
-              </button>
-              <button 
-                onClick={handleClearHistory}
-                className="p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                title="Delete Memory"
-              >
-                <i className="fas fa-trash-alt text-sm"></i>
-              </button>
-           </div>
+        {/* Mobile Header Toggle */}
+        <div className="md:hidden p-4 border-b border-[#333] flex items-center gap-3 text-gray-200">
+           <button onClick={() => setIsSidebarOpen(true)}>
+              <i className="fas fa-bars"></i>
+           </button>
+           <span className="font-bold text-sm">Second Brain 3.0</span>
         </div>
 
         {/* Messages Area */}
@@ -355,7 +432,13 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
            {isInitializing ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-3">
                  <div className="w-8 h-8 border-2 border-gray-600 border-t-gray-300 rounded-full animate-spin"></div>
-                 <p className="text-xs uppercase tracking-widest">Initializing Neural Net...</p>
+                 <p className="text-xs uppercase tracking-widest">Loading Neural Net...</p>
+              </div>
+           ) : messages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-gray-600 gap-4 p-8 text-center">
+                 <div className="w-16 h-16 bg-[#333] rounded-full flex items-center justify-center text-3xl">🧠</div>
+                 <h3 className="text-xl font-bold text-gray-300">Second Brain</h3>
+                 <p className="text-sm max-w-md">I can remember your journals, check your fitness stats, and analyze your projects. How can I help today?</p>
               </div>
            ) : (
              <div className="flex flex-col pb-4">
@@ -366,9 +449,9 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
                       key={msg.id} 
                       className={`w-full py-8 px-4 md:px-12 border-b border-black/5 ${isUser ? 'bg-[#212121]' : 'bg-[#212121]'}`}
                     >
-                       <div className="max-w-4xl mx-auto flex gap-6">
+                       <div className="max-w-3xl mx-auto flex gap-6">
                           
-                          {/* Avatar Column */}
+                          {/* Avatar */}
                           <div className={`shrink-0 flex flex-col items-center ${isUser ? 'order-2' : 'order-1'}`}>
                              <div className={`w-8 h-8 rounded-sm overflow-hidden flex items-center justify-center ${isUser ? 'bg-transparent' : 'bg-green-500/10'}`}>
                                 <img 
@@ -380,14 +463,12 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
                              </div>
                           </div>
 
-                          {/* Content Column */}
+                          {/* Content */}
                           <div className={`flex-1 min-w-0 ${isUser ? 'order-1 text-right' : 'order-2 text-left'}`}>
-                             {/* Name Header */}
                              <div className={`text-xs font-bold mb-2 ${isUser ? 'text-gray-400' : 'text-gray-200'}`}>
                                 {msg.name}
                              </div>
 
-                             {/* Image Display in History */}
                              {msg.image && (
                                 <div className={`mb-3 ${isUser ? 'flex justify-end' : 'flex justify-start'}`}>
                                    <div className="relative group max-w-[250px] rounded-lg overflow-hidden border border-white/10">
@@ -396,7 +477,6 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
                                 </div>
                              )}
 
-                             {/* Message Body */}
                              {isUser ? (
                                 <div className="inline-block bg-[#2f2f2f] text-gray-100 px-5 py-3 rounded-2xl rounded-tr-sm text-sm leading-relaxed whitespace-pre-wrap text-left shadow-sm">
                                    {msg.content}
@@ -418,27 +498,9 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
                                 </div>
                              )}
 
-                             {/* AI Actions Footer */}
                              {!isUser && !msg.isStreaming && msg.content && (
                                 <div className="flex items-center gap-4 mt-3 pt-2">
-                                   <button 
-                                      onClick={() => copyToClipboard(msg.content)} 
-                                      className="text-gray-500 hover:text-gray-300 transition-colors text-xs flex items-center gap-1"
-                                   >
-                                      <i className="fas fa-copy"></i>
-                                   </button>
-                                   <button 
-                                      onClick={() => handleFeedback('like')} 
-                                      className="text-gray-500 hover:text-gray-300 transition-colors text-xs"
-                                   >
-                                      <i className="fas fa-thumbs-up"></i>
-                                   </button>
-                                   <button 
-                                      onClick={() => handleFeedback('dislike')} 
-                                      className="text-gray-500 hover:text-gray-300 transition-colors text-xs"
-                                   >
-                                      <i className="fas fa-thumbs-down"></i>
-                                   </button>
+                                   <button onClick={() => copyToClipboard(msg.content)} className="text-gray-500 hover:text-gray-300 transition-colors text-xs"><i className="fas fa-copy"></i></button>
                                 </div>
                              )}
                           </div>
@@ -453,22 +515,16 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
         {/* Input Area */}
         <div className="p-4 md:p-6 bg-[#212121] border-t border-white/5 shrink-0">
            <div className="max-w-3xl mx-auto relative">
-              
-              {/* Drag Drop Overlay */}
               {isDragging && (
                  <div className="absolute inset-0 -top-12 -left-4 -right-4 -bottom-4 z-50 bg-[#212121]/90 backdrop-blur-sm border-2 border-dashed border-gray-500 rounded-xl flex items-center justify-center pointer-events-none">
                     <span className="text-gray-200 font-bold text-lg animate-pulse">Drop Image Here</span>
                  </div>
               )}
 
-              {/* Image Preview Area */}
               {selectedImage && (
                  <div className="absolute -top-24 left-0 bg-[#2f2f2f] p-2 rounded-xl border border-gray-700 shadow-xl flex items-start gap-2 animate-slide-up z-20">
                     <img src={selectedImage} alt="Preview" className="h-20 w-auto rounded-lg object-contain" />
-                    <button 
-                      onClick={removeSelectedImage}
-                      className="w-5 h-5 rounded-full bg-gray-600 hover:bg-red-500 text-white flex items-center justify-center transition-colors"
-                    >
+                    <button onClick={() => setSelectedImage(null)} className="w-5 h-5 rounded-full bg-gray-600 hover:bg-red-500 text-white flex items-center justify-center transition-colors">
                        <i className="fas fa-times text-[10px]"></i>
                     </button>
                  </div>
@@ -492,108 +548,40 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
                    disabled={isProcessing}
                  />
                  
-                 {/* File Upload Button */}
                  <div className="absolute left-3 bottom-2.5">
-                    <button 
-                       onClick={() => fileInputRef.current?.click()}
-                       disabled={isProcessing}
-                       className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
-                       title="Attach Image"
-                    >
+                    <button onClick={() => fileInputRef.current?.click()} disabled={isProcessing} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
                        <i className="fas fa-paperclip text-sm"></i>
                     </button>
-                    <input 
-                       type="file" 
-                       ref={fileInputRef} 
-                       className="hidden" 
-                       accept="image/*" 
-                       onChange={handleFileSelect} 
-                    />
+                    <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileSelect} />
                  </div>
 
-                 {/* Send Button */}
                  <button
                    onClick={() => handleSubmit()}
                    disabled={(!input.trim() && !selectedImage) || isProcessing}
-                   className={`absolute right-2 bottom-2 w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
-                      (!input.trim() && !selectedImage) 
-                      ? 'bg-transparent text-gray-600 cursor-not-allowed' 
-                      : 'bg-white text-black hover:bg-gray-200'
-                   }`}
+                   className={`absolute right-2 bottom-2 w-8 h-8 rounded-lg flex items-center justify-center transition-all ${(!input.trim() && !selectedImage) ? 'bg-transparent text-gray-600 cursor-not-allowed' : 'bg-white text-black hover:bg-gray-200'}`}
                  >
                     {isProcessing ? <i className="fas fa-stop text-xs"></i> : <i className="fas fa-arrow-up text-xs"></i>}
                  </button>
               </div>
-              <p className="text-[10px] text-gray-500 text-center mt-2">
-                 AI can make mistakes. Consider checking important information.
-              </p>
+              <p className="text-[10px] text-gray-500 text-center mt-2">AI can make mistakes. Consider checking important information.</p>
            </div>
         </div>
 
       </div>
 
       <style>{`
-        /* Chat Content Specific Styles */
-        .chat-content p {
-           margin-bottom: 1em;
-        }
-        .chat-content p:last-child {
-           margin-bottom: 0;
-        }
-        .chat-content h1, .chat-content h2, .chat-content h3 {
-           color: #f3f4f6; /* gray-100 */
-           font-weight: 700;
-           margin-top: 1.5em;
-           margin-bottom: 0.5em;
-        }
-        .chat-content ul, .chat-content ol {
-           margin-left: 1.5em;
-           margin-bottom: 1em;
-           list-style-type: disc;
-        }
-        .chat-content ol {
-           list-style-type: decimal;
-        }
-        .chat-content li {
-           margin-bottom: 0.25em;
-        }
-        .chat-content strong {
-           color: #fff;
-           font-weight: 700;
-        }
-        .chat-content blockquote {
-           border-left: 3px solid #4b5563;
-           padding-left: 1em;
-           color: #9ca3af;
-           font-style: italic;
-        }
-        .chat-content code {
-           background-color: #2f2f2f;
-           padding: 0.2em 0.4em;
-           border-radius: 4px;
-           font-family: monospace;
-           font-size: 0.9em;
-           color: #e5e7eb;
-        }
-        .chat-content pre {
-           background-color: #0d0d0d;
-           padding: 1em;
-           border-radius: 8px;
-           overflow-x: auto;
-           margin: 1em 0;
-           border: 1px solid #333;
-        }
-        .chat-content pre code {
-           background-color: transparent;
-           padding: 0;
-           border-radius: 0;
-           color: inherit;
-           font-size: 0.85em;
-        }
-        .chat-content a {
-           color: #60a5fa;
-           text-decoration: underline;
-        }
+        .chat-content p { margin-bottom: 1em; }
+        .chat-content p:last-child { margin-bottom: 0; }
+        .chat-content h1, .chat-content h2, .chat-content h3 { color: #f3f4f6; font-weight: 700; margin-top: 1.5em; margin-bottom: 0.5em; }
+        .chat-content ul, .chat-content ol { margin-left: 1.5em; margin-bottom: 1em; list-style-type: disc; }
+        .chat-content ol { list-style-type: decimal; }
+        .chat-content li { margin-bottom: 0.25em; }
+        .chat-content strong { color: #fff; font-weight: 700; }
+        .chat-content blockquote { border-left: 3px solid #4b5563; padding-left: 1em; color: #9ca3af; font-style: italic; }
+        .chat-content code { background-color: #2f2f2f; padding: 0.2em 0.4em; border-radius: 4px; font-family: monospace; font-size: 0.9em; color: #e5e7eb; }
+        .chat-content pre { background-color: #0d0d0d; padding: 1em; border-radius: 8px; overflow-x: auto; margin: 1em 0; border: 1px solid #333; }
+        .chat-content pre code { background-color: transparent; padding: 0; border-radius: 0; color: inherit; font-size: 0.85em; }
+        .chat-content a { color: #60a5fa; text-decoration: underline; }
       `}</style>
     </div>
   );

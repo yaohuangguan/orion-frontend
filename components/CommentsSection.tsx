@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Comment, User } from '../types';
 import { apiService } from '../services/api';
 import { useTranslation } from '../i18n/LanguageContext';
+import { toast } from './Toast';
 
 interface CommentsSectionProps {
   postId: string;
@@ -75,7 +76,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({ postId, curren
       await fetchComments();
       setNewComment('');
     } catch (error) {
-      alert(t.comments.error);
+      toast.error(t.comments.error);
     } finally {
       setIsSubmitting(false);
     }
@@ -91,7 +92,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({ postId, curren
       setReplyingTo(null);
       setReplyText('');
     } catch (error) {
-      alert(t.comments.error);
+      toast.error(t.comments.error);
     } finally {
       setIsSubmitting(false);
     }
