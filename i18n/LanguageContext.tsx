@@ -17,8 +17,8 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [language, setLanguage] = useState<Language>(() => {
     if (typeof window !== 'undefined') {
       const savedLang = localStorage.getItem('app_language');
-      if (savedLang === 'en' || savedLang === 'zh') {
-        return savedLang;
+      if (savedLang === 'en' || savedLang === 'zh' || savedLang === 'fr' || savedLang === 'zh-TW') {
+        return savedLang as Language;
       }
     }
     return 'en';
@@ -26,7 +26,12 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const toggleLanguage = () => {
     setLanguage((prev) => {
-      const newLang = prev === 'en' ? 'zh' : 'en';
+      let newLang: Language = 'en';
+      if (prev === 'en') newLang = 'zh';
+      else if (prev === 'zh') newLang = 'zh-TW';
+      else if (prev === 'zh-TW') newLang = 'fr';
+      else newLang = 'en'; // Cycle back to EN
+      
       localStorage.setItem('app_language', newLang);
       return newLang;
     });

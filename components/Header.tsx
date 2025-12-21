@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { Theme, PageView, User, AuditLog, ChatUser, PERM_KEYS, can } from '../types';
+import React, { useState, useEffect, useRef } from 'react';
+import { Theme, PageView, User, AuditLog, ChatUser, PERM_KEYS, can, Language } from '../types';
 import { useTranslation } from '../i18n/LanguageContext';
 import { Socket } from 'socket.io-client';
 import { toast } from './Toast';
@@ -16,6 +16,20 @@ interface HeaderProps {
   socket: Socket | null;
   onNavigateToChat?: (user: ChatUser) => void;
 }
+
+// Using flagcdn for stable, high-quality flag assets
+const getFlagUrl = (code: string) => `https://flagcdn.com/w40/${code}.png`;
+
+const LANGUAGES: { code: Language; label: string; flags: string[] }[] = [
+  { code: 'en', label: 'English', flags: ['us', 'gb'] },
+  { code: 'zh', label: '简体中文', flags: ['cn'] },
+  { code: 'zh-TW', label: '繁體中文', flags: ['hk'] },
+  { code: 'fr', label: 'Français', flags: ['fr'] },
+  { code: 'ja', label: '日本語', flags: ['jp'] },
+  { code: 'ru', label: 'Русский', flags: ['ru'] },
+  { code: 'de', label: 'Deutsch', flags: ['de'] },
+  { code: 'es', label: 'Español', flags: ['es'] },
+];
 
 export const Header: React.FC<HeaderProps> = ({ 
   theme, 
@@ -36,7 +50,11 @@ export const Header: React.FC<HeaderProps> = ({
   const [unreadCount, setUnreadCount] = useState(0);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   
-  const { t, language, toggleLanguage } = useTranslation();
+  // Language Menu State
+  const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
+  const langMenuRef = useRef<HTMLDivElement>(null);
+  
+  const { t, language, setLanguage } = useTranslation();
 
   // Socket Listener for Notifications & Logs
   useEffect(() => {
@@ -54,10 +72,7 @@ export const Header: React.FC<HeaderProps> = ({
     };
 
     // Listen for General Notifications (System events)
-    // Note: App.tsx handles the socket 'NEW_NOTIFICATION' and dispatches 'sys_notification'
-    // We listen to the window event here to avoid duplicate processing.
     const handleNotification = (data: any) => {
-        // Prevent duplicates if the same ID comes through (optional safety)
         setNotifications(prev => {
             const exists = prev.some(n => 
                 n.message === data.content && 
@@ -111,6 +126,21 @@ export const Header: React.FC<HeaderProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Close Language Menu on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (langMenuRef.current && !langMenuRef.current.contains(event.target as Node)) {
+        setIsLangMenuOpen(false);
+      }
+    };
+    if (isLangMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isLangMenuOpen]);
+
   const handleClearNotifications = () => {
     setNotifications([]);
     setUnreadCount(0);
@@ -118,14 +148,9 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   const handleNotificationClick = (n: any) => {
-    // Navigate to chat if it's a private message
     if (n.type === 'private_message' && onNavigateToChat && n.payload) {
       const payload = n.payload;
-      
-      // 1. Check for 'fromUser' object (Backend specific structure)
-      // Supports both { fromUser: { ... } } and direct properties if flattened
       const fromUser = payload.fromUser || payload.user || {};
-      
       const targetId = fromUser.id || fromUser._id || payload.fromUserId || payload.userId || payload.senderId;
       const targetName = fromUser.displayName || fromUser.name || payload.senderName || payload.author;
       const targetEmail = fromUser.email || payload.senderEmail || payload.email;
@@ -145,7 +170,6 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  // Logic: Must have PRIVATE_ACCESS permission
   const canAccessPrivateSpace = can(currentUser, PERM_KEYS.PRIVATE_ACCESS);
 
   const navLinks = [
@@ -165,8 +189,6 @@ export const Header: React.FC<HeaderProps> = ({
 
   const isPrivate = currentPage === PageView.PRIVATE_SPACE;
 
-  // Header Background Logic - High Contrast White/Pink for Private Space
-  // Increased Z-Index to 2000 to be above Leaflet/ECharts maps (which often use 1000+)
   let headerClasses = `fixed w-full top-0 z-[2000] transition-all duration-500 `;
   if (isPrivate) {
     headerClasses += 'bg-white/90 border-b border-rose-200 backdrop-blur-md py-3 shadow-sm shadow-rose-100/50';
@@ -176,12 +198,13 @@ export const Header: React.FC<HeaderProps> = ({
       : 'bg-transparent py-6';
   }
 
+  const currentLangConfig = LANGUAGES.find(l => l.code === language);
+
   return (
     <header className={headerClasses}>
-      {/* Container - max-w-[1600px] to prevent elements being too far apart, centered */}
       <div className="w-full px-6 md:px-12 max-w-[1600px] mx-auto flex justify-between items-center relative">
         
-        {/* Mobile Toggle - Moved to LEFT */}
+        {/* Mobile Toggle */}
         <button 
           className={`xl:hidden mr-4 ${isPrivate ? 'text-rose-600' : 'text-slate-800 dark:text-white'}`}
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -189,7 +212,7 @@ export const Header: React.FC<HeaderProps> = ({
           <i className="fas fa-bars text-xl"></i>
         </button>
 
-        {/* Logo - ps5.space */}
+        {/* Logo */}
         <div 
           className="flex items-center gap-3 cursor-pointer group z-20 relative mr-auto"
           onClick={() => setPage(PageView.HOME)}
@@ -208,13 +231,12 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Desktop Nav - Keep XL breakpoint to prevent overlap */}
+        {/* Desktop Nav */}
         <nav className="hidden xl:flex items-center justify-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
            <div className={`flex items-center gap-1 px-2 py-1.5 rounded-full border backdrop-blur-md transition-colors duration-500 ${isPrivate ? 'bg-white/50 border-rose-200' : 'bg-white/70 dark:bg-white/5 border-slate-200 dark:border-white/10 shadow-lg shadow-black/5'}`}>
             {navLinks.map((link) => {
               const isActive = currentPage === link.value;
               
-              // Private Space Special Button
               if (link.value === PageView.PRIVATE_SPACE) {
                 return (
                    <button
@@ -233,7 +255,6 @@ export const Header: React.FC<HeaderProps> = ({
                 );
               }
 
-              // Sci-Fi Nav Items
               return (
                 <button
                   key={link.value}
@@ -244,7 +265,6 @@ export const Header: React.FC<HeaderProps> = ({
                       : 'hover:bg-slate-100 dark:hover:bg-white/5'
                   }`}
                 >
-                  {/* Decorative bracket borders for Active State */}
                   {isActive && (
                     <>
                       <span className="absolute left-0 top-1/2 -translate-y-1/2 h-3 w-[2px] bg-primary-500 dark:bg-primary-400 rounded-r-sm"></span>
@@ -263,7 +283,6 @@ export const Header: React.FC<HeaderProps> = ({
                     </span>
                   </div>
 
-                  {/* Active Indicator Dot */}
                   <span className={`absolute bottom-0.5 w-1 h-1 rounded-full bg-primary-500 dark:bg-primary-400 transition-all duration-300 ${isActive ? 'opacity-100 scale-100' : 'opacity-0 scale-0 group-hover:opacity-50 group-hover:scale-75'}`}></span>
                 </button>
               );
@@ -271,7 +290,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </nav>
 
-        {/* Actions - Added High Z-Index to prevent blocking */}
+        {/* Actions */}
         <div className="flex items-center gap-4 relative z-50">
           <button 
             onClick={toggleTheme} 
@@ -281,35 +300,73 @@ export const Header: React.FC<HeaderProps> = ({
             <i className={`fas ${theme === Theme.DARK ? 'fa-sun' : 'fa-moon'}`}></i>
           </button>
 
-          {/* Improved Language Toggle */}
-          <button
-            onClick={toggleLanguage}
-            className={`
-              flex items-center justify-center gap-2 px-4 py-2 rounded-full border transition-all duration-300
-              text-xs font-mono tracking-widest leading-none
-              ${isPrivate 
-                ? 'bg-rose-50 border-rose-200 hover:border-rose-300' 
-                : 'bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 hover:border-primary-500/50 dark:hover:border-primary-400/50'
-              }
-            `}
-            title="Toggle Language"
-          >
-            <span className={`transition-all duration-300 ${language === 'zh' 
-              ? (isPrivate ? 'text-rose-600 font-extrabold' : 'text-primary-600 dark:text-primary-400 font-extrabold scale-110') 
-              : (isPrivate ? 'text-rose-400 font-bold' : 'text-slate-500 dark:text-slate-400 font-bold')
-            }`}>
-              中
-            </span>
-            
-            <span className={`text-[10px] pb-[1px] ${isPrivate ? 'text-rose-300' : 'text-slate-300 dark:text-slate-600'}`}>|</span>
-            
-            <span className={`transition-all duration-300 ${language === 'en' 
-              ? (isPrivate ? 'text-rose-600 font-extrabold' : 'text-primary-600 dark:text-primary-400 font-extrabold scale-110') 
-              : (isPrivate ? 'text-rose-400 font-bold' : 'text-slate-500 dark:text-slate-400 font-bold')
-            }`}>
-              EN
-            </span>
-          </button>
+          {/* Styled Language Dropdown */}
+          <div className="relative" ref={langMenuRef}>
+            <button
+              onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
+              className={`
+                flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full border shadow-sm transition-all duration-300 group
+                ${isPrivate 
+                  ? 'bg-white/80 border-rose-200 hover:border-rose-300 text-rose-600' 
+                  : 'bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:border-primary-500/50 dark:hover:border-primary-400/50 text-slate-600 dark:text-slate-300'
+                }
+                ${isLangMenuOpen ? 'ring-2 ring-primary-500/20' : ''}
+              `}
+              title="Select Language"
+            >
+              <div className="w-5 h-5 rounded-full overflow-hidden relative shadow-sm border border-black/5 dark:border-white/10 shrink-0">
+                 {currentLangConfig?.flags[0] && (
+                    <img 
+                      src={getFlagUrl(currentLangConfig.flags[0])} 
+                      className="w-full h-full object-cover" 
+                      alt={currentLangConfig.code}
+                    />
+                 )}
+              </div>
+              <span className="text-xs font-bold uppercase tracking-wider hidden sm:block">
+                 {currentLangConfig?.code}
+              </span>
+              <i className={`fas fa-chevron-down text-[8px] opacity-60 transition-transform duration-300 ${isLangMenuOpen ? 'rotate-180' : ''}`}></i>
+            </button>
+
+            {isLangMenuOpen && (
+              <div className={`absolute right-0 top-full mt-2 w-48 py-2 rounded-2xl shadow-xl border backdrop-blur-xl animate-fade-in z-50 overflow-hidden ${
+                isPrivate 
+                  ? 'bg-white/95 border-rose-200 shadow-rose-200/50' 
+                  : 'bg-white/95 dark:bg-[#0f172a]/95 border-slate-200 dark:border-slate-700/50'
+              }`}>
+                {LANGUAGES.map((lang) => (
+                  <button
+                    key={lang.code}
+                    onClick={() => {
+                      setLanguage(lang.code);
+                      setIsLangMenuOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2.5 text-xs font-bold uppercase tracking-wider flex items-center justify-between group transition-colors ${
+                      isPrivate 
+                        ? 'hover:bg-rose-50 text-slate-600 hover:text-rose-600' 
+                        : 'hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400'
+                    } ${language === lang.code ? (isPrivate ? 'bg-rose-50/50 text-rose-600' : 'bg-slate-50 dark:bg-white/5 text-primary-600 dark:text-primary-400') : ''}`}
+                  >
+                    <div className="flex items-center gap-3">
+                        <div className="flex -space-x-1.5">
+                           {lang.flags.map(f => (
+                              <img 
+                                key={f} 
+                                src={getFlagUrl(f)} 
+                                className="w-5 h-5 rounded-full object-cover border border-white dark:border-slate-800 shadow-sm relative z-0 group-hover:z-10 transition-all" 
+                                alt={f} 
+                              />
+                           ))}
+                        </div>
+                        <span>{lang.label}</span>
+                    </div>
+                    {language === lang.code && <i className="fas fa-check text-[10px]"></i>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           
           {/* Notification Bell */}
           {currentUser && (
@@ -320,7 +377,7 @@ export const Header: React.FC<HeaderProps> = ({
                 >
                    <i className="fas fa-bell"></i>
                    {unreadCount > 0 && (
-                     <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-[#050914]"></span>
+                     <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
                    )}
                 </button>
 
@@ -367,7 +424,7 @@ export const Header: React.FC<HeaderProps> = ({
           )}
 
           {currentUser ? (
-            // Logged In Dropdown Menu - Keep XL breakpoint
+            // Logged In Dropdown Menu
             <div className={`hidden xl:block relative group border-l pl-4 ${isPrivate ? 'border-rose-200' : 'border-slate-200 dark:border-white/10'}`}>
               <button className="flex items-center gap-3 py-1 outline-none min-w-[120px] justify-end">
                  <div className={`w-8 h-8 rounded-full p-[1px] ${isPrivate ? 'bg-gradient-to-tr from-rose-300 to-pink-500' : 'bg-gradient-to-tr from-primary-400 to-primary-600'}`}>
@@ -437,10 +494,8 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
           ) : (
-            // Keep XL breakpoint for login button
             <button 
               onClick={onLogin}
-              // Added min-w-[110px] and justify-center to prevent layout shift between "Connect" and "接入"
               className="hidden xl:flex items-center justify-center gap-2 px-6 py-2 rounded-full border border-primary-500/30 bg-primary-500/10 text-primary-600 dark:text-primary-400 text-xs font-bold uppercase tracking-widest hover:bg-primary-500 hover:text-white transition-all duration-300 hover:shadow-[0_0_20px_rgba(14,165,233,0.4)] min-w-[110px]"
             >
               <i className="fas fa-terminal text-[10px]"></i>

@@ -1,7 +1,7 @@
 
 import { fetchClient, API_BASE_URL } from './core';
 import { toast } from '../components/Toast';
-import { User, AuditLog, PaginationData, PaginatedResponse, PermissionRequest } from '../types';
+import { User, AuditLog, PaginationData, PaginatedResponse, PermissionRequest, Role, Permission } from '../types';
 
 export const authService = {
   // --- Auth & Subscription ---
@@ -158,6 +158,54 @@ export const authService = {
       method: 'PUT',
       body: JSON.stringify(data)
     });
+  },
+
+  // --- Roles Management ---
+  getAllRoles: async (): Promise<Role[]> => {
+    return await fetchClient<Role[]>('/roles');
+  },
+
+  createRole: async (data: Partial<Role>): Promise<Role> => {
+    return await fetchClient<Role>('/roles', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  },
+
+  updateRoleDefinition: async (name: string, data: Partial<Role>): Promise<Role> => {
+    return await fetchClient<Role>(`/roles/${name}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  },
+
+  deleteRole: async (name: string): Promise<void> => {
+    await fetchClient(`/roles/${name}`, { method: 'DELETE' });
+    toast.success(`Role ${name} deleted.`);
+  },
+
+  // --- Permissions Management ---
+  getAllPermissions: async (): Promise<Permission[]> => {
+    return await fetchClient<Permission[]>('/permissions');
+  },
+
+  createPermission: async (data: Partial<Permission>): Promise<Permission> => {
+    return await fetchClient<Permission>('/permissions', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  },
+
+  updatePermission: async (key: string, data: Partial<Permission>): Promise<Permission> => {
+    return await fetchClient<Permission>(`/permissions/${key}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  },
+
+  deletePermission: async (key: string): Promise<void> => {
+    await fetchClient(`/permissions/${key}`, { method: 'DELETE' });
+    toast.success(`Permission ${key} deleted.`);
   },
 
   // --- Permission Requests ---

@@ -29,6 +29,23 @@ export interface Photo {
   order?: number;
 }
 
+export interface Role {
+  _id: string;
+  name: string;
+  permissions: string[];
+  description?: string;
+  updatedAt?: string;
+}
+
+export interface Permission {
+  _id: string;
+  key: string;
+  name: string;
+  description?: string;
+  category?: string;
+  createdAt?: string;
+}
+
 export interface User {
   _id: string;
   displayName: string;
@@ -45,7 +62,7 @@ export interface User {
   barkUrl?: string;
   timezone?: string;
   // 🛡️ Role Management
-  role?: 'user' | 'admin' | 'super_admin' | 'bot';
+  role?: 'user' | 'admin' | 'super_admin' | 'bot' | string; // Allow custom roles
   // 🔐 Permissions
   permissions?: string[];
 }
@@ -441,7 +458,7 @@ export enum Theme {
   DARK = 'dark'
 }
 
-export type Language = 'en' | 'zh';
+export type Language = 'en' | 'zh' | 'fr' | 'zh-TW' | 'ja' | 'ru' | 'de' | 'es';
 
 export enum PageView {
   HOME = 'HOME',

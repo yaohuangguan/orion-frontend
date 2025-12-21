@@ -1,0 +1,676 @@
+
+export const zh = {
+    header: {
+      home: '主控台',
+      blog: '日志',
+      about: '档案',
+      privateSpace: '舰长室',
+      chat: '星际通讯',
+      signOut: '断开',
+      signIn: '接入',
+      profile: '个人中心',
+      settings: '系统设置',
+      audit: '系统审计',
+      notifications: '警报',
+      clearAll: '清除',
+      emptyNotifications: '无新警报',
+      footprint: '星图',
+      system: '系统管理'
+    },
+    hero: {
+      status: '系统在线',
+      title1: '探索',
+      title2: '未知',
+      introPrefix: '我是 ',
+      introName: 'Sam',
+      introSuffix: '。漫游在数字宇宙，构建稳健的架构，探索人工智能的疆界。',
+      ctaPrimary: '查阅日志',
+      ctaSecondary: '系统档案'
+    },
+    portfolio: {
+      title: '作品集',
+      subtitle: '工程项目与职业生涯的合集。',
+      resume: '简历',
+      projects: '项目'
+    },
+    blogList: {
+      title: '传输日志',
+      subtitle: '关于工程、星图和数字演进的记录。',
+      titlePrivate: '加密库',
+      subtitlePrivate: '机密文档与个人记录。',
+      viewAll: '查看所有',
+      readArticle: '访问数据',
+      systemLog: '系统日志 // 公开访问',
+      entries: '条目',
+      status: '状态',
+      online: '在线',
+      searchPlaceholder: '搜索日志关键词...',
+      filter: '筛选:',
+      all: '全部',
+      noLogs: '未找到相关日志',
+      adjustSearch: '请调整搜索关键词',
+      clearFilters: '清除筛选',
+      page: '页码'
+    },
+    auditLog: {
+      title: '系统活动日志',
+      subtitle: '追踪主机内所有操作指令。',
+      operator: '操作员',
+      action: '指令',
+      target: '目标对象',
+      time: '时间戳',
+      ip: '源 IP',
+      noData: '当前扇区无活动记录。'
+    },
+    pagination: {
+      prev: '上一扇区',
+      next: '下一扇区',
+      page: '扇区'
+    },
+    login: {
+      welcome: '身份验证',
+      welcomeRegister: '新实体注册',
+      welcomeReset: '重置权限',
+      subtitle: '验证身份以访问加密区域',
+      subtitleRegister: '注册以获取权限',
+      subtitleReset: '使用秘密协议恢复访问',
+      name: '代号',
+      email: '通讯链路',
+      password: '密钥',
+      newPassword: '新密钥',
+      secretKey: '秘密协议口令',
+      confirmPassword: '确认密钥',
+      signin: '验证',
+      register: '初始化',
+      reset: '恢复访问',
+      toRegister: '无权限？初始化',
+      toLogin: '已有权限？验证',
+      forgotPassword: '丢失密钥？',
+      backToLogin: '返回验证',
+      error: '验证失败。访问被拒绝。',
+      passwordMismatch: '两次输入的密钥不一致。'
+    },
+    profile: {
+      title: '个人中心',
+      subtitle: '管理您的身份与权限详情。',
+      displayName: '显示名称',
+      email: '注册邮箱',
+      uid: '实体 ID',
+      save: '更新身份',
+      developing: '模块开发中...',
+      security: '安全协议',
+      changePassword: '变更访问密钥',
+      oldPassword: '当前密钥',
+      newPassword: '新密钥',
+      admin: '管理控制台',
+      grantVip: '授予 VIP 权限',
+      targetEmail: '目标实体邮箱',
+      dataManagement: '数据管理',
+      exportLogs: '一键导出日志',
+      active: '活跃',
+      vipBadge: 'VIP',
+      downloadBackup: '下载所有个人日志的 JSON 备份。',
+      height: '身高 (cm)',
+      fitnessGoal: '健身目标',
+      barkUrl: 'Bark 推送链接',
+      barkUrlPlaceholder: 'https://api.day.app/你的Key/...',
+      timezone: '时区设置',
+      goals: {
+        cut: '减脂 (Cut)',
+        bulk: '增肌 (Bulk)',
+        maintain: '保持 (Maintain)'
+      },
+      role: '角色权限',
+      updateRole: '更新角色',
+      roles: {
+        user: '普通用户',
+        admin: '管理员',
+        super_admin: '超级管理员',
+        bot: '机器人 (不可变)'
+      },
+      accessControl: '访问与权限',
+      requestPermissionTitle: '申请权限',
+      permissionKey: '权限代码',
+      applyAdmin: '申请管理员角色',
+      customRequest: '自定义权限申请',
+      reasonLabel: '申请理由',
+      reasonPlaceholder: '请说明申请该权限的具体原因...',
+      submitRequest: '提交申请'
+    },
+    settings: {
+      title: '系统配置',
+      subtitle: '调整界面参数与本地化协议。',
+      theme: '视觉接口',
+      language: '语言协议',
+      light: '日间模式',
+      dark: '夜间模式',
+      en: 'English',
+      zh: '中文'
+    },
+    system: {
+      title: '系统管理',
+      subtitle: '系统资源和外部服务监控仪表盘。',
+      tabs: {
+        resources: '资源监控',
+        users: '用户管理',
+        roles: '角色管理',
+        permissions: '权限列表',
+        requests: '审批请求'
+      },
+      cloudinary: {
+        title: 'Cloudinary 图片库',
+        credits: '信用点数使用',
+        plan: '当前方案',
+        storage: '存储空间',
+        bandwidth: '带宽',
+        objects: '对象数量',
+        transformations: '图像转换',
+        resources: '资源总数',
+        lastUpdated: '最后更新'
+      },
+      requests: {
+        title: '权限申请',
+        pending: '待审核',
+        approve: '批准',
+        reject: '拒绝',
+        noPending: '无待处理申请',
+        permission: '申请权限',
+        reason: '理由'
+      },
+      roles: {
+        title: '角色管理',
+        add: '新增角色',
+        edit: '编辑角色',
+        name: '角色名称',
+        desc: '描述',
+        perms: '权限列表',
+        save: '保存角色',
+        delete: '删除角色'
+      },
+      permissions: {
+        title: '权限注册表',
+        add: '新增权限',
+        edit: '编辑权限',
+        key: 'Key',
+        name: '名称',
+        category: '分类',
+        desc: '描述',
+        save: '保存权限',
+        delete: '删除权限'
+      }
+    },
+    access: {
+      denied: '访问被拒绝',
+      restricted: '受限区域',
+      message: '您没有足够的安全许可进入该扇区。',
+      request: '申请访问',
+      requestTitle: '提交访问申请',
+      reasonPlaceholder: '请说明您需要访问该扇区的理由...',
+      submit: '提交申请',
+      cancel: '取消',
+      pending: '申请审核中'
+    },
+    footprint: {
+      title: '星图计划',
+      subtitle: '追踪跨越星系的足迹。',
+      intro: '点亮你探索过的省份，在全球坐标上钉住你的独家记忆。',
+      tabs: {
+        china: '中国扇区',
+        world: '全球坐标'
+      },
+      stats: {
+        total: '足迹总数',
+        countries: '探索国家',
+        provinces: '点亮省份',
+        cities: '抵达城市'
+      },
+      add: '记录足迹',
+      edit: '编辑足迹',
+      form: {
+        name: '地点名称',
+        province: '省份 / 区域',
+        city: '城市',
+        date: '抵达日期',
+        mood: '心情指数',
+        content: '探索笔记',
+        photos: '影像记录',
+        status: '状态',
+        visited: '已抵达',
+        planned: '计划中',
+        save: '保存记录'
+      },
+      mapTip: '点击地图选取坐标'
+    },
+    resume: {
+      role: '工程师 / 旅行者',
+      bio: '专注于科技，投资与个人成长。',
+      credentials: '前腾讯/货拉拉资深开发',
+      siteIntro: {
+        title: '站点导航',
+        subtitle: '本数字空间主要模块功能概览。',
+        journalTitle: '日志空间',
+        journalDesc: '我分享个人日志的地方。记录技术心得、创业思考与生活点滴。',
+        profileTitle: '档案室',
+        profileDesc: '关于我的详细经历：大厂历练、创业搞钱之路。',
+        chatTitle: '星际通讯',
+        chatDesc: '登陆后即可接入聊天室，与其他探索者实时畅聊。',
+        privateTitle: '舰长室',
+        privateDesc: '加密的爱情档案库，用来保存属于我的珍贵回忆，仅供舰长本人查阅（哈哈）。'
+      },
+      education: '数据库：教育',
+      educationSchool: '迈阿密大学 (Miami University)',
+      educationDegree: '互动媒体研究学士 (STEM)',
+      skills: '技术栈',
+      experience: '任务记录',
+      basedIn: '地球轨道',
+      gpa: "GPA: 3.7 • 院长嘉许名单 (Dean's List)",
+      jobs: [
+        {
+          company: 'Gold Woodbath Capital',
+          role: '创始人 / 投资人',
+          description: '创立专注于科技与新兴市场的私募股权公司。管理投资组合策略。',
+          color: 'bg-amber-500'
+        },
+        {
+          company: '货拉拉 (Lalamove)',
+          role: '资深前端开发工程师',
+          description: '优化核心物流调度系统。提升司机端与用户端 Webview 性能。',
+          color: 'bg-orange-500'
+        },
+        {
+          company: '腾讯云',
+          role: '前端开发工程师',
+          description: '负责 Coding OA 平台前端开发。实施 CI/CD 与自动化测试工具链。',
+          color: 'bg-blue-500'
+        },
+        {
+          company: 'BeeHex (NASA 衍生)',
+          role: '前端工程师',
+          description: '利用 3D 打印技术革新食品自动化。构建 Vue.js 定制平台。',
+          color: 'bg-slate-500'
+        }
+      ]
+    },
+    comments: {
+      title: '通讯频道',
+      placeholder: '发送传输...',
+      postButton: '发送',
+      loginToComment: '验证身份以发送',
+      noComments: '未收到传输信号。',
+      reply: '响应',
+      replyTo: '响应',
+      cancel: '终止',
+      error: '传输失败。'
+    },
+    chat: {
+      title: '量子链路',
+      subtitle: '实时加密的亚空间通讯频道。',
+      crewManifest: '乘员名册',
+      publicChannel: '公共频道',
+      privateChannel: '私人频道',
+      connecting: '正在建立上行链路...',
+      placeholder: '广播消息...',
+      typing: '正在传输...',
+      send: '发送',
+      me: '我',
+      welcome: '欢迎来到舰桥',
+      encrypted: '加密'
+    },
+    delete: {
+      confirmTitle: '删除日志？',
+      confirmMessage: '此操作不可逆。确认删除，请输入：',
+      confirmSecretMessage: '受限操作。请输入密钥以授权删除：',
+      button: '确认删除'
+    },
+    live: {
+      title: '实时链路',
+      subtitle: '实时神经接口已激活。正在向 Gemini 核心传输音视频数据。',
+      connect: '初始化连接',
+      disconnect: '终止连接'
+    },
+    footer: {
+      tagline: '通过代码与设计重塑数字体验。',
+      rights: '© 2024 Sam Yao. 系统运转正常。',
+      builtBy: '由 Sam Yao 倾注荣耀、爱与和平构建',
+      strengthHonor: '力量与荣耀'
+    },
+    privateSpace: {
+      tabs: {
+        secondBrain: "第二大脑",
+        journal: "日志空间",
+        leisure: "休闲空间",
+        gallery: "胶囊相册",
+        fitness: "运动空间"
+      },
+      secondBrain: {
+        title: "数字孪生",
+        subtitle: "全知 AI 核心",
+        welcome: "你好。我是你的第二大脑。我已经接入了你的日志、运动数据和项目记录。请问有什么可以帮你？",
+        placeholder: "问我关于你数据的任何事..."
+      },
+      hotSearch: {
+        title: "资讯中心",
+        hot: "热搜榜",
+        finance: "财经快讯",
+        game: "游戏电竞",
+        guonei: "国内新闻",
+        world: "国际新闻",
+        updated: "已更新",
+        loading: "正在扫描网络..."
+      },
+      leisure: {
+        musicTitle: "音乐播放器",
+        playUrl: "播放链接",
+        search: "搜索曲库",
+        placeholderUrl: "MP3 URL...",
+        placeholderSearch: "搜索...",
+        nowPlaying: "正在播放",
+        stopped: "已停止",
+        mahjong: "雀魂麻将区",
+        mahjongDesc: "接入 Maj-Soul 神经网络",
+        clock: {
+          title: "智能中枢",
+          subtitle: "深圳实时"
+        },
+        cycle: {
+          title: "月相周期",
+          subtitle: "生理记录",
+          prediction: "周期预测",
+          nextPeriod: "下次经期",
+          inDays: "{days} 天后",
+          log: "记录经期",
+          save: "保存记录",
+          flow: "流量",
+          symptoms: "症状",
+          note: "备注",
+          delete: "删除记录",
+          startDate: "开始日期",
+          endDate: "结束日期",
+          color: "经血颜色",
+          flows: {
+            light: "少量",
+            medium: "中等",
+            heavy: "大量"
+          },
+          symptomList: {
+            cramps: "痛经",
+            headache: "头痛",
+            backpain: "腰酸",
+            fatigue: "疲乏",
+            bloating: "腹胀",
+            acne: "痘痘",
+            moody: "情绪波动"
+          },
+          legend: {
+            period: "经期",
+            predicted: "预测经期",
+            fertile: "易孕期",
+            ovulation: "排卵日"
+          }
+        },
+        chefWheel: {
+          title: "AI 智能厨房",
+          subtitle: "全自动膳食决策系统",
+          spin: "开始抽取",
+          spinning: "分析中...",
+          confirm: "确认选择",
+          retry: "返回重抽",
+          recommending: "Gemini 思考建议中...",
+          recommendations: "你可能也喜欢:",
+          manage: "管理菜单",
+          viewRecipe: "查看做法",
+          searchMode: "菜谱搜寻",
+          wheelMode: "大转盘",
+          backToSearch: "返回搜索",
+          searchPlaceholder: "输入菜名 (例如: 宫保鸡丁)...",
+          searching: "搜索中...",
+          library: "菜单库管理",
+          smartPlan: {
+            button: "AI 智能膳食",
+            title: "智能方案",
+            nutritionist: "AI 营养师",
+            personalized: "个性化菜单定制",
+            target: "目标",
+            fallbackTitle: "优先级逻辑 (Fallback)",
+            fallback1: "AI 优先参考您最近在「运动空间」记录的体重数据。",
+            fallback2: "如果您今日在饮食记录中明确设置了临时目标（如“增肌”），AI 将优先基于该目标推荐，而非个人档案中的长期目标。",
+            error: "营养师 AI 正忙，请稍后再试。"
+          },
+          form: {
+            add: "新增菜品",
+            edit: "编辑菜品",
+            name: "菜名",
+            image: "图片链接",
+            category: "分类",
+            tags: "标签",
+            cancel: "取消",
+            save: "保存"
+          },
+          filters: {
+            healthy: "健康模式",
+            cooldown: "多样化模式",
+            category: "分类",
+            calories: "热量",
+            tags: "标签",
+            options: {
+              any: "任意",
+              lunch: "午餐",
+              dinner: "晚餐",
+              supper: "夜宵",
+              low: "低热量",
+              medium: "中等",
+              high: "高热量"
+            },
+            tooltips: {
+              healthy: "优先选择低热量且营养均衡的餐食。",
+              variety: "避开最近吃过的菜品（冷却期生效）。"
+            }
+          },
+          menu: {
+            add: "新增菜品",
+            edit: "编辑菜品",
+            name: "菜名",
+            category: "分类",
+            weight: "权重 (1-10)",
+            calories: "热量等级",
+            save: "保存菜品"
+          },
+          ingredients: {},
+          styles: {},
+          cats: {}
+        },
+        pirate: {
+          title: "四皇海战 (华容道)",
+          reset: "重置牌局",
+          moves: "步数",
+          victory: "征服完成",
+          victoryDesc: "四海已平定。",
+          playAgain: "再战",
+          rulesTitle: "任务参数",
+          rules: [
+            "目标: 将红、蓝、绿、黄四个阵营的滑块同时移动到对应的领地。",
+            "领地分布: 红(左上), 蓝(右上), 绿(左下), 黄(右下)。",
+            "单位: 每个阵营包含4个单位（船长、船、宝箱、地图）。所有单位必须位于其3x3的领地内。",
+            "中立区: 中间列及空位允许通行。",
+            "难度: 困难。需要极强的预判能力。"
+          ]
+        }
+      },
+      fitness: {
+        title: '运动空间',
+        subtitle: '追踪您的生理机能与训练数据。',
+        goals: {
+          cut: '减脂',
+          bulk: '增肌',
+          maintain: '保持'
+        },
+        calendar: {
+          weekdays: ['日', '一', '二', '三', '四', '五', '六'],
+          holidays: {
+            '1-1': '元旦', '2-14': '情人节', '3-8': '妇女节', '3-12': '植树节',
+            '4-1': '愚人节', '5-1': '劳动节', '5-4': '青年节', '6-1': '儿童节',
+            '7-1': '建党节', '8-1': '建军节', '9-10': '教师节', '10-1': '国庆节',
+            '12-24': '平安夜', '12-25': '圣诞节'
+          },
+          terms: [
+            "小寒", "大寒", "立春", "雨水", "惊蛰", "春分", "清明", "谷雨", "立夏", "小满", "芒种", "夏至",
+            "小暑", "大暑", "立秋", "处暑", "白露", "秋分", "寒露", "霜降", "立冬", "小雪", "大雪", "冬至"
+          ],
+          noActivity: '无记录',
+          summaryTitle: '每日运动摘要'
+        },
+        photoWall: {
+          title: '运动光影墙',
+          captured: '本月拍摄 {n} 张',
+          empty: '该时段暂无照片',
+          view: '查看当日照片',
+          prev6: '前半年',
+          next6: '后半年'
+        },
+        stats: {
+          progress: '进度',
+          userProgress: "{name} 的进度",
+          activeProfile: '当前用户',
+          loading: '加载中...',
+          loadMore: '加载更多',
+          noData: '暂无数据'
+        },
+        input: {
+          loggingFor: '记录对象:',
+          selectUser: '选择用户'
+        },
+        tabs: {
+          workout: '活动记录',
+          status: '身体 & 状态',
+          diet: '饮食',
+          photos: '照片'
+        },
+        workout: {
+          isDone: '今日打卡?',
+          duration: '时长 (分钟)',
+          type: '活动类型',
+          notes: '今日流水账/高光',
+          types: {
+            run: '跑步',
+            swim: '游泳',
+            lift: '举铁',
+            yoga: '瑜伽',
+            hiit: 'HIIT',
+            trip: '出游',
+            hike: '爬山',
+            movie: '电影',
+            love: '爱爱',
+            other: '其他'
+          }
+        },
+        status: {
+          weight: '体重 (kg)',
+          height: '身高 (cm)',
+          sleep: '睡眠 (小时)',
+          mood: '今日心情',
+          moods: {
+            happy: '开心',
+            neutral: '一般',
+            bad: '难受'
+          }
+        },
+        diet: {
+          content: '今天吃了什么？',
+          contentPlaceholder: '早餐：面包，牛奶...',
+          water: '喝水 (ml)'
+        },
+        photos: {
+          upload: '上传今日瞬间',
+          empty: '今日暂无照片'
+        },
+        charts: {
+          weightTitle: '体重趋势',
+          duration: '时长',
+          weight: '体重',
+          bmi: 'BMI指数'
+        },
+        save: '保存记录',
+        saved: '记录已更新'
+      },
+      journal: "我们的日志",
+      memories: "篇回忆",
+      together: "在一起",
+      years: "年",
+      days: "天",
+      loveMsg: "永远爱你! ❤",
+      bucketList: {
+        title: "愿望清单",
+        subtitle: "梦想与目标",
+        tabs: {
+          todo: "心愿单",
+          in_progress: "进行中",
+          done: "已达成"
+        },
+        actions: {
+            start: "开始",
+            complete: "完成",
+            later: "稍后",
+            wishlist: "心愿单",
+            restart: "重开"
+        },
+        add: "许下愿望",
+        edit: "编辑愿望",
+        placeholder: "你的梦想是什么？",
+        description: "计划 / 攻略 / 描述",
+        targetDate: "目标日期",
+        evidence: "打卡 / 证据",
+        uploadEvidence: "上传照片",
+        empty: "这里还没有愿望。大胆做梦吧！",
+        status: "当前状态",
+        save: "保存愿望",
+        update: "更新愿望",
+        delete: "删除愿望"
+      },
+      tasks: "待办事项",
+      newTask: "新任务...",
+      caughtUp: "全部完成了！",
+      emptyJournal: "日志是空的。",
+      writeFirst: "在右侧写下第一篇回忆吧。",
+      read: "阅读",
+      preview: "暂无简介...",
+      unknownDate: "未知日期",
+      editor: {
+        titlePlaceholder: "标题...",
+        author: "作者",
+        tags: "标签 (空格分隔)",
+        private: "私密",
+        public: "公开",
+        summary: "简介",
+        code: "代码 / 脚本",
+        publish: "发布故事",
+        update: "更新故事",
+        cancel: "取消编辑",
+        chars: "字数",
+        tellStory: "写下你的故事...",
+        saving: "保存中...",
+        saved: "已保存",
+        saveDraft: "保存草稿",
+        processing: "处理中..."
+      },
+      gallery: {
+        title: "胶囊相册",
+        subtitle: "被光连接的永恒瞬间。",
+        upload: "上传照片",
+        caption: "备注",
+        location: "地点",
+        save: "固定到板上",
+        cancel: "丢弃",
+        replace: "替换图片",
+        delete: "删除",
+        deleteConfirm: "移除照片?",
+        pinTitle: "记录新回忆",
+        captionLabel: "标题",
+        captionPlaceholder: "给它起个名字...",
+        dateLabel: "日期",
+        pinButton: "固定",
+        developing: "正在冲洗照片...",
+        reserved: "预留位"
+      }
+    }
+  };
+  
