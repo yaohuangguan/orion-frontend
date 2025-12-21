@@ -90,7 +90,8 @@ export const featureService = {
   askLifeStream: async (
     prompt: string, 
     history: { role: 'user' | 'assistant', content: string }[], 
-    onChunk: (text: string) => void
+    onChunk: (text: string) => void,
+    image?: string | null
   ): Promise<void> => {
     const token = localStorage.getItem('auth_token');
     if (!token) throw new Error("No auth token");
@@ -103,7 +104,7 @@ export const featureService = {
           'Content-Type': 'application/json',
           'x-auth-token': token
         },
-        body: JSON.stringify({ prompt, history })
+        body: JSON.stringify({ prompt, history, image })
       });
 
       if (!response.ok) {

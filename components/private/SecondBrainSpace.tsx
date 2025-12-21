@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from '../../i18n/LanguageContext';
 import { featureService } from '../../services/featureService';
+import { compressImage } from '../../services/media';
 import { User } from '../../types';
 import { toast } from '../Toast';
 
@@ -17,6 +18,7 @@ interface BrainMessage {
   isStreaming?: boolean;
   avatar?: string;
   name?: string;
+  image?: string; // Base64 image
 }
 
 const DEFAULT_AI_AVATAR = "https://cdn-icons-png.flaticon.com/512/4712/4712027.png";
@@ -27,6 +29,12 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
+  
+  // Image Upload State
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -43,7 +51,9 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
             content: msg.content || msg.text || '',
             timestamp: new Date(msg.createdDate || Date.now()),
             avatar: msg.user?.photoURL || (msg.user?.id === 'ai_assistant' ? DEFAULT_AI_AVATAR : undefined),
-            name: msg.user?.displayName
+            name: msg.user?.displayName,
+            // Only user messages might have images in the new format, handled by backend usually
+            image: msg.image 
           }));
           setMessages(mappedMessages);
         } else {
@@ -74,7 +84,7 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, isProcessing]);
+  }, [messages, isProcessing, selectedImage]); // Added selectedImage to scroll if preview appears
 
   // Highlight Code blocks when messages update
   useEffect(() => {
@@ -93,11 +103,78 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
     }
   }, [input]);
 
+  // --- Image Handling Helpers ---
+  const processFile = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+        toast.error("Only image files are supported.");
+        return;
+    }
+    
+    try {
+        // Compress to base64, max width 1024, quality 0.7 for bandwidth efficiency
+        const compressedBase64 = await compressImage(file, 0.7, 1024);
+        setSelectedImage(compressedBase64);
+        // Focus input after selection
+        inputRef.current?.focus();
+    } catch (e) {
+        console.error("Image processing failed", e);
+        toast.error("Failed to process image.");
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+        processFile(file);
+    }
+    // Reset so same file can be selected again if cleared
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+            const file = items[i].getAsFile();
+            if (file) {
+                processFile(file);
+                e.preventDefault(); // Prevent pasting the file object as text
+            }
+        }
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+        processFile(files[0]);
+    }
+  };
+
+  const removeSelectedImage = () => {
+      setSelectedImage(null);
+  };
+
+  // --- Submission Logic ---
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!input.trim() || isProcessing) return;
+    // Allow submit if there is text OR an image
+    if ((!input.trim() && !selectedImage) || isProcessing) return;
 
     const userText = input.trim();
+    const userImage = selectedImage; // Capture current image before clearing
     const tempId = Date.now().toString();
 
     // 1. Add User Message to UI
@@ -107,19 +184,22 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
       content: userText,
       timestamp: new Date(),
       avatar: user?.photoURL,
-      name: user?.displayName || 'User'
+      name: user?.displayName || 'User',
+      image: userImage || undefined
     };
 
     setMessages(prev => [...prev, userMsg]);
     setInput('');
+    setSelectedImage(null); // Clear image immediately after sending
     setIsProcessing(true);
     
     // Reset textarea height
     if (inputRef.current) inputRef.current.style.height = 'auto';
 
     try {
-      // 2. Save User Message to Backend (Async)
-      featureService.saveAiChatMessage(userText, 'user').catch(err => console.error("Failed to save user message", err));
+      // 2. Save User Message to Backend (Async) - Note: Only saving text history for now if backend strictly expects text
+      // Ideally backend saves the image too, but for "Thinking Agent" flow, the prompt is key.
+      featureService.saveAiChatMessage(userText + (userImage ? " [Image Sent]" : ""), 'user').catch(err => console.error("Failed to save user message", err));
 
       // 3. Create Placeholder for AI Response
       const aiMsgId = (Date.now() + 1).toString();
@@ -138,10 +218,13 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
         role: m.role,
         content: m.content
       }));
+      // Note: We don't send past images in history array to save tokens/bandwidth, 
+      // only the CURRENT image is sent via the `image` parameter to `askLifeStream`.
       recentHistory.push({ role: 'user', content: userText });
 
       let fullAiResponse = "";
 
+      // Pass image if exists
       await featureService.askLifeStream(userText, recentHistory, (chunk) => {
         fullAiResponse += chunk;
         setMessages(prev => prev.map(m => {
@@ -150,7 +233,7 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
           }
           return m;
         }));
-      });
+      }, userImage);
 
       // 5. Stream Complete - Save AI Response
       if (fullAiResponse) {
@@ -222,7 +305,7 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
     toast.info(type === 'like' ? "Feedback: Helpful" : "Feedback: Not Helpful");
   };
 
-  // Custom Markdown Rendering logic (replacing BlogContent)
+  // Custom Markdown Rendering logic
   const renderMarkdown = (content: string) => {
     if (!content) return { __html: '' };
     if (window.marked) {
@@ -281,7 +364,7 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
                   return (
                     <div 
                       key={msg.id} 
-                      className={`w-full py-8 px-4 md:px-12 border-b border-black/5 ${isUser ? 'bg-[#212121]' : 'bg-[#212121]'}`} // Keep background consistent for "layered" feel via spacing/indent
+                      className={`w-full py-8 px-4 md:px-12 border-b border-black/5 ${isUser ? 'bg-[#212121]' : 'bg-[#212121]'}`}
                     >
                        <div className="max-w-4xl mx-auto flex gap-6">
                           
@@ -303,6 +386,15 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
                              <div className={`text-xs font-bold mb-2 ${isUser ? 'text-gray-400' : 'text-gray-200'}`}>
                                 {msg.name}
                              </div>
+
+                             {/* Image Display in History */}
+                             {msg.image && (
+                                <div className={`mb-3 ${isUser ? 'flex justify-end' : 'flex justify-start'}`}>
+                                   <div className="relative group max-w-[250px] rounded-lg overflow-hidden border border-white/10">
+                                      <img src={msg.image} alt="Upload" className="w-full h-auto object-contain" />
+                                   </div>
+                                </div>
+                             )}
 
                              {/* Message Body */}
                              {isUser ? (
@@ -361,22 +453,70 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
         {/* Input Area */}
         <div className="p-4 md:p-6 bg-[#212121] border-t border-white/5 shrink-0">
            <div className="max-w-3xl mx-auto relative">
-              <div className="relative bg-[#2f2f2f] rounded-xl border border-gray-700 focus-within:border-gray-500 shadow-lg transition-colors">
+              
+              {/* Drag Drop Overlay */}
+              {isDragging && (
+                 <div className="absolute inset-0 -top-12 -left-4 -right-4 -bottom-4 z-50 bg-[#212121]/90 backdrop-blur-sm border-2 border-dashed border-gray-500 rounded-xl flex items-center justify-center pointer-events-none">
+                    <span className="text-gray-200 font-bold text-lg animate-pulse">Drop Image Here</span>
+                 </div>
+              )}
+
+              {/* Image Preview Area */}
+              {selectedImage && (
+                 <div className="absolute -top-24 left-0 bg-[#2f2f2f] p-2 rounded-xl border border-gray-700 shadow-xl flex items-start gap-2 animate-slide-up z-20">
+                    <img src={selectedImage} alt="Preview" className="h-20 w-auto rounded-lg object-contain" />
+                    <button 
+                      onClick={removeSelectedImage}
+                      className="w-5 h-5 rounded-full bg-gray-600 hover:bg-red-500 text-white flex items-center justify-center transition-colors"
+                    >
+                       <i className="fas fa-times text-[10px]"></i>
+                    </button>
+                 </div>
+              )}
+
+              <div 
+                className={`relative bg-[#2f2f2f] rounded-xl border transition-colors shadow-lg flex flex-col ${isDragging ? 'border-gray-400 bg-[#3a3a3a]' : 'border-gray-700 focus-within:border-gray-500'}`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
                  <textarea
                    ref={inputRef}
                    value={input}
                    onChange={(e) => setInput(e.target.value)}
                    onKeyDown={handleKeyDown}
+                   onPaste={handlePaste}
                    placeholder={t.privateSpace.secondBrain.placeholder}
-                   className="w-full bg-transparent border-none outline-none py-3 pl-4 pr-12 text-gray-200 placeholder:text-gray-500 resize-none max-h-48 min-h-[52px] text-sm leading-relaxed custom-scrollbar"
+                   className="w-full bg-transparent border-none outline-none py-3 pl-12 pr-12 text-gray-200 placeholder:text-gray-500 resize-none max-h-48 min-h-[52px] text-sm leading-relaxed custom-scrollbar"
                    rows={1}
                    disabled={isProcessing}
                  />
+                 
+                 {/* File Upload Button */}
+                 <div className="absolute left-3 bottom-2.5">
+                    <button 
+                       onClick={() => fileInputRef.current?.click()}
+                       disabled={isProcessing}
+                       className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                       title="Attach Image"
+                    >
+                       <i className="fas fa-paperclip text-sm"></i>
+                    </button>
+                    <input 
+                       type="file" 
+                       ref={fileInputRef} 
+                       className="hidden" 
+                       accept="image/*" 
+                       onChange={handleFileSelect} 
+                    />
+                 </div>
+
+                 {/* Send Button */}
                  <button
                    onClick={() => handleSubmit()}
-                   disabled={!input.trim() || isProcessing}
+                   disabled={(!input.trim() && !selectedImage) || isProcessing}
                    className={`absolute right-2 bottom-2 w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
-                      !input.trim() 
+                      (!input.trim() && !selectedImage) 
                       ? 'bg-transparent text-gray-600 cursor-not-allowed' 
                       : 'bg-white text-black hover:bg-gray-200'
                    }`}
@@ -393,7 +533,7 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
       </div>
 
       <style>{`
-        /* Chat Content Specific Styles (replacing BlogContent) */
+        /* Chat Content Specific Styles */
         .chat-content p {
            margin-bottom: 1em;
         }

@@ -12,11 +12,27 @@ interface UserProfileProps {
   onUpdateUser: (user: User) => void;
 }
 
+const TIMEZONES = [
+  "Asia/Shanghai",
+  "Asia/Tokyo",
+  "Asia/Singapore",
+  "America/New_York",
+  "America/Los_Angeles",
+  "America/Chicago",
+  "Europe/London",
+  "Europe/Paris",
+  "Europe/Berlin",
+  "Australia/Sydney",
+  "UTC"
+];
+
 export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) => {
   const { t } = useTranslation();
   const [displayName, setDisplayName] = useState(user.displayName);
   const [height, setHeight] = useState<string>(user.height ? user.height.toString() : '');
   const [fitnessGoal, setFitnessGoal] = useState<'cut' | 'bulk' | 'maintain'>(user.fitnessGoal || 'maintain');
+  const [barkUrl, setBarkUrl] = useState(user.barkUrl || '');
+  const [timezone, setTimezone] = useState(user.timezone || 'Asia/Shanghai');
   
   const [isLoading, setIsLoading] = useState(false);
 
@@ -39,11 +55,32 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
   const [requestType, setRequestType] = useState<'ROLE' | 'PERM'>('ROLE'); // Toggle state
   const [isSubmittingPerm, setIsSubmittingPerm] = useState(false);
 
+  // Guard to prevent double fetching in React Strict Mode
+  const hasFetchedRef = useRef(false);
+
+  // Fetch latest profile data on mount to ensure settings like Bark URL are fresh
+  useEffect(() => {
+    if (hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
+
+    const fetchLatest = async () => {
+      try {
+        const latestUser = await apiService.getCurrentUser();
+        onUpdateUser(latestUser);
+      } catch (error) {
+        console.error("Failed to refresh user profile:", error);
+      }
+    };
+    fetchLatest();
+  }, []);
+
   // Update local state when user prop changes (e.g. after refresh)
   useEffect(() => {
     setDisplayName(user.displayName);
     setHeight(user.height ? user.height.toString() : '');
     setFitnessGoal(user.fitnessGoal || 'maintain');
+    setBarkUrl(user.barkUrl || '');
+    setTimezone(user.timezone || 'Asia/Shanghai');
   }, [user]);
 
   const handleAvatarClick = () => {
@@ -89,10 +126,12 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
     
     setIsLoading(true);
     try {
-      // Update Profile (Name, Height, Goal)
+      // Update Profile (Name, Height, Goal, Bark, Timezone)
       const payload: Partial<User> = {
         displayName,
-        fitnessGoal
+        fitnessGoal,
+        barkUrl,
+        timezone
       };
       
       if (height) {
@@ -317,6 +356,31 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
                        <option value="bulk">{t.profile.goals.bulk}</option>
                     </select>
                  </div>
+              </div>
+
+              {/* Bark URL & Timezone */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">{t.profile.barkUrl}</label>
+                <input 
+                  type="text" 
+                  value={barkUrl}
+                  onChange={(e) => setBarkUrl(e.target.value)}
+                  placeholder={t.profile.barkUrlPlaceholder}
+                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all text-slate-900 dark:text-white font-medium text-sm font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">{t.profile.timezone}</label>
+                <select 
+                  value={timezone}
+                  onChange={(e) => setTimezone(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all text-slate-900 dark:text-white font-medium"
+                >
+                   {TIMEZONES.map((tz) => (
+                      <option key={tz} value={tz}>{tz}</option>
+                   ))}
+                </select>
               </div>
 
               <div>

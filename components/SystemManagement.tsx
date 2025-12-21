@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from '../i18n/LanguageContext';
@@ -77,8 +76,8 @@ export const SystemManagement: React.FC = () => {
   const fetchUsers = async (page: number) => {
     setLoadingUsers(true);
     try {
-      // API call: 50 items per page, sort by role, desc
-      const { data, pagination } = await apiService.getUsers(page, 50, userSearch, 'role', 'desc');
+      // API call: 25 items per page, sort by role, desc
+      const { data, pagination } = await apiService.getUsers(page, 25, userSearch, 'role', 'desc');
       setUserList(data);
       setUserPagination(pagination);
       setUserPage(page);
@@ -247,7 +246,7 @@ export const SystemManagement: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-6 py-24 pt-32 max-w-6xl animate-fade-in relative z-10 min-h-screen">
+    <div className="container mx-auto px-6 py-24 pt-32 max-w-7xl animate-fade-in relative z-10 min-h-screen">
       
       {/* Verification Modal for VIP Actions */}
       <DeleteModal 
@@ -469,9 +468,9 @@ export const SystemManagement: React.FC = () => {
 
       {/* --- USERS TAB --- */}
       {activeTab === 'USERS' && (
-         <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xl flex flex-col md:flex-row gap-6 animate-fade-in min-h-[600px]">
-            {/* User List Column */}
-            <div className="w-full md:w-1/2 flex flex-col">
+         <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xl flex flex-col xl:flex-row gap-6 animate-fade-in min-h-[600px]">
+            {/* User List Column - Expanded Width for Grid */}
+            <div className="w-full xl:w-3/4 flex flex-col">
                <div className="relative mb-4">
                    <input 
                      type="text" 
@@ -483,36 +482,37 @@ export const SystemManagement: React.FC = () => {
                    <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                </div>
                
-               <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-2">
+               <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
                   {loadingUsers ? <div className="text-center py-10 opacity-50">Loading...</div> : (
-                     displayUserList.map(u => (
+                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                     {displayUserList.map(u => (
                         <button
                            key={u._id}
                            onClick={() => setTargetUser(u)}
-                           className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left group ${targetUser?._id === u._id ? 'bg-blue-500 text-white shadow-lg' : 'bg-white dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-100 dark:border-slate-800'}`}
+                           className={`flex flex-col items-center gap-3 p-4 rounded-xl transition-all text-center group border ${targetUser?._id === u._id ? 'bg-blue-500 text-white shadow-lg border-blue-500' : 'bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700'}`}
                         >
-                           <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-200 shrink-0">
+                           <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-200 shrink-0 ring-2 ring-white dark:ring-slate-800 shadow-sm">
                               <img src={u.photoURL || `https://ui-avatars.com/api/?name=${u.displayName}`} className="w-full h-full object-cover"/>
                            </div>
-                           <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between">
-                                 <div className="font-bold truncate">{u.displayName}</div>
-                                 <div className="flex gap-1 items-center">
+                           <div className="w-full min-w-0">
+                              <div className="font-bold truncate text-sm mb-1">{u.displayName}</div>
+                              <div className={`text-[10px] truncate mb-2 ${targetUser?._id === u._id ? 'text-blue-100' : 'text-slate-400'}`}>{u.email}</div>
+                              
+                              <div className="flex justify-center gap-1">
                                     {u.role && u.role !== 'user' && (
                                         <span className={`text-[9px] uppercase px-1.5 py-0.5 rounded font-bold ${
-                                            u.role === 'super_admin' ? 'bg-purple-100 text-purple-600' :
-                                            u.role === 'admin' ? 'bg-blue-100 text-blue-600' : 'bg-slate-200 text-slate-500'
+                                            u.role === 'super_admin' ? (targetUser?._id === u._id ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-600') :
+                                            u.role === 'admin' ? (targetUser?._id === u._id ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-600') : 'bg-slate-200 text-slate-500'
                                         }`}>
                                             {u.role === 'super_admin' ? 'Super' : u.role}
                                         </span>
                                     )}
-                                    {u.vip && <i className="fas fa-crown text-amber-300 text-xs"></i>}
-                                 </div>
+                                    {u.vip && <i className={`fas fa-crown text-xs ${targetUser?._id === u._id ? 'text-yellow-300' : 'text-amber-400'}`}></i>}
                               </div>
-                              <div className={`text-xs truncate ${targetUser?._id === u._id ? 'text-blue-100' : 'text-slate-400'}`}>{u.email}</div>
                            </div>
                         </button>
-                     ))
+                     ))}
+                     </div>
                   )}
                </div>
                
@@ -526,10 +526,10 @@ export const SystemManagement: React.FC = () => {
                )}
             </div>
 
-            {/* Detail Column */}
-            <div className="w-full md:w-1/2 bg-slate-50 dark:bg-slate-950/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center relative">
+            {/* Detail Column - Aligned Top */}
+            <div className="w-full xl:w-1/4 bg-slate-50 dark:bg-slate-950/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-start relative">
                {!targetUser ? (
-                  <div className="text-slate-400 text-center">
+                  <div className="text-slate-400 text-center mt-20">
                      <i className="fas fa-user-circle text-4xl mb-4 opacity-50"></i>
                      <p>Select a user to manage.</p>
                   </div>
@@ -541,7 +541,7 @@ export const SystemManagement: React.FC = () => {
                            {targetUser.role === 'bot' && <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-xs font-bold text-white uppercase tracking-wider backdrop-blur-sm">Bot</div>}
                         </div>
                         <h2 className="text-xl font-bold text-slate-800 dark:text-white">{targetUser.displayName}</h2>
-                        <p className="text-sm font-mono text-slate-500">{targetUser.email}</p>
+                        <p className="text-sm font-mono text-slate-500 break-all">{targetUser.email}</p>
                         <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest">{targetUser._id}</p>
                      </div>
 

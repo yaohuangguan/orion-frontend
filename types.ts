@@ -41,6 +41,9 @@ export interface User {
   // 🔥🔥🔥 New: Fitness Goal & Height
   fitnessGoal?: 'cut' | 'bulk' | 'maintain';
   height?: number; // cm
+  // 🔔 New: Notification & Settings
+  barkUrl?: string;
+  timezone?: string;
   // 🛡️ Role Management
   role?: 'user' | 'admin' | 'super_admin' | 'bot';
   // 🔐 Permissions
