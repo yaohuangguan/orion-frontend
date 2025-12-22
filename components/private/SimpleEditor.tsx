@@ -1,6 +1,7 @@
 
 import React, { useReducer, useEffect, useRef, useState } from 'react';
 import { apiService } from '../../services/api';
+import { compressImage } from '../../services/media';
 import { User, BlogPost } from '../../types';
 import { useTranslation } from '../../i18n/LanguageContext';
 import { toast } from '../Toast';
@@ -18,7 +19,6 @@ interface SimpleEditorProps {
 const C = {
   CONTENT: 'CONTENT',
   AUTHOR: 'AUTHOR',
-  CODE: 'CODE',
   INFO: 'INFO',
   TITLE: 'TITLE',
   TAGS: 'TAGS',
@@ -31,7 +31,6 @@ const C = {
 const INITIAL_STATE = {
   content: "",
   author: "",
-  code: "",
   info: "",
   title: "",
   tags: "",
@@ -46,8 +45,6 @@ const reducer = (state: any, action: any) => {
       return { ...state, content: payload };
     case C.AUTHOR:
       return { ...state, author: payload };
-    case C.CODE:
-      return { ...state, code: payload };
     case C.INFO:
       return { ...state, info: payload };
     case C.TITLE:
@@ -85,7 +82,6 @@ export const SimpleEditor: React.FC<SimpleEditorProps> = ({ user, onPostCreated,
         tags: editingPost.tags.join(' '),
         isPrivate: editingPost.isPrivate,
         content: editingPost.content || '',
-        code: editingPost.code || editingPost.codeGroup || '',
       };
     }
     
@@ -93,7 +89,6 @@ export const SimpleEditor: React.FC<SimpleEditorProps> = ({ user, onPostCreated,
       ...INITIAL_STATE,
       content: localStorage.getItem("cachedText") || "",
       author: localStorage.getItem("authorText") || user?.displayName || "Sam",
-      code: localStorage.getItem("codeText") || "",
       info: localStorage.getItem("infoText") || "",
       title: localStorage.getItem("titleText") || "",
       tags: localStorage.getItem("tagText") || "",
@@ -105,7 +100,6 @@ export const SimpleEditor: React.FC<SimpleEditorProps> = ({ user, onPostCreated,
   const {
     content,
     author,
-    code,
     info,
     title,
     tags,
@@ -125,6 +119,46 @@ export const SimpleEditor: React.FC<SimpleEditorProps> = ({ user, onPostCreated,
     }
   }, [title, content, tags, editingPost, onPreviewChange]);
 
+  // Custom Image Handler for Client-Side Compression Only
+  const selectLocalImage = () => {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+
+    input.onchange = async () => {
+      const file = input.files ? input.files[0] : null;
+      if (!file) return;
+
+      const range = quillInstance.current.getSelection(true);
+      
+      // Insert placeholder
+      quillInstance.current.insertText(range.index, 'Compressing...', 'bold', true);
+
+      try {
+        // Direct Client-side Compression
+        // Resize to max 1000px width/height, 0.6 quality to keep Base64 small for direct DB storage
+        // This avoids using Cloudinary/API upload entirely.
+        const compressedDataUrl = await compressImage(file, 0.6, 1000);
+        
+        // Remove placeholder
+        quillInstance.current.deleteText(range.index, 'Compressing...'.length);
+        
+        // Insert Compressed Base64
+        quillInstance.current.insertEmbed(range.index, 'image', compressedDataUrl);
+        
+        // Move cursor to next position
+        quillInstance.current.setSelection(range.index + 1);
+        
+        toast.success("Image processed locally");
+      } catch (compressError) {
+        console.error(compressError);
+        toast.error("Failed to process image");
+        quillInstance.current.deleteText(range.index, 'Compressing...'.length);
+      }
+    };
+  };
+
   // Initialize Quill
   useEffect(() => {
     if (editorRef.current && !quillInstance.current) {
@@ -133,18 +167,23 @@ export const SimpleEditor: React.FC<SimpleEditorProps> = ({ user, onPostCreated,
             placeholder: t.privateSpace.editor.tellStory,
             modules: {
                 syntax: true, // Enable syntax highlighting (Highlight.js)
-                toolbar: [
-                    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-                    [{ 'font': [] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'color': [] }, { 'background': [] }],
-                    [{ 'script': 'sub' }, { 'script': 'super' }],
-                    ['blockquote', 'code-block'],
-                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                    [{ 'indent': '-1' }, { 'indent': '+1' }, { 'align': [] }],
-                    ['link', 'image', 'video', 'formula'],
-                    ['clean']
-                ]
+                toolbar: {
+                    container: [
+                        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                        [{ 'font': [] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'color': [] }, { 'background': [] }],
+                        [{ 'script': 'sub' }, { 'script': 'super' }],
+                        ['blockquote', 'code-block'],
+                        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                        [{ 'indent': '-1' }, { 'indent': '+1' }, { 'align': [] }],
+                        ['link', 'image', 'video', 'formula'],
+                        ['clean']
+                    ],
+                    handlers: {
+                        image: selectLocalImage // Override default image handler
+                    }
+                }
             }
         });
 
@@ -168,11 +207,10 @@ export const SimpleEditor: React.FC<SimpleEditorProps> = ({ user, onPostCreated,
     // We use a longer timeout for auto-save (2s) to avoid spamming while typing
     const handler = setTimeout(() => {
       // Only save if there is actually content to save
-      if (content || title || info || code) {
+      if (content || title || info) {
         setIsAutoSaving(true);
         localStorage.setItem("cachedText", content);
         localStorage.setItem("authorText", author);
-        localStorage.setItem("codeText", code);
         localStorage.setItem("infoText", info);
         localStorage.setItem("titleText", title);
         localStorage.setItem("tagText", tags);
@@ -186,14 +224,13 @@ export const SimpleEditor: React.FC<SimpleEditorProps> = ({ user, onPostCreated,
     }, 2000);
 
     return () => clearTimeout(handler);
-  }, [content, author, code, info, title, tags, editingPost]);
+  }, [content, author, info, title, tags, editingPost]);
 
   const handleManualSave = () => {
     if (editingPost) return;
     setIsAutoSaving(true);
     localStorage.setItem("cachedText", content);
     localStorage.setItem("authorText", author);
-    localStorage.setItem("codeText", code);
     localStorage.setItem("infoText", info);
     localStorage.setItem("titleText", title);
     localStorage.setItem("tagText", tags);
@@ -220,7 +257,6 @@ export const SimpleEditor: React.FC<SimpleEditorProps> = ({ user, onPostCreated,
         author,
         content,
         tags: tags,
-        code,
         isPrivate,
         // Explicitly send local time to ensure date matches user's timezone
         date: new Date().toISOString()
@@ -235,7 +271,6 @@ export const SimpleEditor: React.FC<SimpleEditorProps> = ({ user, onPostCreated,
         
         // Clear Cache
         localStorage.removeItem("cachedText");
-        localStorage.removeItem("codeText");
         localStorage.removeItem("authorText");
         localStorage.removeItem("infoText");
         localStorage.removeItem("titleText");
@@ -348,8 +383,8 @@ export const SimpleEditor: React.FC<SimpleEditorProps> = ({ user, onPostCreated,
             </div>
          </div>
          
-         {/* Extended Metadata: Info & Code */}
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+         {/* Extended Metadata: Info */}
+         <div className="grid grid-cols-1 gap-3 md:gap-4">
              <div className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-100 focus-within:border-rose-300">
                <label className="block text-[10px] uppercase font-bold text-slate-400 mb-0.5">{t.privateSpace.editor.summary}</label>
                <input 
@@ -357,16 +392,6 @@ export const SimpleEditor: React.FC<SimpleEditorProps> = ({ user, onPostCreated,
                  value={info}
                  onChange={(e) => dispatch({ type: C.INFO, payload: e.target.value })}
                  className="bg-transparent outline-none w-full text-sm text-slate-700"
-                 placeholder="..."
-               />
-             </div>
-             <div className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-100 focus-within:border-rose-300">
-               <label className="block text-[10px] uppercase font-bold text-slate-400 mb-0.5">{t.privateSpace.editor.code}</label>
-               <input 
-                 type="text" 
-                 value={code}
-                 onChange={(e) => dispatch({ type: C.CODE, payload: e.target.value })}
-                 className="bg-transparent outline-none w-full text-sm font-mono text-slate-700"
                  placeholder="..."
                />
              </div>

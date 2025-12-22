@@ -12,9 +12,6 @@ export interface BlogPost {
   content?: string;
   isPrivate?: boolean;
   iframeUrl?: string;
-  code?: string;
-  code2?: string;
-  codeGroup?: string;
   user?: User;
 }
 
