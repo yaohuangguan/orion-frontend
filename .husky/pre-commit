@@ -1,6 +1,3 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-
 echo "🔄 Auto-bumping Service Worker version..."
 node scripts/bumpSw.js
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'orion-v1766399634310'; // 🔥 升级一下版本号，强迫浏览器更新缓存
+const CACHE_NAME = 'orion-v1766399673010'; // 🔥 升级一下版本号，强迫浏览器更新缓存
 const URLS_TO_CACHE = [
   '/',
   '/index.html',
