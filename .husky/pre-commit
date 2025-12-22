@@ -1,0 +1,11 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🔄 Auto-bumping Service Worker version..."
+node scripts/bumpSw.js
+
+git add public/sw.js
+
+echo "🔍 Running Lint-staged..."
+# 🔥 以前是 npx lint-staged，现在建议用 pnpm exec
+pnpm exec lint-staged
