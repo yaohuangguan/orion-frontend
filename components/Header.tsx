@@ -491,7 +491,7 @@ export const Header: React.FC<HeaderProps> = ({
           ) : (
             <button 
               onClick={onLogin}
-              className="flex items-center justify-center gap-2 px-6 py-2 rounded-full border border-primary-500/30 bg-primary-500/10 text-primary-600 dark:text-primary-400 text-xs font-bold uppercase tracking-widest hover:bg-primary-500 hover:text-white transition-all duration-300 hover:shadow-[0_0_20px_rgba(14,165,233,0.4)] min-w-[110px]"
+              className="hidden xl:flex items-center justify-center gap-2 px-6 py-2 rounded-full border border-primary-500/30 bg-primary-500/10 text-primary-600 dark:text-primary-400 text-xs font-bold uppercase tracking-widest hover:bg-primary-500 hover:text-white transition-all duration-300 hover:shadow-[0_0_20px_rgba(14,165,233,0.4)] min-w-[110px]"
             >
               <i className="fas fa-terminal text-[10px]"></i>
               {t.header.signIn}

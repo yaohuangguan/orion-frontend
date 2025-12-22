@@ -162,6 +162,18 @@ const App: React.FC = () => {
   const { t, language, toggleLanguage } = useTranslation();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // 区分构建工具
+    const ver = import.meta.env?.VITE_APP_VERSION
+    
+    if (ver) {
+      console.log(
+        `%c ✅ Deployed Version: ${ver.substring(0, 7)} `,
+        'background:#333; color:#bada55; border-radius:4px; padding:4px;'
+      );
+    }
+  }, []);
+
   // Initial Auth Check
   useEffect(() => {
     const checkAuth = async () => {
