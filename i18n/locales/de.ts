@@ -1,5 +1,4 @@
 
-
 export const de = {
   header: {
     home: 'Startseite',
@@ -17,6 +16,12 @@ export const de = {
     emptyNotifications: 'Keine neuen Warnungen',
     footprint: 'Sternenkarte',
     system: 'Systemverwaltung'
+  },
+  pwa: {
+    title: "PS5 Space",
+    desc: "Für ein besseres Erlebnis auf dem Startbildschirm installieren",
+    install: "Installieren",
+    ios: "Tippen Sie auf das Teilen-Symbol <i class='fas fa-share-square'></i> und wählen Sie <b>'Zum Home-Bildschirm'</b>"
   },
   bottomNav: {
     home: 'Start',

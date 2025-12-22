@@ -17,6 +17,12 @@ export const en = {
     footprint: 'Star Map',
     system: 'System Management'
   },
+  pwa: {
+    title: "PS5 Space",
+    desc: "Install to home screen for a better experience",
+    install: "Install",
+    ios: "Tap share icon <i class='fas fa-share-square'></i> then select <b>'Add to Home Screen'</b>"
+  },
   bottomNav: {
     home: 'Home',
     archives: 'Archives',

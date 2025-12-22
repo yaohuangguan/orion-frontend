@@ -1,5 +1,4 @@
 
-
 export const ja = {
   header: {
     home: 'ホーム',
@@ -17,6 +16,12 @@ export const ja = {
     emptyNotifications: '新しいアラートはありません',
     footprint: 'スターマップ',
     system: 'システム管理'
+  },
+  pwa: {
+    title: "PS5 Space",
+    desc: "ホーム画面に追加して、より良い体験を",
+    install: "インストール",
+    ios: "共有アイコン <i class='fas fa-share-square'></i> をタップし、<b>「ホーム画面に追加」</b>を選択"
   },
   bottomNav: {
     home: 'ホーム',

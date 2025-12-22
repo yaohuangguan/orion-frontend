@@ -1,5 +1,4 @@
 
-
 export const ru = {
   header: {
     home: 'Главная',
@@ -17,6 +16,12 @@ export const ru = {
     emptyNotifications: 'Нет новых оповещений',
     footprint: 'Звездная Карта',
     system: 'Управление'
+  },
+  pwa: {
+    title: "PS5 Space",
+    desc: "Установите на домашний экран для лучшего опыта",
+    install: "Установить",
+    ios: "Нажмите поделиться <i class='fas fa-share-square'></i> затем выберите <b>'На экран «Домой»'</b>"
   },
   bottomNav: {
     home: 'Главная',

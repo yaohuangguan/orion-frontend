@@ -1,19 +1,43 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <defs>
-    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#996646;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#7d4e32;stop-opacity:1" />
-    </linearGradient>
-  </defs>
-  <!-- Background -->
-  <rect width="512" height="512" rx="128" fill="url(#grad1)" />
-  
-  <!-- Satellite Dish Icon (White) -->
-  <g transform="translate(106, 106) scale(0.6)" fill="#ffffff">
-    <path d="M256 0c141.4 0 256 114.6 256 256S397.4 512 256 512 0 397.4 0 256 114.6 0 256 0zM256 464c114.9 0 208-93.1 208-208S370.9 48 256 48 48 141.1 48 256s93.1 208 208 208zm-80-208c0-44.2 35.8-80 80-80s80 35.8 80 80-35.8 80-80 80-80-35.8-80-80zm48 0c0 17.7 14.3 32 32 32s32-14.3 32-32-14.3-32-32-32-32 14.3-32 32z" opacity="0.2"/>
-    <path d="M256 64C150 64 64 150 64 256s86 192 192 192 192-86 192-192S362 64 256 64z m0 336c-79.5 0-144-64.5-144-144s64.5-144 144-144 144 64.5 144 144-64.5 144-144 144z m0-240c-53 0-96 43-96 96s43 96 96 96 96-43 96-96-43-96-96-96z m0 144c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48z" />
-    <circle cx="256" cy="256" r="30" />
-    <path d="M256,256 L380,130" stroke="#ffffff" stroke-width="20" stroke-linecap="round" />
-    <circle cx="380" cy="130" r="20" fill="#ffffff" />
-  </g>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="512" height="512" fill="#FFFFFF"/>
+    
+    <defs>
+        <linearGradient id="gold_grad" x1="256" y1="50" x2="256" y2="480" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#996646"/> <stop offset="0.4" stop-color="#D4AF37"/> <stop offset="1" stop-color="#F2C94C"/> </linearGradient>
+
+        <linearGradient id="blue_water_grad" x1="256" y1="120" x2="256" y2="420" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#0077B6"/> <stop offset="1" stop-color="#48CAE4"/> </linearGradient>
+        
+        <filter id="soft_shadow" x="0" y="0" width="512" height="512" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+            <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+            <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+            <feOffset dy="4"/>
+            <feGaussianBlur stdDeviation="8"/>
+            <feComposite in2="hardAlpha" operator="out"/>
+            <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.15 0"/>
+            <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow"/>
+            <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape"/>
+        </filter>
+    </defs>
+
+    <g filter="url(#soft_shadow)">
+        <path d="M70 80 H442 L256 452 L70 80 Z" 
+              fill="none" 
+              stroke="url(#gold_grad)" 
+              stroke-width="40" 
+              stroke-linejoin="round"
+              stroke-linecap="round"/>
+              
+        <path d="M105 110 H407 L256 405 L105 110 Z"
+              fill="url(#blue_water_grad)"
+              stroke="#FFFFFF"
+              stroke-width="10"
+              stroke-linejoin="round"
+              stroke-linecap="round"/>
+
+        <path d="M150 150 H362 L256 340 L150 150 Z" 
+              fill="#FFFFFF" 
+              stroke-linejoin="round"
+              stroke-linecap="round"/>
+    </g>
 </svg>

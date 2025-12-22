@@ -1,5 +1,4 @@
 
-
 export const zhHK = {
   header: {
     home: '主控台',
@@ -17,6 +16,12 @@ export const zhHK = {
     emptyNotifications: '無新警報',
     footprint: '星圖',
     system: '系統管理'
+  },
+  pwa: {
+    title: "PS5 Space",
+    desc: "安裝到桌面，體驗更絲滑",
+    install: "安裝",
+    ios: "點擊底部分享按鈕 <i class='fas fa-share-square'></i> 選擇 <b>「加入主畫面」</b>"
   },
   bottomNav: {
     home: '主頁',

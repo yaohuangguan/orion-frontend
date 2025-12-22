@@ -17,6 +17,12 @@ export const zh = {
     footprint: '星图',
     system: '系统管理'
   },
+  pwa: {
+    title: "PS5 Space",
+    desc: "安装到桌面，体验更丝滑",
+    install: "安装",
+    ios: "点击底部分享按钮 <i class='fas fa-share-square'></i> 选择 <b>“添加到主屏幕”</b>"
+  },
   bottomNav: {
     home: '主页',
     archives: '档案',

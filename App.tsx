@@ -27,6 +27,7 @@ import { Footer } from './components/Footer';
 import { PageLoader } from './components/PageLoader';
 import { SystemManagement } from './components/SystemManagement';
 import { AccessRestricted } from './components/AccessRestricted';
+import { InstallPwa } from './components/InstallPwa';
 
 // Lazy Load Heavy Components
 const PrivateSpaceDashboard = lazy(() => import('./components/private/PrivateSpaceDashboard'));
@@ -80,6 +81,7 @@ const Layout: React.FC<{
   return (
     <div className={`min-h-screen relative overflow-hidden transition-colors duration-500 selection:bg-primary-500/30 ${mainBgClass}`}>
       <ToastContainer />
+      <InstallPwa />
       
       {!isPrivateSpace && (
         <>
