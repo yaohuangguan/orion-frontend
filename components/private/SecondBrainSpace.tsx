@@ -66,8 +66,10 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Voice Input State
+  const [isVoiceMode, setIsVoiceMode] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef<any>(null);
+  const voiceTranscriptRef = useRef<string>(''); // Ref to hold transcript for send-on-release
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -186,27 +188,21 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
     }
   }, [input]);
 
-  // --- Voice Input Logic ---
-  const toggleRecording = () => {
-    if (isRecording) {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-      setIsRecording(false);
+  // --- Voice Input Logic (Hold to Speak) ---
+  const startRecording = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast.error('Speech recognition not supported.');
       return;
     }
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      toast.error('Speech recognition not supported in this browser.');
-      return;
-    }
+    if (isRecording) return;
 
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
 
-    // Map internal language codes to BCP 47 tags for Speech API
+    // Map language
     const langMap: Record<string, string> = {
       zh: 'zh-CN',
       'zh-HK': 'zh-HK',
@@ -219,39 +215,65 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
     };
     recognition.lang = langMap[language] || 'en-US';
 
-    const startInput = input; // Capture current input to append to
+    voiceTranscriptRef.current = ''; // Clear previous
 
     recognition.onstart = () => {
       setIsRecording(true);
     };
 
     recognition.onresult = (event: any) => {
-      // Build the full transcript from this session
-      const currentTranscript = Array.from(event.results)
-        .map((result: any) => result[0].transcript)
+      // Accumulate transcript
+      let interim = '';
+      let final = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          final += event.results[i][0].transcript;
+        } else {
+          interim += event.results[i][0].transcript;
+        }
+      }
+      // Update ref, prefer final, append interim for feedback if we were displaying it
+      // For simplicity in send-on-release, we just track the total accumulated text
+      // Note: `event.results` contains all results from start if continuous=true
+      const allText = Array.from(event.results)
+        .map((r: any) => r[0].transcript)
         .join('');
 
-      // Append to the input value that existed before recording started
-      // Note: We add a space if there was previous text
-      const separator =
-        startInput && !startInput.endsWith(' ') && !startInput.endsWith('\n') ? ' ' : '';
-      setInput(startInput + separator + currentTranscript);
+      voiceTranscriptRef.current = allText;
     };
 
     recognition.onerror = (event: any) => {
-      console.error('Speech recognition error', event.error);
+      console.error('Speech error', event);
       if (event.error !== 'no-speech') {
-        // toast.error("Voice input error: " + event.error);
+        setIsRecording(false);
       }
-      setIsRecording(false);
     };
 
     recognition.onend = () => {
-      setIsRecording(false);
+      // Typically handled in stopAndSend, but safety reset
+      if (isRecording) setIsRecording(false);
     };
 
     recognition.start();
     recognitionRef.current = recognition;
+  };
+
+  const stopAndSend = () => {
+    if (!recognitionRef.current) return;
+
+    // Stop listening
+    recognitionRef.current.stop();
+    setIsRecording(false);
+
+    // Short delay to ensure last 'result' event processes
+    setTimeout(() => {
+      const textToSend = voiceTranscriptRef.current.trim();
+      if (textToSend) {
+        // Direct Send
+        handleSubmit(undefined, textToSend);
+        voiceTranscriptRef.current = '';
+      }
+    }, 200);
   };
 
   // --- Image Handling Helpers ---
@@ -305,24 +327,22 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
   };
 
   // --- Submission Logic ---
-  const handleSubmit = async (e?: React.FormEvent) => {
+  // Modified to accept direct text override (for voice)
+  const handleSubmit = async (e?: React.FormEvent, overrideText?: string) => {
     if (e) e.preventDefault();
-    if ((!input.trim() && !selectedImage) || isProcessing) return;
 
-    // Stop recording if active
-    if (isRecording && recognitionRef.current) {
-      recognitionRef.current.stop();
-      setIsRecording(false);
-    }
+    const textToSend = overrideText !== undefined ? overrideText : input;
 
-    // Ensure we have a session ID (should always be true via handleNewChat or init)
+    if ((!textToSend.trim() && !selectedImage) || isProcessing) return;
+
+    // Ensure we have a session ID
     let activeSessionId = currentSessionId;
     if (!activeSessionId) {
       activeSessionId = generateUUID();
       setCurrentSessionId(activeSessionId);
     }
 
-    const userText = input.trim();
+    const userText = textToSend.trim();
     const userImage = selectedImage;
     const tempId = Date.now().toString();
 
@@ -338,7 +358,11 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
     };
 
     setMessages((prev) => [...prev, userMsg]);
-    setInput('');
+
+    // Clear Input
+    if (overrideText === undefined) {
+      setInput('');
+    }
     setSelectedImage(null);
     setIsProcessing(true);
     if (inputRef.current) inputRef.current.style.height = 'auto';
@@ -368,8 +392,6 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
       ]);
 
       // 4. Stream AI Response
-      // Note: We maintain history client-side for the stream context,
-      // but rely on `saveAiChatMessage` to persist to DB linked to sessionId.
       const recentHistory = messages.slice(-10).map((m) => ({
         role: m.role,
         content: m.content
@@ -403,14 +425,11 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
       // 6. Refresh Sidebar if new session
       const knownSession = conversations.find((c) => c.sessionId === activeSessionId);
       if (!knownSession) {
-        // It was a ghost session, now it's real. Refresh list to get the generated title.
-        // Small delay to allow async title generation on backend
         setTimeout(async () => {
           const updatedList = await featureService.getAiConversations();
           setConversations(updatedList);
         }, 2000);
       } else {
-        // Update timestamp locally to bump to top (optimistic sort)
         setConversations((prev) => {
           const others = prev.filter((c) => c.sessionId !== activeSessionId);
           return [{ ...knownSession, lastActiveAt: new Date().toISOString() }, ...others];
@@ -451,7 +470,6 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
     toast.success('Copied to clipboard');
   };
 
-  // Custom Markdown Rendering logic
   const renderMarkdown = (content: string) => {
     if (!content) return { __html: '' };
     if (window.marked) {
@@ -507,7 +525,7 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
                   <span className="text-sm truncate">{conv.title || 'New Chat'}</span>
                 </div>
 
-                {/* Delete Button (Visible on Hover or Active) */}
+                {/* Delete Button */}
                 {currentSessionId === conv.sessionId && (
                   <button
                     onClick={(e) => {
@@ -693,22 +711,11 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
             >
-              <textarea
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                onPaste={handlePaste}
-                placeholder={t.privateSpace.secondBrain.placeholder}
-                className="w-full bg-transparent border-none outline-none py-3 pl-28 md:pl-32 pr-12 text-gray-200 placeholder:text-gray-500 resize-none max-h-32 md:max-h-48 min-h-[52px] text-sm leading-relaxed custom-scrollbar"
-                rows={1}
-                disabled={isProcessing}
-              />
-
-              <div className="absolute left-2 md:left-3 bottom-2.5 flex items-center gap-2">
+              {/* LEFT SIDE: Image Upload & Voice Toggle */}
+              <div className="absolute left-2 md:left-3 bottom-2.5 flex items-center gap-2 z-20">
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={isProcessing}
+                  disabled={isProcessing || isRecording}
                   className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
                 >
                   <i className="fas fa-paperclip text-sm"></i>
@@ -721,29 +728,68 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
                   onChange={handleFileSelect}
                 />
 
-                {/* Voice Input Button */}
+                {/* Voice Mode Toggle */}
                 <button
-                  onClick={toggleRecording}
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isRecording ? 'text-red-500 hover:bg-red-500/10 animate-pulse' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
-                  title={isRecording ? 'Stop Recording' : 'Voice Input'}
+                  onClick={() => setIsVoiceMode(!isVoiceMode)}
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isVoiceMode ? 'text-green-500 hover:bg-green-500/10' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                  title={isVoiceMode ? 'Switch to Text' : 'Switch to Voice'}
                 >
-                  <i
-                    className={`fas ${isRecording ? 'fa-microphone-slash' : 'fa-microphone'} text-sm`}
-                  ></i>
+                  <i className={`fas ${isVoiceMode ? 'fa-keyboard' : 'fa-microphone'} text-sm`}></i>
                 </button>
               </div>
 
-              <button
-                onClick={() => handleSubmit()}
-                disabled={(!input.trim() && !selectedImage) || isProcessing}
-                className={`absolute right-2 bottom-2 w-8 h-8 rounded-lg flex items-center justify-center transition-all ${!input.trim() && !selectedImage ? 'bg-transparent text-gray-600 cursor-not-allowed' : 'bg-white text-black hover:bg-gray-200'}`}
-              >
-                {isProcessing ? (
-                  <i className="fas fa-stop text-xs"></i>
-                ) : (
-                  <i className="fas fa-arrow-up text-xs"></i>
-                )}
-              </button>
+              {/* CENTER: Text Input OR Voice Button */}
+              {isVoiceMode ? (
+                <div className="w-full h-14 pl-28 md:pl-32 pr-4 py-2">
+                  <button
+                    className={`w-full h-full rounded-lg font-bold text-sm uppercase tracking-widest transition-all select-none touch-none flex items-center justify-center gap-2 ${
+                      isRecording
+                        ? 'bg-emerald-500 text-white animate-pulse shadow-lg shadow-emerald-900/50'
+                        : 'bg-[#3a3a3a] text-gray-300 hover:bg-[#444]'
+                    }`}
+                    onPointerDown={startRecording}
+                    onPointerUp={stopAndSend}
+                    onPointerLeave={stopAndSend} // Safety catch if finger slides off
+                  >
+                    {isRecording ? (
+                      <>
+                        <i className="fas fa-microphone-alt animate-bounce"></i> Listening...
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-microphone"></i> Hold to Speak
+                      </>
+                    )}
+                  </button>
+                </div>
+              ) : (
+                <textarea
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  onPaste={handlePaste}
+                  placeholder={t.privateSpace.secondBrain.placeholder}
+                  className="w-full bg-transparent border-none outline-none py-3 pl-28 md:pl-32 pr-12 text-gray-200 placeholder:text-gray-500 resize-none max-h-32 md:max-h-48 min-h-[52px] text-sm leading-relaxed custom-scrollbar"
+                  rows={1}
+                  disabled={isProcessing}
+                />
+              )}
+
+              {/* RIGHT SIDE: Send Button (Only visible in Text Mode) */}
+              {!isVoiceMode && (
+                <button
+                  onClick={(e) => handleSubmit(e)}
+                  disabled={(!input.trim() && !selectedImage) || isProcessing}
+                  className={`absolute right-2 bottom-2 w-8 h-8 rounded-lg flex items-center justify-center transition-all ${!input.trim() && !selectedImage ? 'bg-transparent text-gray-600 cursor-not-allowed' : 'bg-white text-black hover:bg-gray-200'}`}
+                >
+                  {isProcessing ? (
+                    <i className="fas fa-stop text-xs"></i>
+                  ) : (
+                    <i className="fas fa-arrow-up text-xs"></i>
+                  )}
+                </button>
+              )}
             </div>
             <p className="text-[10px] text-gray-500 text-center mt-2 hidden md:block">
               AI can make mistakes. Consider checking important information.
