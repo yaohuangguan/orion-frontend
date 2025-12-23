@@ -4,6 +4,7 @@ import { ProjectShowcase } from '../components/profile/ProjectShowcase';
 import { ResumeDocument } from '../components/profile/ResumeDocument';
 import { useTranslation } from '../i18n/LanguageContext';
 import { User } from '../types';
+import { Helmet } from 'react-helmet-async';
 
 interface PortfolioPageProps {
   currentUser?: User | null;
@@ -29,6 +30,14 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ currentUser }) => 
 
   return (
     <div className="container mx-auto px-6 py-24 pt-32 max-w-6xl animate-fade-in relative z-10 min-h-screen">
+      <Helmet>
+        <title>Orion App Store | Sam's Engineering Portfolio | 工程项目与作品集</title>
+        <meta
+          name="description"
+          content="A curated collection of Sam's engineering projects and professional history. Sam的个人工程项目展示与职业履历归档。"
+        />
+      </Helmet>
+
       {/* Page Header */}
       <div className="text-center mb-16">
         <h1 className="text-5xl md:text-7xl font-display font-bold text-slate-900 dark:text-white mb-6 tracking-tight">

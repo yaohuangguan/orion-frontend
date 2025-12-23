@@ -5,6 +5,7 @@ import { useSearchParams } from 'react-router-dom';
 import { apiService } from '../services/api';
 import { formatUserDate } from '../utils/date';
 import { TagCloud } from '../components/TagCloud';
+import { Helmet } from 'react-helmet-async';
 
 interface BlogListProps {
   onSelectBlog: (blog: BlogPost) => void;
@@ -206,6 +207,14 @@ export const BlogList: React.FC<BlogListProps> = ({
 
   return (
     <div id="latest-posts" className="container mx-auto px-6 py-24 pt-32 max-w-7xl relative z-10">
+      <Helmet>
+        <title>Orion Journals | Engineering & Digital Evolution | 工程与数字演进随笔</title>
+        <meta
+          name="description"
+          content="Sam's recorded thoughts on engineering, star charts, and digital evolution. Sam关于工程技术、星图研究与数字演进的深度思考记录。"
+        />
+      </Helmet>
+
       {/* Header / Control Panel */}
       <div className="mb-12 space-y-8">
         {!blogs.some((b) => b.isPrivate) && (

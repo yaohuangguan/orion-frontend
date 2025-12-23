@@ -2,7 +2,7 @@ export const zh = {
   header: {
     home: '主控台',
     blog: '日志',
-    about: '档案',
+    about: '应用',
     privateSpace: '舰长室',
     chat: '星际通讯',
     signOut: '断开',
@@ -24,7 +24,7 @@ export const zh = {
   },
   bottomNav: {
     home: '主页',
-    archives: '档案',
+    archives: '应用',
     cabin: '舰长室',
     me: '我的'
   },
@@ -39,10 +39,10 @@ export const zh = {
     ctaSecondary: '系统档案'
   },
   portfolio: {
-    title: '作品集',
-    subtitle: '工程项目与职业生涯的合集。',
-    resume: '简历',
-    projects: '项目',
+    title: 'Orion 应用商店',
+    subtitle: '应用作品集：工程项目与职业生涯的合集。',
+    resume: '站长简介',
+    projects: '应用 & 项目',
     liveDemo: '在线演示',
     sourceCode: '查看源码',
     demoOptions: {
@@ -272,7 +272,7 @@ export const zh = {
       title: '站点导航',
       subtitle: '本数字空间主要模块功能概览。',
       journalTitle: '日志空间',
-      journalDesc: '我分享个人日志的地方。记录技术心得、创业思考与生活点滴。',
+      journalDesc: '我分享个人日志的地方。记录技术心得、創業思考与生活点滴。',
       profileTitle: '档案室',
       profileDesc: '关于我的详细经历：大厂历练、创业搞钱之路。',
       chatTitle: '星际通讯',

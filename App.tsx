@@ -11,6 +11,7 @@ import { DeleteModal } from './components/DeleteModal';
 import { apiService } from './services/api';
 import { Theme, PageView, User, BlogPost, ChatUser, PERM_KEYS, can } from './types';
 import { useTranslation } from './i18n/LanguageContext';
+import { Helmet } from 'react-helmet-async';
 
 // New Component Imports
 import { LoginModal } from './components/LoginModal';
@@ -85,6 +86,13 @@ const Layout: React.FC<{
     <div
       className={`min-h-screen relative overflow-hidden transition-colors duration-500 selection:bg-primary-500/30 ${mainBgClass}`}
     >
+      <Helmet titleTemplate="%s | Orion" defaultTitle="Orion | Engineering & Design">
+        <meta
+          name="description"
+          content="A modern, high-performance blog and portfolio built with Next.js architecture, React, and Tailwind CSS."
+        />
+      </Helmet>
+
       <ToastContainer />
       <InstallPwa />
 
@@ -303,6 +311,9 @@ const App: React.FC = () => {
             path="/"
             element={
               <>
+                <Helmet>
+                  <title>Orion | Home</title>
+                </Helmet>
                 <Hero
                   onCtaClick={() => navigate('/blogs')}
                   onSecondaryCtaClick={() => navigate('/profile')}

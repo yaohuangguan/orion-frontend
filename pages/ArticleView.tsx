@@ -6,6 +6,7 @@ import { BlogContent } from '../components/BlogContent';
 import { CommentsSection } from '../components/CommentsSection';
 import { ExternalFramePost } from '../components/ExternalFramePost';
 import { formatUserDate } from '../utils/date';
+import { Helmet } from 'react-helmet-async';
 
 interface ArticleViewProps {
   onBack: () => void;
@@ -109,6 +110,60 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
 
   return (
     <article className={containerClass}>
+      {blog && (
+        <Helmet>
+          {/* 1. Title: 核心关键词(文章名)最前，品牌(Orion Journals)殿后。
+       这种结构 Google 权重最高，且 "Journals" 这个词中英文语境都显得很高级。 */}
+          <title>{`${blog.name} | Orion Journals`}</title>
+
+          {/* 2. Keywords (新增): 这是一个隐藏的 SEO 加分项。
+       直接把文章的 tags 拿出来做关键词，搜索引擎超爱这个。 */}
+          <meta
+            name="keywords"
+            content={
+              blog.tags && blog.tags.length > 0
+                ? blog.tags.join(', ')
+                : 'Sam, Engineering, Blog, Life, Orion'
+            }
+          />
+
+          {/* 3. Description: 智能摘要逻辑。
+       - 优先用 info (你写的简介)。
+       - 如果没有 info，自动生成一段包含 "Author" + "Topic" 的双语通用句式。
+       - 强制截断 160 字符，防止在搜索结果页被省略号截断关键信息。 */}
+          <meta
+            name="description"
+            content={
+              blog.info
+                ? blog.info.substring(0, 160)
+                : `Read "${blog.name}" by ${blog.author || 'Sam'}. A digital memoir on engineering, code, and life recorded on Orion.`
+            }
+          />
+
+          {/* 4. Open Graph / Social Cards: 让你的链接发在微信、Twitter、Slack 里带有漂亮的预览卡片 */}
+          <meta property="og:site_name" content="Orion" />
+          <meta property="og:type" content="article" />
+          <meta property="og:title" content={`${blog.name} | Orion Journals`} />
+          <meta
+            property="og:description"
+            content={
+              blog.info ||
+              `Explore "${blog.name}" - Insights on technology and digital evolution by Sam.`
+            }
+          />
+          <meta
+            property="og:url"
+            content={typeof window !== 'undefined' ? window.location.href : ''}
+          />
+
+          {/* 5. Article Author (可选，但对 SEO 很友好): 告诉搜索引擎作者是谁 */}
+          <meta property="article:author" content={blog.author || 'Sam'} />
+
+          {/* 6. Image: 有图出图，无图拉倒 (或者你可以设置一个默认的 Orion Logo 图片) */}
+          {blog.image && <meta property="og:image" content={blog.image} />}
+        </Helmet>
+      )}
+
       <button
         onClick={onBack}
         className="group mb-12 flex items-center text-sm font-bold text-slate-500 hover:text-primary-600 transition-colors"

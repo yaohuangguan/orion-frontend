@@ -5,6 +5,7 @@ import { LanguageProvider } from './i18n/LanguageContext';
 import { BrowserRouter } from 'react-router-dom';
 import { inject } from '@vercel/analytics';
 import { SpeedInsights } from '@vercel/speed-insights/react';
+import { HelmetProvider } from 'react-helmet-async';
 
 // Initialize Vercel Web Analytics
 inject();
@@ -17,11 +18,13 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <LanguageProvider>
-        <App />
-        <SpeedInsights />
-      </LanguageProvider>
-    </BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
+        <LanguageProvider>
+          <App />
+          <SpeedInsights />
+        </LanguageProvider>
+      </BrowserRouter>
+    </HelmetProvider>
   </React.StrictMode>
 );
