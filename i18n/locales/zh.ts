@@ -43,7 +43,7 @@ export const zh = {
     subtitle: '应用作品集：工程项目与职业生涯的合集。',
     resume: '站长简介',
     projects: '应用 & 项目',
-    liveDemo: '在线演示',
+    liveDemo: '在线使用',
     sourceCode: '查看源码',
     demoOptions: {
       title: '选择浏览模式',

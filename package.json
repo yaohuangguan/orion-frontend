@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/generate-sitemap.js && vite build",
     "preview": "vite preview",
-    "prepare": "husky"
+    "prepare": "husky",
+    "sitemap": "node scripts/generate-sitemap.js",
+    "postbuild": "node scripts/run-snap.js"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -50,6 +52,8 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "prettier": "^3.7.4",
+    "puppeteer": "^24.34.0",
+    "react-snap": "^1.23.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }

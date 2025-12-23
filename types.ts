@@ -5,6 +5,7 @@ export interface BlogPost {
   author: string;
   tags: string[];
   createdDate?: string;
+  updatedDate?: string;
   date?: string;
   likes: number;
   image: string;

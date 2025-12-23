@@ -1,0 +1,46 @@
+name: Update Sitemap
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+# 🔥 关键修改 1: 必须给 Actions 写权限，否则 git push 会报错 403
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # 建议用 v4
+        with:
+          ref: 'master' # 🔥 关键修改 2: 显式指定拉取 master 分支 (如果是 main 请改成 main)
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22' # 推荐用 LTS 版本，24 可能还太新不稳定
+
+      - name: Generate Sitemap
+        run: node scripts/generate-sitemap.js
+
+      - name: Commit and Push
+        run: |
+          git config --global user.name 'Sitemap Bot'
+          git config --global user.email 'bot@noreply.github.com'
+          
+          git add public/sitemap.xml
+          
+          # 🔥 关键修改 3: 更稳健的检测和推送方式
+          # 只有当文件真的有变化时才 commit，否则会报错
+          if [[ -n $(git status -s) ]]; then
+            echo "Changes detected, committing..."
+            git commit -m "chore(seo): auto update sitemap"
+            
+            # 强制推送到远程的 master 分支
+            git push origin HEAD:master
+          else
+            echo "No changes in sitemap, skipping push."
+          fi

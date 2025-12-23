@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { BlogPost, User } from '../types';
 import { apiService } from '../services/api';
 import { BlogContent } from '../components/BlogContent';
 import { CommentsSection } from '../components/CommentsSection';
 import { ExternalFramePost } from '../components/ExternalFramePost';
 import { formatUserDate } from '../utils/date';
-import { Helmet } from 'react-helmet-async';
 
 interface ArticleViewProps {
   onBack: () => void;
@@ -30,7 +30,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
   const [isCopied, setIsCopied] = useState(false);
   const [isImageError, setIsImageError] = useState(false);
 
-  // Fetch related posts (could be optimized to fetch from API)
+  // Fetch related posts
   const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);
 
   useEffect(() => {
@@ -41,13 +41,12 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
       if (!slug) return;
       setIsLoading(true);
       try {
-        // New Logic: Slug format is "title-ID". Extract ID from the end.
+        // Logic: Slug format is "title-ID". Extract ID from the end.
         const parts = slug.split('-');
         const postId = parts[parts.length - 1];
 
         // Validate that we have a potential ID (MongoIDs are usually 24 hex chars)
         if (postId && postId.length >= 24) {
-          // Exact lookup by ID is much reliable
           const post = await apiService.getPostById(postId);
           if (post) {
             setBlog(post);
@@ -62,8 +61,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
             setContent('<p>Post not found by ID.</p>');
           }
         } else {
-          // Fallback: Attempt legacy search by title if slug structure is old
-          // Attempt to reverse slug to title or use slug as keyword
+          // Fallback: Attempt legacy search by title
           const searchKeyword = decodeURIComponent(slug).replace(/-/g, ' ');
           const { data } = await apiService.getPosts(1, 1, searchKeyword);
 
@@ -94,6 +92,43 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
     });
   };
 
+  // --- 🌟 SEO: 准备 JSON-LD 结构化数据 ---
+  // 只有当 blog 数据存在时才生成
+  const structuredData = blog
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: blog.name,
+        description: blog.info ? blog.info.substring(0, 160) : `Read ${blog.name} on Orion.`,
+        // 确保有默认图片，Google 建议文章必须有图片
+        image: [
+          blog.image || 'https://www.ps5.space/og-image.png' // ⚠️ 请替换为你网站真实的默认封面图 URL
+        ],
+        // 必须是 ISO 8601 格式
+        datePublished: new Date(blog.createdDate || blog.date).toISOString(),
+        dateModified: new Date(blog.updatedDate || blog.createdDate || blog.date).toISOString(),
+        author: [
+          {
+            '@type': 'Person',
+            name: blog.author || 'Sam',
+            url: 'https://www.ps5.space/profile' // ⚠️ 替换为你的关于页面
+          }
+        ],
+        publisher: {
+          '@type': 'Organization',
+          name: 'Orion Journals',
+          logo: {
+            '@type': 'ImageObject',
+            url: 'https://www.ps5.space/og-image.png' // ⚠️ 替换为你的 Logo URL
+          }
+        },
+        mainEntityOfPage: {
+          '@type': 'WebPage',
+          '@id': typeof window !== 'undefined' ? window.location.href : ''
+        }
+      }
+    : null;
+
   const containerClass =
     'container mx-auto px-6 py-24 pt-32 max-w-4xl animate-fade-in relative z-10';
 
@@ -113,11 +148,11 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
       {blog && (
         <Helmet>
           {/* 1. Title: 核心关键词(文章名)最前，品牌(Orion Journals)殿后。
-       这种结构 Google 权重最高，且 "Journals" 这个词中英文语境都显得很高级。 */}
+     这种结构 Google 权重最高，且 "Journals" 这个词中英文语境都显得很高级。 */}
           <title>{`${blog.name} | Orion Journals`}</title>
 
           {/* 2. Keywords (新增): 这是一个隐藏的 SEO 加分项。
-       直接把文章的 tags 拿出来做关键词，搜索引擎超爱这个。 */}
+     直接把文章的 tags 拿出来做关键词，搜索引擎超爱这个。 */}
           <meta
             name="keywords"
             content={
@@ -128,9 +163,9 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
           />
 
           {/* 3. Description: 智能摘要逻辑。
-       - 优先用 info (你写的简介)。
-       - 如果没有 info，自动生成一段包含 "Author" + "Topic" 的双语通用句式。
-       - 强制截断 160 字符，防止在搜索结果页被省略号截断关键信息。 */}
+     - 优先用 info (你写的简介)。
+     - 如果没有 info，自动生成一段包含 "Author" + "Topic" 的双语通用句式。
+     - 强制截断 160 字符，防止在搜索结果页被省略号截断关键信息。 */}
           <meta
             name="description"
             content={
