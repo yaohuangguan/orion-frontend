@@ -1,6 +1,6 @@
 import React, { useReducer, useEffect, useState } from 'react';
 import { apiService } from '../../services/api';
-import { User, BlogPost } from '../../types';
+import { User, BlogPost, Tag } from '../../types';
 import { useTranslation } from '../../i18n/LanguageContext';
 import { toast } from '../Toast';
 import { ZenEditor } from './ZenEditor';
@@ -77,6 +77,7 @@ export const SimpleEditor: React.FC<SimpleEditorProps> = ({
   const { t } = useTranslation();
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
+  const [availableTags, setAvailableTags] = useState<Tag[]>([]);
 
   // Initialize state with cached values if available and NOT editing
   const getInitialState = () => {
@@ -105,6 +106,19 @@ export const SimpleEditor: React.FC<SimpleEditorProps> = ({
   const [state, dispatch] = useReducer(reducer, null, getInitialState);
 
   const { content, author, info, title, tags, isPrivate, loading } = state;
+
+  // Load Tags (Fetch 'all' to allow mixing public/private tags easily in editor)
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const data = await apiService.getTags('all');
+        setAvailableTags(data);
+      } catch (e) {
+        console.error('Tags fetch error', e);
+      }
+    };
+    fetchTags();
+  }, []);
 
   // Broadcast changes for Preview
   useEffect(() => {
@@ -204,6 +218,17 @@ export const SimpleEditor: React.FC<SimpleEditorProps> = ({
     }
   };
 
+  const addTag = (tagName: string) => {
+    const currentTags = tags
+      .split(' ')
+      .map((t: string) => t.trim())
+      .filter((t: string) => t);
+    if (!currentTags.includes(tagName)) {
+      const newTags = [...currentTags, tagName].join(' ');
+      dispatch({ type: C.TAGS, payload: newTags });
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-white rounded-[2rem] border border-rose-100 shadow-xl overflow-hidden relative">
       {/* HEADER: Title & Metadata */}
@@ -269,7 +294,7 @@ export const SimpleEditor: React.FC<SimpleEditorProps> = ({
             />
           </div>
 
-          <div className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-100 focus-within:border-rose-300 focus-within:ring-2 focus-within:ring-rose-100 transition-all md:col-span-2">
+          <div className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-100 focus-within:border-rose-300 focus-within:ring-2 focus-within:ring-rose-100 transition-all md:col-span-2 relative group">
             <label className="block text-[10px] uppercase font-bold text-slate-400 mb-0.5">
               {t.privateSpace.editor.tags}
             </label>
@@ -278,7 +303,25 @@ export const SimpleEditor: React.FC<SimpleEditorProps> = ({
               value={tags}
               onChange={(e) => dispatch({ type: C.TAGS, payload: e.target.value })}
               className="bg-transparent outline-none w-full font-medium text-slate-700"
+              placeholder="Space separated..."
             />
+
+            {/* Quick Tag Suggestions (On Hover/Focus) */}
+            {availableTags.length > 0 && (
+              <div className="absolute top-full left-0 right-0 pt-2 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity z-50">
+                <div className="bg-white border border-slate-100 shadow-xl rounded-xl p-2 flex flex-wrap gap-1 max-h-32 overflow-y-auto custom-scrollbar">
+                  {availableTags.slice(0, 20).map((tag) => (
+                    <button
+                      key={tag.name}
+                      onClick={() => addTag(tag.name)}
+                      className="text-[10px] px-2 py-1 bg-slate-50 hover:bg-rose-50 text-slate-600 hover:text-rose-500 rounded border border-slate-100 transition-colors"
+                    >
+                      {tag.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div

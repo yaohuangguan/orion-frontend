@@ -1,14 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useOutletContext, useSearchParams } from 'react-router-dom';
-import { TodoWidget } from './TodoWidget';
-import { PrivateBlogFeed } from './PrivateBlogFeed';
-import { SimpleEditor } from './SimpleEditor';
-import { DeleteModal } from '../DeleteModal';
-import { BlogPost, User, PaginationData } from '../../types';
+import { TodoWidget } from '../../components/private/TodoWidget';
+import { PrivateBlogFeed } from '../../components/private/PrivateBlogFeed';
+import { SimpleEditor } from '../../components/private/SimpleEditor';
+import { DeleteModal } from '../../components/DeleteModal';
+import { BlogPost, User, PaginationData, Tag } from '../../types';
 import { apiService } from '../../services/api';
 import { useTranslation } from '../../i18n/LanguageContext';
-import { BlogContent } from '../BlogContent';
-import { CommentsSection } from '../CommentsSection';
+import { BlogContent } from '../../components/BlogContent';
+import { CommentsSection } from '../../components/CommentsSection';
+import { formatUserDate } from '../../utils/date';
+import { TagCloud } from '../../components/TagCloud';
 
 export const JournalSpace: React.FC = () => {
   const { user } = useOutletContext<{ user: User | null }>();
@@ -23,6 +25,9 @@ export const JournalSpace: React.FC = () => {
   // Data State
   const [privateBlogs, setPrivateBlogs] = useState<BlogPost[]>([]);
   const [privatePagination, setPrivatePagination] = useState<PaginationData | null>(null);
+
+  // Tags State
+  const [availableTags, setAvailableTags] = useState<Tag[]>([]);
 
   // Public Logs State (if switched)
   const [logSource, setLogSource] = useState<'private' | 'public'>('private');
@@ -54,6 +59,20 @@ export const JournalSpace: React.FC = () => {
         setLikedPosts(new Set(JSON.parse(savedLikes)));
       } catch (e) {}
     }
+  }, []);
+
+  // Fetch Tags on Mount (ALL types for private dashboard)
+  useEffect(() => {
+    const loadTags = async () => {
+      try {
+        // Request all tags so private user can filter everything
+        const tags = await apiService.getTags('all');
+        setAvailableTags(tags);
+      } catch (e) {
+        console.error('Failed to load tags', e);
+      }
+    };
+    loadTags();
   }, []);
 
   // Sync internal search with URL
@@ -92,7 +111,7 @@ export const JournalSpace: React.FC = () => {
   const fetchPublicLogs = async () => {
     setIsPublicLoading(true);
     try {
-      const { data, pagination } = await apiService.getPosts(page, 10, search);
+      const { data, pagination } = await apiService.getPosts(page, 10, search, tag); // Pass tag here too
       setPublicBlogs(data);
       setPublicPagination(pagination);
     } catch (e) {
@@ -111,6 +130,19 @@ export const JournalSpace: React.FC = () => {
     setSearchParams((prev) => {
       const p = new URLSearchParams(prev);
       p.set('page', newPage.toString());
+      return p;
+    });
+  };
+
+  const handleTagToggle = (selectedTagName: string | null) => {
+    setSearchParams((prev) => {
+      const p = new URLSearchParams(prev);
+      if (!selectedTagName) {
+        p.delete('tag');
+      } else {
+        p.set('tag', selectedTagName);
+      }
+      p.set('page', '1');
       return p;
     });
   };
@@ -182,6 +214,9 @@ export const JournalSpace: React.FC = () => {
     setEditingPost(null);
     setPreviewData(null);
 
+    // Refresh tags list as new post might introduce new tags
+    apiService.getTags('all').then(setAvailableTags);
+
     // If creating a new post and NOT on the first page, navigate to page 1 to ensure visibility.
     // The useEffect hook will automatically trigger fetchPrivateBlogs() when 'page' changes.
     if (!wasEditing && page !== 1) {
@@ -205,6 +240,9 @@ export const JournalSpace: React.FC = () => {
       if (selectedEntry?._id === postToDelete._id) setSelectedEntry(null);
       if (logSource === 'private') fetchPrivateBlogs();
       else fetchPublicLogs();
+
+      // Refresh tags
+      apiService.getTags('all').then(setAvailableTags);
     } catch (error) {
       console.error(error);
     }
@@ -250,7 +288,11 @@ export const JournalSpace: React.FC = () => {
                 </button>
                 <div className="text-right">
                   <div className="text-xs font-mono text-slate-400 uppercase tracking-widest">
-                    {selectedEntry.date || selectedEntry.createdDate}
+                    {formatUserDate(
+                      selectedEntry.createdDate || selectedEntry.date,
+                      user,
+                      'default'
+                    )}
                   </div>
                 </div>
               </div>
@@ -305,7 +347,7 @@ export const JournalSpace: React.FC = () => {
           {/* Preview View */}
           {showPreview ? (
             <div className="flex-col h-full flex animate-fade-in bg-white/50">
-              <div className="p-6 pb-4 bg-amber-50/50 border-b border-amber-100 flex items-center justify-between shrink-0">
+              <div className="p-6 pb-4 bg-amber-50/50 border-b border-amber-100 flex items-center justify-center relative shrink-0">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-amber-200 flex items-center justify-center text-amber-700 shadow-sm animate-pulse">
                     <i className="fas fa-eye"></i>
@@ -316,7 +358,7 @@ export const JournalSpace: React.FC = () => {
                 </div>
                 <button
                   onClick={() => setIsPreviewHidden(true)}
-                  className="w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-200 flex items-center justify-center transition-colors shadow-sm"
+                  className="absolute right-6 w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-200 flex items-center justify-center transition-colors shadow-sm"
                 >
                   <i className="fas fa-times"></i>
                 </button>
@@ -396,6 +438,16 @@ export const JournalSpace: React.FC = () => {
                     className={`block w-full pl-10 pr-3 py-2 bg-white/80 border rounded-xl leading-5 placeholder-slate-300 text-slate-700 focus:outline-none focus:ring-2 sm:text-sm transition-all shadow-sm ${logSource === 'private' ? 'border-rose-100 focus:ring-rose-400/50 focus:border-rose-400' : 'border-blue-100 focus:ring-blue-400/50 focus:border-blue-400'}`}
                   />
                 </div>
+
+                {/* Improved Tag Filter using TagCloud */}
+                <TagCloud
+                  tags={availableTags}
+                  selectedTag={tag || null}
+                  onSelect={handleTagToggle}
+                  theme={logSource === 'private' ? 'rose' : 'blue'}
+                  limit={12}
+                  label="Categories"
+                />
               </div>
 
               <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-slate-50/30">
@@ -422,6 +474,7 @@ export const JournalSpace: React.FC = () => {
                     onDelete={(blog) => setPostToDelete(blog)}
                     pagination={displayPagination}
                     onPageChange={handlePageChange}
+                    currentUser={user}
                   />
                 )}
               </div>

@@ -3,8 +3,8 @@ import { useTranslation } from '../../i18n/LanguageContext';
 import { featureService } from '../../services/featureService';
 import { compressImage } from '../../services/media';
 import { User, Conversation } from '../../types';
-import { toast } from '../Toast';
-import { DeleteModal } from '../DeleteModal';
+import { toast } from '../../components/Toast';
+import { DeleteModal } from '../../components/DeleteModal';
 
 // --- Types for Web Speech API ---
 declare global {

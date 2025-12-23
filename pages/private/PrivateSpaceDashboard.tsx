@@ -1,15 +1,14 @@
-
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { CountDateWidget, TabType } from './CountDateWidget';
-import { NewsWidget } from './HotSearchWidget';
-import { AccessRestricted } from '../AccessRestricted';
+import { CountDateWidget, TabType } from '../../components/private/CountDateWidget';
+import { NewsWidget } from '../../components/private/HotSearchWidget';
+import { AccessRestricted } from '../../components/AccessRestricted';
 import { User, PERM_KEYS, can } from '../../types';
 import { useTranslation } from '../../i18n/LanguageContext';
 
 // Import Theme Components (Static)
-import { ChristmasTheme } from './themes/ChristmasTheme';
-import { NewYearTheme } from './themes/NewYearTheme';
+import { ChristmasTheme } from '../../components/private/themes/ChristmasTheme';
+import { NewYearTheme } from '../../components/private/themes/NewYearTheme';
 
 interface PrivateSpaceDashboardProps {
   user: User | null;
@@ -17,66 +16,70 @@ interface PrivateSpaceDashboardProps {
 
 type HolidayMode = 'CHRISTMAS' | 'CNY' | 'OFF';
 
-export const PrivateSpaceDashboard: React.FC<PrivateSpaceDashboardProps> = ({ 
-  user
-}) => {
+export const PrivateSpaceDashboard: React.FC<PrivateSpaceDashboardProps> = ({ user }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // Tab -> Permission Mapping
   const TAB_PERMISSIONS: Record<TabType, string> = {
-      'JOURNAL': PERM_KEYS.JOURNAL_USE,
-      'SECOND_BRAIN': PERM_KEYS.BRAIN_USE,
-      'LEISURE': PERM_KEYS.LEISURE_USE,
-      'GALLERY': PERM_KEYS.CAPSULE_USE,
-      'FITNESS': PERM_KEYS.FITNESS_USE
+    JOURNAL: PERM_KEYS.JOURNAL_USE,
+    SECOND_BRAIN: PERM_KEYS.BRAIN_USE,
+    LEISURE: PERM_KEYS.LEISURE_USE,
+    GALLERY: PERM_KEYS.CAPSULE_USE,
+    FITNESS: PERM_KEYS.FITNESS_USE
   };
 
   // Tab -> Route Mapping
   const TAB_ROUTES: Record<TabType, string> = {
-      'JOURNAL': 'journal-space',
-      'SECOND_BRAIN': 'ai-space',
-      'LEISURE': 'leisure-space',
-      'GALLERY': 'capsule-gallery',
-      'FITNESS': 'fitness-space'
+    JOURNAL: 'journal-space',
+    SECOND_BRAIN: 'ai-space',
+    LEISURE: 'leisure-space',
+    GALLERY: 'capsule-gallery',
+    FITNESS: 'fitness-space'
   };
 
   // Determine active tab based on URL path
   const currentPath = location.pathname.split('/').pop();
   const activeTab: TabType = useMemo(() => {
-      switch(currentPath) {
-          case 'ai-space': return 'SECOND_BRAIN';
-          case 'journal-space': return 'JOURNAL';
-          case 'leisure-space': return 'LEISURE';
-          case 'capsule-gallery': return 'GALLERY';
-          case 'fitness-space': return 'FITNESS';
-          default: return 'JOURNAL';
-      }
+    switch (currentPath) {
+      case 'ai-space':
+        return 'SECOND_BRAIN';
+      case 'journal-space':
+        return 'JOURNAL';
+      case 'leisure-space':
+        return 'LEISURE';
+      case 'capsule-gallery':
+        return 'GALLERY';
+      case 'fitness-space':
+        return 'FITNESS';
+      default:
+        return 'JOURNAL';
+    }
   }, [currentPath]);
 
   // Calculate Visible Tabs based on User Permissions
   const visibleTabs = useMemo(() => {
-      const allTabs: TabType[] = ['SECOND_BRAIN', 'JOURNAL', 'GALLERY', 'LEISURE', 'FITNESS'];
-      return allTabs.filter(tab => can(user, TAB_PERMISSIONS[tab]));
+    const allTabs: TabType[] = ['SECOND_BRAIN', 'JOURNAL', 'GALLERY', 'LEISURE', 'FITNESS'];
+    return allTabs.filter((tab) => can(user, TAB_PERMISSIONS[tab]));
   }, [user]);
 
   // Redirect if current tab is not accessible
   useEffect(() => {
-      // If visibleTabs is calculated (and not empty) and activeTab is NOT in it
-      if (visibleTabs.length > 0 && !visibleTabs.includes(activeTab)) {
-          // Redirect to the first available tab
-          const firstAllowed = visibleTabs[0];
-          const route = TAB_ROUTES[firstAllowed];
-          navigate(`/captain-cabin/${route}`, { replace: true });
-      }
+    // If visibleTabs is calculated (and not empty) and activeTab is NOT in it
+    if (visibleTabs.length > 0 && !visibleTabs.includes(activeTab)) {
+      // Redirect to the first available tab
+      const firstAllowed = visibleTabs[0];
+      const route = TAB_ROUTES[firstAllowed];
+      navigate(`/captain-cabin/${route}`, { replace: true });
+    }
   }, [activeTab, visibleTabs, navigate]);
 
   const handleTabChange = (tab: TabType) => {
-      const path = TAB_ROUTES[tab];
-      if (path) navigate(`/captain-cabin/${path}`);
+    const path = TAB_ROUTES[tab];
+    if (path) navigate(`/captain-cabin/${path}`);
   };
-  
+
   // --- Auto Holiday Logic ---
   const autoHoliday = useMemo<HolidayMode>(() => {
     const now = new Date();
@@ -85,7 +88,7 @@ export const PrivateSpaceDashboard: React.FC<PrivateSpaceDashboardProps> = ({
 
     // Christmas: Dec 15 - Dec 30
     if (month === 12 && day >= 15 && day <= 30) return 'CHRISTMAS';
-    
+
     // CNY: Dec 31 - Feb 20 (Covers until approx Lantern Festival)
     if ((month === 12 && day >= 31) || month === 1 || (month === 2 && day <= 20)) return 'CNY';
 
@@ -95,10 +98,10 @@ export const PrivateSpaceDashboard: React.FC<PrivateSpaceDashboardProps> = ({
   // --- Theme State Initialization ---
   const [manualHoliday, setManualHoliday] = useState<HolidayMode | null>(() => {
     if (typeof window !== 'undefined') {
-        const saved = localStorage.getItem('private_theme');
-        if (saved && (saved === 'CHRISTMAS' || saved === 'CNY' || saved === 'OFF')) {
-            return saved as HolidayMode;
-        }
+      const saved = localStorage.getItem('private_theme');
+      if (saved && (saved === 'CHRISTMAS' || saved === 'CNY' || saved === 'OFF')) {
+        return saved as HolidayMode;
+      }
     }
     return null;
   });
@@ -137,12 +140,13 @@ export const PrivateSpaceDashboard: React.FC<PrivateSpaceDashboardProps> = ({
   const hasTabAccess = can(user, TAB_PERMISSIONS[activeTab]);
 
   return (
-    <div className={`
+    <div
+      className={`
       min-h-screen pt-24 pb-6 px-4 md:px-6 relative flex flex-col gap-6 transition-colors duration-1000
       ${isFixedLayout ? 'lg:h-screen lg:overflow-hidden overflow-y-auto' : 'overflow-y-auto'}
       ${getBackgroundClass()}
-    `}>
-      
+    `}
+    >
       {/* Floating News Widget - Persistent across tabs */}
       <NewsWidget />
 
@@ -153,11 +157,11 @@ export const PrivateSpaceDashboard: React.FC<PrivateSpaceDashboardProps> = ({
       {/* Default Floating Hearts Effect (Only when holiday effects are OFF) */}
       {activeHoliday === 'OFF' && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-            {[...Array(12)].map((_, i) => (
-            <div 
-                key={i}
-                className="absolute animate-rise-slow opacity-60 will-change-transform"
-                style={{
+          {[...Array(12)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute animate-rise-slow opacity-60 will-change-transform"
+              style={{
                 left: `${Math.random() * 100}%`,
                 bottom: `-50px`,
                 fontSize: `${Math.random() * 30 + 15}px`,
@@ -165,18 +169,18 @@ export const PrivateSpaceDashboard: React.FC<PrivateSpaceDashboardProps> = ({
                 animationDelay: `${Math.random() * 5}s`,
                 color: Math.random() > 0.5 ? '#f43f5e' : '#fb7185',
                 textShadow: '0 0 10px rgba(244,63,94,0.3)'
-                }}
+              }}
             >
-                ❤
+              ❤
             </div>
-            ))}
+          ))}
         </div>
       )}
 
       {/* Top Section: Integrated Together Bar */}
       <div className="container mx-auto max-w-[1600px] shrink-0 relative z-10">
-        <CountDateWidget 
-          fromDate="2020-02-14" 
+        <CountDateWidget
+          fromDate="2020-02-14"
           activeTab={activeTab}
           onTabChange={handleTabChange}
           // Pass the calculated active holiday (or null if OFF) for widget styling
@@ -191,23 +195,24 @@ export const PrivateSpaceDashboard: React.FC<PrivateSpaceDashboardProps> = ({
       </div>
 
       {/* Main Content Area - Render Outlet for Child Routes */}
-      <div className={`container mx-auto flex-1 max-w-[1600px] relative z-10 ${isFixedLayout ? 'lg:min-h-0 pb-10 lg:pb-0' : 'pb-20'}`}>
-         
-         {/* STRICT PERMISSION CHECK INTERCEPTION */}
-         {!hasTabAccess ? (
-             <AccessRestricted 
-                permission={TAB_PERMISSIONS[activeTab]} 
-                className="bg-white/80 backdrop-blur shadow-xl border-white/50 h-full" 
-                onSuccess={() => window.location.reload()} 
-             />
-         ) : (
-             // Render actual content if permissions pass
-             <div className="h-full animate-fade-in lg:overflow-hidden w-full">
-                <Outlet context={{ user }} />
-             </div>
-         )}
+      <div
+        className={`container mx-auto flex-1 max-w-[1600px] relative z-10 ${isFixedLayout ? 'lg:min-h-0 pb-10 lg:pb-0' : 'pb-20'}`}
+      >
+        {/* STRICT PERMISSION CHECK INTERCEPTION */}
+        {!hasTabAccess ? (
+          <AccessRestricted
+            permission={TAB_PERMISSIONS[activeTab]}
+            className="bg-white/80 backdrop-blur shadow-xl border-white/50 h-full"
+            onSuccess={() => window.location.reload()}
+          />
+        ) : (
+          // Render actual content if permissions pass
+          <div className="h-full animate-fade-in lg:overflow-hidden w-full">
+            <Outlet context={{ user }} />
+          </div>
+        )}
       </div>
-      
+
       <style>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;

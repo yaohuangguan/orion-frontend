@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ProjectShowcase } from './profile/ProjectShowcase';
-import { ResumeDocument } from './profile/ResumeDocument';
+import { ProjectShowcase } from '../components/profile/ProjectShowcase';
+import { ResumeDocument } from '../components/profile/ResumeDocument';
 import { useTranslation } from '../i18n/LanguageContext';
 import { User } from '../types';
 

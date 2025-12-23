@@ -1,4 +1,3 @@
-
 export interface BlogPost {
   _id: string;
   name: string;
@@ -15,13 +14,18 @@ export interface BlogPost {
   user?: User;
 }
 
+export interface Tag {
+  name: string;
+  count: number;
+}
+
 export interface Photo {
   _id: string;
   url: string;
-  name?: string;      // Backend field
-  caption?: string;   // Legacy support
+  name?: string; // Backend field
+  caption?: string; // Legacy support
   createdDate?: string; // Backend field
-  date?: string;      // Legacy support
+  date?: string; // Legacy support
   location?: string;
   order?: number;
 }
@@ -71,43 +75,43 @@ export const PERM_KEYS = {
   // --- User / Public ---
   BLOG_COMMENT: 'BLOG:INTERACT',
   BLOG_MANAGE: 'BLOG:MANAGE',
-  
+
   // --- Private Space Modules ---
   PRIVATE_ACCESS: 'PRIVATE_DOMAIN:ACCESS', // Gatekeeper for Captain's Cabin
-  
-  BRAIN_USE: 'BRAIN:USE',           // Second Brain
+
+  BRAIN_USE: 'BRAIN:USE', // Second Brain
   JOURNAL_USE: 'JOURNAL_SPACE:USE', // View/Manage Journals (renamed from JOURNAL_READ)
-  LEISURE_USE: 'LEISURE:USE',       // Leisure Space (Mahjong, Games)
-  CAPSULE_USE: 'CAPSULE:USE',       // Photo Gallery (renamed from GALLERY_VIEW)
-  FITNESS_USE: 'FITNESS:USE',       // Fitness Tracker
-  
+  LEISURE_USE: 'LEISURE:USE', // Leisure Space (Mahjong, Games)
+  CAPSULE_USE: 'CAPSULE:USE', // Photo Gallery (renamed from GALLERY_VIEW)
+  FITNESS_USE: 'FITNESS:USE', // Fitness Tracker
+
   // --- Sub-features ---
-  TODO_USE: 'TODO:USE',             // Bucket List / Todos
-  MENU_USE: 'MENU:USE',             // AI Chef
-  PERIOD_USE: 'PERIOD:USE',         // Period Tracker
-  FOOTPRINT_USE: 'FOOTPRINT:USE',   // Footprint (renamed from FOOTPRINT_view)
+  TODO_USE: 'TODO:USE', // Bucket List / Todos
+  MENU_USE: 'MENU:USE', // AI Chef
+  PERIOD_USE: 'PERIOD:USE', // Period Tracker
+  FOOTPRINT_USE: 'FOOTPRINT:USE', // Footprint (renamed from FOOTPRINT_view)
 
   // --- System / Admin ---
   SYSTEM_ACCESS: 'SYSTEM_LOGS:USE', // Access System Management (using logs key as proxy for now)
-  SYSTEM_LOGS: 'SYSTEM_LOGS:USE',   // View Audit Logs
+  SYSTEM_LOGS: 'SYSTEM_LOGS:USE', // View Audit Logs
   USER_UPDATE_SELF: 'USER:UPDATE_SELF',
-  
+
   // Admin Specific (Legacy or Specific)
-  USER_MANAGE: 'system:users',      // Keep legacy for now if not in list, or map to closest
-  ROLE_MANAGE: 'system:roles',      
-  PERM_MANAGE: 'system:perms',      
+  USER_MANAGE: 'system:users', // Keep legacy for now if not in list, or map to closest
+  ROLE_MANAGE: 'system:roles',
+  PERM_MANAGE: 'system:perms'
 };
 
 /**
  * Check if a user has a specific permission.
- * Logic: 
+ * Logic:
  * 1. Super Admin role has all permissions.
  * 2. Wildcard '*' permission grants everything.
  * 3. Exact key match (case-insensitive).
  */
 export const can = (user: User | null | undefined, permission: string): boolean => {
   if (!user) return false;
-  
+
   // 1. Role-based Super Admin Override
   if (user.role === 'super_admin') return true;
 
@@ -119,7 +123,7 @@ export const can = (user: User | null | undefined, permission: string): boolean 
 
   // 4. Exact Match (Case-insensitive)
   const target = permission.toLowerCase();
-  return user.permissions.some(p => p.toLowerCase() === target);
+  return user.permissions.some((p) => p.toLowerCase() === target);
 };
 
 export interface AuditLog {
@@ -281,7 +285,7 @@ export interface Todo {
 export interface PeriodRecord {
   _id?: string;
   startDate: string; // ISO Date String
-  endDate?: string;  // ISO Date String
+  endDate?: string; // ISO Date String
   duration?: number;
   cycleLength?: number;
   symptoms?: string[];
@@ -333,7 +337,7 @@ export interface FitnessStatus {
 export interface FitnessRecord {
   _id?: string;
   user?: User | string; // Can be ID or populated object
-  date?: string; 
+  date?: string;
   dateStr?: string; // YYYY-MM-DD
   body?: FitnessBody;
   workout?: FitnessWorkout;
@@ -454,11 +458,11 @@ export type FinanceNewsResponse = DailyListResponse;
 export interface CloudinaryUsage {
   plan: string;
   last_updated: string;
-  transformations: { usage: number; credits_usage: number; };
-  objects: { usage: number; };
-  bandwidth: { usage: number; credits_usage: number; };
-  storage: { usage: number; credits_usage: number; };
-  credits: { usage: number; limit: number; used_percent: number; };
+  transformations: { usage: number; credits_usage: number };
+  objects: { usage: number };
+  bandwidth: { usage: number; credits_usage: number };
+  storage: { usage: number; credits_usage: number };
+  credits: { usage: number; limit: number; used_percent: number };
   requests: number;
   resources: number;
   derived_resources: number;

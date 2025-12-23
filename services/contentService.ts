@@ -12,7 +12,8 @@ import {
   Log,
   Photo,
   PaginatedResponse,
-  PaginationData
+  PaginationData,
+  Tag
 } from '../types';
 
 // Fallback data
@@ -181,6 +182,16 @@ export const contentService = {
 
   unlikePost: async (id: string): Promise<void> => {
     await fetchClient(`/posts/likes/${id}/remove`, { method: 'POST' });
+  },
+
+  // --- Tags ---
+  getTags: async (type: 'public' | 'private' | 'all' = 'public'): Promise<Tag[]> => {
+    try {
+      const q = type ? `?type=${type}` : '';
+      return await fetchClient<Tag[]>(`/tags${q}`);
+    } catch (e) {
+      return [];
+    }
   },
 
   // --- Photos ---

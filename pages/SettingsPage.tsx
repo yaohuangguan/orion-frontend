@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Theme, Language } from '../types';
 import { useTranslation } from '../i18n/LanguageContext';
@@ -21,10 +20,15 @@ const LANGUAGES: { code: Language; label: string; flags: string[] }[] = [
   { code: 'ja', label: '日本語', flags: ['jp'] },
   { code: 'ru', label: 'Русский', flags: ['ru'] },
   { code: 'de', label: 'Deutsch', flags: ['de'] },
-  { code: 'es', label: 'Español', flags: ['es'] },
+  { code: 'es', label: 'Español', flags: ['es'] }
 ];
 
-export const SettingsPage: React.FC<SettingsPageProps> = ({ theme, toggleTheme, language, toggleLanguage }) => {
+export const SettingsPage: React.FC<SettingsPageProps> = ({
+  theme,
+  toggleTheme,
+  language,
+  toggleLanguage
+}) => {
   const { t, setLanguage } = useTranslation();
   const isDark = theme === Theme.DARK;
 
@@ -34,9 +38,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ theme, toggleTheme, 
         <h1 className="text-4xl font-display font-bold text-slate-900 dark:text-white mb-2">
           {t.settings.title}
         </h1>
-        <p className="text-slate-500 dark:text-slate-400">
-          {t.settings.subtitle}
-        </p>
+        <p className="text-slate-500 dark:text-slate-400">{t.settings.subtitle}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -48,9 +50,9 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ theme, toggleTheme, 
             </div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t.settings.theme}</h3>
           </div>
-          
+
           <div className="flex gap-4">
-            <button 
+            <button
               onClick={() => !isDark && toggleTheme()}
               disabled={isDark}
               className={`flex-1 py-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${isDark ? 'border-amber-500 bg-amber-500/10 text-amber-500' : 'border-slate-200 dark:border-slate-800 text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
@@ -59,14 +61,14 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ theme, toggleTheme, 
               <span className="text-xs font-bold uppercase tracking-wider">{t.settings.dark}</span>
               {isDark && <i className="fas fa-check-circle text-amber-500 mt-1"></i>}
             </button>
-            <button 
+            <button
               onClick={() => isDark && toggleTheme()}
               disabled={!isDark}
               className={`flex-1 py-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${!isDark ? 'border-amber-500 bg-amber-500/10 text-amber-600' : 'border-slate-200 dark:border-slate-800 text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
             >
-               <i className="fas fa-sun text-2xl"></i>
-               <span className="text-xs font-bold uppercase tracking-wider">{t.settings.light}</span>
-               {!isDark && <i className="fas fa-check-circle text-amber-600 mt-1"></i>}
+              <i className="fas fa-sun text-2xl"></i>
+              <span className="text-xs font-bold uppercase tracking-wider">{t.settings.light}</span>
+              {!isDark && <i className="fas fa-check-circle text-amber-600 mt-1"></i>}
             </button>
           </div>
         </div>
@@ -77,28 +79,34 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ theme, toggleTheme, 
             <div className="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl">
               <i className="fas fa-language"></i>
             </div>
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t.settings.language}</h3>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+              {t.settings.language}
+            </h3>
           </div>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {LANGUAGES.map((lang) => (
-              <button 
+              <button
                 key={lang.code}
                 onClick={() => setLanguage(lang.code)}
                 className={`py-4 px-2 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${language === lang.code ? 'border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'border-slate-200 dark:border-slate-800 text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
               >
                 <div className="flex -space-x-2">
-                   {lang.flags.map(f => (
-                      <img 
-                        key={f}
-                        src={getFlagUrl(f)} 
-                        className="w-8 h-8 rounded-full object-cover border-2 border-white dark:border-slate-900 shadow-sm" 
-                        alt={f}
-                      />
-                   ))}
+                  {lang.flags.map((f) => (
+                    <img
+                      key={f}
+                      src={getFlagUrl(f)}
+                      className="w-8 h-8 rounded-full object-cover border-2 border-white dark:border-slate-900 shadow-sm"
+                      alt={f}
+                    />
+                  ))}
                 </div>
-                <span className="text-sm font-bold text-center leading-tight mt-1">{lang.label}</span>
-                {language === lang.code && <i className="fas fa-check-circle text-blue-500 text-xs mt-1"></i>}
+                <span className="text-sm font-bold text-center leading-tight mt-1">
+                  {lang.label}
+                </span>
+                {language === lang.code && (
+                  <i className="fas fa-check-circle text-blue-500 text-xs mt-1"></i>
+                )}
               </button>
             ))}
           </div>
