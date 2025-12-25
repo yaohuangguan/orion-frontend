@@ -50,7 +50,7 @@ async function generate() {
     .map((post) => {
       // 🔥 关键修改：生成与前端一致的 Slug URL
       const slug = generateSlug(post);
-      const lastMod = new Date(post.updatedDate || post.createdDate).toISOString();
+      const lastMod = new Date(post.updatedAt || post.createdAt).toISOString();
 
       return `
   <url>
