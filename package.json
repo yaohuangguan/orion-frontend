@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:local": "cross-env VITE_API_URL=http://localhost:5000/api vite",
     "build": "node scripts/generate-sitemap.js && vite build",
     "preview": "vite preview",
     "prepare": "husky",
@@ -45,6 +46,7 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.0.0",
+    "cross-env": "^10.1.0",
     "eslint": "^9.39.2",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",

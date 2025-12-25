@@ -626,15 +626,35 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
                     className="w-full appearance-none px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-700 dark:text-slate-300 font-medium cursor-pointer"
                   >
                     <option value="">Full System Backup</option>
-                    <option value="posts">Posts & Journals</option>
-                    <option value="photos">Photo Gallery</option>
-                    <option value="todos">Tasks (Todos)</option>
-                    <option value="comments">Comments</option>
-                    <option value="users">Users Database</option>
-                    <option value="chats">Chat History</option>
-                    <option value="logs">System Logs</option>
-                    <option value="fitness">Fitness Records</option>
-                    <option value="audit">Audit Logs</option>
+                    <optgroup label="Content">
+                      <option value="posts">Posts & Journals</option>
+                      <option value="projects">Projects (Portfolio)</option>
+                      <option value="photos">Photo Gallery</option>
+                      <option value="footprints">Footprints (Star Map)</option>
+                    </optgroup>
+                    <optgroup label="Personal">
+                      <option value="todos">Tasks (Todos)</option>
+                      <option value="fitness">Fitness Records</option>
+                      <option value="menus">Menus (Chef's Wheel)</option>
+                      <option value="periods">Period Tracker Data</option>
+                      <option value="resume">Resume Data</option>
+                    </optgroup>
+                    <optgroup label="Communication">
+                      <option value="chats">Chat History</option>
+                      <option value="conversations">AI Conversations</option>
+                      <option value="comments">Comments</option>
+                    </optgroup>
+                    <optgroup label="System & Admin">
+                      <option value="users">Users Database</option>
+                      <option value="roles">Roles Config</option>
+                      <option value="permissions">Permissions Config</option>
+                      <option value="requests">Permission Requests</option>
+                      <option value="audit">Audit Logs</option>
+                      <option value="logs">System Logs</option>
+                      <option value="sessions">Active Sessions</option>
+                      <option value="homepage">Homepage Config</option>
+                      <option value="external">External Resources</option>
+                    </optgroup>
                   </select>
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
                     <i className="fas fa-chevron-down text-xs"></i>
