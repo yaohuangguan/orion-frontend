@@ -30,6 +30,8 @@ import { SettingsPage } from './pages/SettingsPage';
 import { ChatRoom } from './pages/ChatRoom';
 import { AuditLogViewer } from './pages/AuditLogViewer';
 import { SystemManagement } from './pages/SystemManagement';
+import { NotFound } from './pages/NotFound';
+import { NoPermission } from './pages/NoPermission';
 import { createLazyComponent } from './components/LazyLoader';
 
 // Lazy Load Heavy Pages
@@ -521,6 +523,12 @@ const App: React.FC = () => {
               }
             />
           </Route>
+
+          {/* System Pages */}
+          <Route path="/403" element={<NoPermission />} />
+
+          {/* Catch All - Must be last */}
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
 
