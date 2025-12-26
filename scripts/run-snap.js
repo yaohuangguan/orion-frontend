@@ -32,7 +32,8 @@ function slugify(text) {
       // 去掉头尾的横杠
       .replace(/^-+|-+$/g, '')
       // 转小写
-      .toLowerCase() || 'post'
+      .toLowerCase()
+      .slice(0, 60) || 'post'
   );
 }
 

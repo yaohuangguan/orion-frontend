@@ -362,7 +362,8 @@ const App: React.FC = () => {
                     blog.name
                       .replace(/[^\p{L}\p{N}]+/gu, '-')
                       .replace(/^-+|-+$/g, '')
-                      .toLowerCase() || 'post';
+                      .toLowerCase()
+                      .slice(0, 60) || 'post';
                   const slug = `${cleanTitle}-${blog._id}`;
                   navigate(`/blogs/${slug}`);
                 }}
@@ -384,7 +385,8 @@ const App: React.FC = () => {
                     blog.name
                       .replace(/[^\p{L}\p{N}]+/gu, '-')
                       .replace(/^-+|-+$/g, '')
-                      .toLowerCase() || 'post';
+                      .toLowerCase()
+                      .slice(0, 60) || 'post';
                   const slug = `${cleanTitle}-${blog._id}`;
                   navigate(`/blogs/${slug}`);
                 }}
