@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from '../../i18n/LanguageContext';
 import { featureService } from '../../services/featureService';
 import { uploadImage } from '../../services/media';
@@ -27,12 +27,12 @@ interface BrainMessage {
   isStreaming?: boolean;
   avatar?: string;
   name?: string;
-  images?: string[]; // Updated to support multiple images
+  images?: string[];
 }
 
 const DEFAULT_AI_AVATAR = 'https://cdn-icons-png.flaticon.com/512/4712/4712027.png';
 
-// Helper to generate UUID-like string if crypto.randomUUID is not available in some contexts
+// Helper to generate UUID-like string
 const generateUUID = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID();
@@ -44,13 +44,137 @@ const generateUUID = () => {
   });
 };
 
+// --- OPTIMIZED SUB-COMPONENT: Memoized Message Item ---
+const BrainMessageItem = React.memo(
+  ({ msg, onCopy }: { msg: BrainMessage; onCopy: (text: string) => void }) => {
+    const isUser = msg.role === 'user';
+    const contentRef = useRef<HTMLDivElement>(null);
+
+    // 1. Memoize Markdown Parsing to prevent re-parsing static history
+    const htmlContent = useMemo(() => {
+      if (!msg.content) return '';
+      if (window.marked) {
+        try {
+          return window.marked.parse(msg.content);
+        } catch (e) {
+          return msg.content;
+        }
+      }
+      return msg.content;
+    }, [msg.content]);
+
+    // 2. Scoped Syntax Highlighting: Only highlight code blocks within THIS message
+    useEffect(() => {
+      if (contentRef.current && window.hljs && !isUser) {
+        contentRef.current.querySelectorAll('pre code').forEach((block) => {
+          // Simple check to avoid double-highlighting if hljs doesn't handle it
+          if (!block.hasAttribute('data-highlighted')) {
+            window.hljs.highlightElement(block as HTMLElement);
+          }
+        });
+      }
+    }, [htmlContent, isUser]);
+
+    return (
+      <div
+        className={`w-full py-6 md:py-8 px-4 md:px-12 border-b border-black/5 ${isUser ? 'bg-[#212121]' : 'bg-[#212121]'}`}
+      >
+        <div className="max-w-3xl mx-auto flex gap-4 md:gap-6">
+          {/* Avatar */}
+          <div className={`shrink-0 flex flex-col items-center ${isUser ? 'order-2' : 'order-1'}`}>
+            <div
+              className={`w-8 h-8 rounded-sm overflow-hidden flex items-center justify-center ${isUser ? 'bg-transparent' : 'bg-green-500/10'}`}
+            >
+              <img
+                src={msg.avatar}
+                alt={msg.role}
+                className="w-full h-full object-cover rounded-sm"
+                onError={(e) => (e.currentTarget.src = DEFAULT_AI_AVATAR)}
+              />
+            </div>
+          </div>
+
+          {/* Content Body */}
+          <div className={`flex-1 min-w-0 ${isUser ? 'order-1 text-right' : 'order-2 text-left'}`}>
+            <div className={`text-xs font-bold mb-2 ${isUser ? 'text-gray-400' : 'text-gray-200'}`}>
+              {msg.name}
+            </div>
+
+            {/* Images */}
+            {msg.images && msg.images.length > 0 && (
+              <div
+                className={`mb-3 ${isUser ? 'flex justify-end' : 'flex justify-start'} flex-wrap gap-2`}
+              >
+                {msg.images.map((imgUrl, imgIdx) => (
+                  <div
+                    key={imgIdx}
+                    className="relative group max-w-[250px] rounded-lg overflow-hidden border border-white/10"
+                  >
+                    <img
+                      src={imgUrl}
+                      alt={`Attachment ${imgIdx}`}
+                      className="w-full h-auto object-contain"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {isUser ? (
+              <div className="inline-block bg-[#2f2f2f] text-gray-100 px-4 py-2 md:px-5 md:py-3 rounded-2xl rounded-tr-sm text-sm leading-relaxed whitespace-pre-wrap text-left shadow-sm">
+                {msg.content}
+              </div>
+            ) : (
+              <div
+                className="chat-content text-gray-300 text-sm md:text-[15px] leading-relaxed relative"
+                ref={contentRef}
+              >
+                {msg.content ? (
+                  <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+                ) : (
+                  <div className="flex items-center gap-1 h-6">
+                    <span className="w-1.5 h-1.5 md:w-2 md:h-2 bg-gray-500 rounded-full animate-bounce"></span>
+                    <span
+                      className="w-1.5 h-1.5 md:w-2 md:h-2 bg-gray-500 rounded-full animate-bounce"
+                      style={{ animationDelay: '0.2s' }}
+                    ></span>
+                    <span
+                      className="w-1.5 h-1.5 md:w-2 md:h-2 bg-gray-500 rounded-full animate-bounce"
+                      style={{ animationDelay: '0.4s' }}
+                    ></span>
+                  </div>
+                )}
+                {msg.isStreaming && (
+                  <span className="inline-block w-2 h-4 bg-gray-400 ml-1 align-middle animate-pulse"></span>
+                )}
+              </div>
+            )}
+
+            {!isUser && !msg.isStreaming && msg.content && (
+              <div className="flex items-center gap-4 mt-3 pt-2">
+                <button
+                  onClick={() => onCopy(msg.content)}
+                  className="text-gray-500 hover:text-gray-300 transition-colors text-xs"
+                >
+                  <i className="fas fa-copy"></i>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+);
+
+// --- MAIN COMPONENT ---
 export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
   const { t, language } = useTranslation();
 
   // Session State
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile sidebar toggle
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Delete Modal State
   const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
@@ -62,7 +186,7 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
   const [isInitializing, setIsInitializing] = useState(true);
 
   // Image Upload State
-  const [selectedImage, setSelectedImage] = useState<string | null>(null); // Now stores URL
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isR2ModalOpen, setIsR2ModalOpen] = useState(false);
@@ -71,7 +195,7 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
   const [isVoiceMode, setIsVoiceMode] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef<any>(null);
-  const voiceTranscriptRef = useRef<string>(''); // Ref to hold transcript for send-on-release
+  const voiceTranscriptRef = useRef<string>('');
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -85,15 +209,13 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
         setConversations(list);
 
         if (list.length > 0) {
-          // Auto-select first (most recent) session
           handleSwitchSession(list[0].sessionId);
         } else {
-          // No history, start fresh (ghost session)
           handleNewChat();
         }
       } catch (err) {
         console.error('Failed to init brain:', err);
-        handleNewChat(); // Fallback
+        handleNewChat();
       } finally {
         setIsInitializing(false);
       }
@@ -104,10 +226,9 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
   // --- 2. Action: Switch Session ---
   const handleSwitchSession = async (sessionId: string) => {
     setCurrentSessionId(sessionId);
-    setIsSidebarOpen(false); // Close mobile sidebar on select
-    setMessages([]); // Clear view while loading
+    setIsSidebarOpen(false);
+    setMessages([]);
 
-    // Fetch History
     try {
       const historyData = await featureService.getAiChatHistory(sessionId, 1, 50);
 
@@ -123,24 +244,23 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
           avatar:
             msg.user?.photoURL || (msg.user?.id === 'ai_assistant' ? DEFAULT_AI_AVATAR : undefined),
           name: msg.user?.displayName,
-          images: msg.image || [] // Backend stores array in 'image' field
+          images: msg.image || []
         }));
         setMessages(mappedMessages);
       } else {
-        setMessages([]); // Empty session
+        setMessages([]);
       }
     } catch (e) {
       console.error('Failed to load session history', e);
     }
   };
 
-  // --- 3. Action: New Chat (Ghost Session) ---
+  // --- 3. Action: New Chat ---
   const handleNewChat = () => {
     const newId = generateUUID();
     setCurrentSessionId(newId);
-    setMessages([]); // Clear screen
+    setMessages([]);
     setIsSidebarOpen(false);
-    // Don't add to `conversations` list yet. Backend creates it on first message.
   };
 
   // --- 4. Action: Delete Session ---
@@ -153,7 +273,6 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
       setConversations((prev) => prev.filter((c) => c.sessionId !== sessionId));
       setSessionToDelete(null);
 
-      // If deleted active session, switch to new
       if (currentSessionId === sessionId) {
         const remaining = conversations.filter((c) => c.sessionId !== sessionId);
         if (remaining.length > 0) {
@@ -167,20 +286,12 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
     }
   };
 
-  // --- Auto-scroll & Syntax Highlighting ---
+  // --- Auto-scroll ---
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, isProcessing, selectedImage]);
-
-  useEffect(() => {
-    if (window.hljs && scrollRef.current) {
-      scrollRef.current.querySelectorAll('pre code').forEach((block) => {
-        window.hljs.highlightElement(block as HTMLElement);
-      });
-    }
-  }, [messages]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -190,7 +301,7 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
     }
   }, [input]);
 
-  // --- Voice Input Logic (Hold to Speak) ---
+  // --- Voice Input Logic ---
   const startRecording = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -204,7 +315,6 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
     recognition.continuous = true;
     recognition.interimResults = true;
 
-    // Map language
     const langMap: Record<string, string> = {
       zh: 'zh-CN',
       'zh-HK': 'zh-HK',
@@ -217,14 +327,11 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
     };
     recognition.lang = langMap[language] || 'en-US';
 
-    voiceTranscriptRef.current = ''; // Clear previous
+    voiceTranscriptRef.current = '';
 
-    recognition.onstart = () => {
-      setIsRecording(true);
-    };
+    recognition.onstart = () => setIsRecording(true);
 
     recognition.onresult = (event: any) => {
-      // Accumulate transcript
       let interim = '';
       let final = '';
       for (let i = event.resultIndex; i < event.results.length; ++i) {
@@ -237,7 +344,6 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
       const allText = Array.from(event.results)
         .map((r: any) => r[0].transcript)
         .join('');
-
       voiceTranscriptRef.current = allText;
     };
 
@@ -249,7 +355,6 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
     };
 
     recognition.onend = () => {
-      // Typically handled in stopAndSend, but safety reset
       if (isRecording) setIsRecording(false);
     };
 
@@ -259,23 +364,19 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
 
   const stopAndSend = () => {
     if (!recognitionRef.current) return;
-
-    // Stop listening
     recognitionRef.current.stop();
     setIsRecording(false);
 
-    // Short delay to ensure last 'result' event processes
     setTimeout(() => {
       const textToSend = voiceTranscriptRef.current.trim();
       if (textToSend) {
-        // Direct Send
         handleSubmit(undefined, textToSend);
         voiceTranscriptRef.current = '';
       }
     }, 200);
   };
 
-  // --- Image Handling Helpers ---
+  // --- Image Handling ---
   const processFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
       toast.error('Only image files are supported.');
@@ -338,7 +439,6 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
 
     if ((!textToSend.trim() && !selectedImage) || isProcessing) return;
 
-    // Ensure we have a session ID
     let activeSessionId = currentSessionId;
     if (!activeSessionId) {
       activeSessionId = generateUUID();
@@ -362,7 +462,6 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
 
     setMessages((prev) => [...prev, userMsg]);
 
-    // Clear Input
     if (overrideText === undefined) {
       setInput('');
     }
@@ -371,9 +470,9 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
     if (inputRef.current) inputRef.current.style.height = 'auto';
 
     try {
-      // 2. Save User Message & Create Session in Backend
+      // 2. Save User Message
       await featureService.saveAiChatMessage(
-        userText + (userImage ? ' [Image Sent]' : ''),
+        userText,
         'user',
         activeSessionId,
         userImage || undefined
@@ -411,6 +510,7 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
           setMessages((prev) =>
             prev.map((m) => {
               if (m.id === aiMsgId) {
+                // Update existing message content, BrainMessageItem will efficiently re-render
                 return { ...m, content: m.content + chunk };
               }
               return m;
@@ -420,12 +520,12 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
         userImage
       );
 
-      // 5. Save AI Response to Backend
+      // 5. Save AI Response
       if (fullAiResponse) {
         await featureService.saveAiChatMessage(fullAiResponse, 'ai', activeSessionId);
       }
 
-      // 6. Refresh Sidebar if new session
+      // 6. Refresh Sidebar
       const knownSession = conversations.find((c) => c.sessionId === activeSessionId);
       if (!knownSession) {
         setTimeout(async () => {
@@ -468,22 +568,10 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
     }
   };
 
-  const copyToClipboard = (text: string) => {
+  const copyToClipboard = useCallback((text: string) => {
     navigator.clipboard.writeText(text);
     toast.success('Copied to clipboard');
-  };
-
-  const renderMarkdown = (content: string) => {
-    if (!content) return { __html: '' };
-    if (window.marked) {
-      try {
-        return { __html: window.marked.parse(content) };
-      } catch (e) {
-        return { __html: content };
-      }
-    }
-    return { __html: content };
-  };
+  }, []);
 
   return (
     <div className="flex h-[calc(100vh-140px)] md:h-full relative max-w-7xl mx-auto w-full bg-[#171717] rounded-[2rem] border border-[#333] shadow-2xl overflow-hidden">
@@ -515,7 +603,6 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
         `}
       >
         <div className="flex flex-col h-full">
-          {/* New Chat Button */}
           <div className="p-4 border-b border-[#333]">
             <button
               onClick={handleNewChat}
@@ -525,7 +612,6 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
             </button>
           </div>
 
-          {/* List */}
           <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
             {conversations.map((conv) => (
               <div
@@ -537,8 +623,6 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
                   <i className="fas fa-message text-xs"></i>
                   <span className="text-sm truncate">{conv.title || 'New Chat'}</span>
                 </div>
-
-                {/* Delete Button */}
                 {currentSessionId === conv.sessionId && (
                   <button
                     onClick={(e) => {
@@ -557,7 +641,6 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
             )}
           </div>
 
-          {/* Mobile Close */}
           <button
             className="md:hidden absolute top-4 right-4 text-gray-400"
             onClick={() => setIsSidebarOpen(false)}
@@ -569,7 +652,6 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
 
       {/* --- RIGHT MAIN CHAT --- */}
       <div className="flex-1 flex flex-col min-w-0 bg-[#212121] relative">
-        {/* Mobile Header Toggle */}
         <div className="md:hidden p-4 border-b border-[#333] flex items-center gap-3 text-gray-200 bg-[#212121] z-10">
           <button onClick={() => setIsSidebarOpen(true)}>
             <i className="fas fa-bars"></i>
@@ -577,7 +659,6 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
           <span className="font-bold text-sm">Second Brain 3.0</span>
         </div>
 
-        {/* Messages Area */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto custom-scrollbar scroll-smooth">
           {isInitializing ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-3">
@@ -597,102 +678,9 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
             </div>
           ) : (
             <div className="flex flex-col pb-4">
-              {messages.map((msg, idx) => {
-                const isUser = msg.role === 'user';
-                return (
-                  <div
-                    key={msg.id}
-                    className={`w-full py-6 md:py-8 px-4 md:px-12 border-b border-black/5 ${isUser ? 'bg-[#212121]' : 'bg-[#212121]'}`}
-                  >
-                    <div className="max-w-3xl mx-auto flex gap-4 md:gap-6">
-                      {/* Avatar */}
-                      <div
-                        className={`shrink-0 flex flex-col items-center ${isUser ? 'order-2' : 'order-1'}`}
-                      >
-                        <div
-                          className={`w-8 h-8 rounded-sm overflow-hidden flex items-center justify-center ${isUser ? 'bg-transparent' : 'bg-green-500/10'}`}
-                        >
-                          <img
-                            src={msg.avatar}
-                            alt={msg.role}
-                            className="w-full h-full object-cover rounded-sm"
-                            onError={(e) => (e.currentTarget.src = DEFAULT_AI_AVATAR)}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <div
-                        className={`flex-1 min-w-0 ${isUser ? 'order-1 text-right' : 'order-2 text-left'}`}
-                      >
-                        <div
-                          className={`text-xs font-bold mb-2 ${isUser ? 'text-gray-400' : 'text-gray-200'}`}
-                        >
-                          {msg.name}
-                        </div>
-
-                        {/* Updated: Handle Multiple Images */}
-                        {msg.images && msg.images.length > 0 && (
-                          <div
-                            className={`mb-3 ${isUser ? 'flex justify-end' : 'flex justify-start'} flex-wrap gap-2`}
-                          >
-                            {msg.images.map((imgUrl, imgIdx) => (
-                              <div
-                                key={imgIdx}
-                                className="relative group max-w-[250px] rounded-lg overflow-hidden border border-white/10"
-                              >
-                                <img
-                                  src={imgUrl}
-                                  alt={`Attachment ${imgIdx}`}
-                                  className="w-full h-auto object-contain"
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {isUser ? (
-                          <div className="inline-block bg-[#2f2f2f] text-gray-100 px-4 py-2 md:px-5 md:py-3 rounded-2xl rounded-tr-sm text-sm leading-relaxed whitespace-pre-wrap text-left shadow-sm">
-                            {msg.content}
-                          </div>
-                        ) : (
-                          <div className="chat-content text-gray-300 text-sm md:text-[15px] leading-relaxed relative">
-                            {msg.content ? (
-                              <div dangerouslySetInnerHTML={renderMarkdown(msg.content)} />
-                            ) : (
-                              <div className="flex items-center gap-1 h-6">
-                                <span className="w-1.5 h-1.5 md:w-2 md:h-2 bg-gray-500 rounded-full animate-bounce"></span>
-                                <span
-                                  className="w-1.5 h-1.5 md:w-2 md:h-2 bg-gray-500 rounded-full animate-bounce"
-                                  style={{ animationDelay: '0.2s' }}
-                                ></span>
-                                <span
-                                  className="w-1.5 h-1.5 md:w-2 md:h-2 bg-gray-500 rounded-full animate-bounce"
-                                  style={{ animationDelay: '0.4s' }}
-                                ></span>
-                              </div>
-                            )}
-                            {msg.isStreaming && (
-                              <span className="inline-block w-2 h-4 bg-gray-400 ml-1 align-middle animate-pulse"></span>
-                            )}
-                          </div>
-                        )}
-
-                        {!isUser && !msg.isStreaming && msg.content && (
-                          <div className="flex items-center gap-4 mt-3 pt-2">
-                            <button
-                              onClick={() => copyToClipboard(msg.content)}
-                              className="text-gray-500 hover:text-gray-300 transition-colors text-xs"
-                            >
-                              <i className="fas fa-copy"></i>
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {messages.map((msg) => (
+                <BrainMessageItem key={msg.id} msg={msg} onCopy={copyToClipboard} />
+              ))}
             </div>
           )}
         </div>
@@ -730,7 +718,6 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
             >
-              {/* LEFT SIDE: Image Upload & Voice Toggle */}
               <div className="absolute left-2 md:left-3 bottom-2.5 flex items-center gap-2 z-20">
                 <button
                   onClick={() => fileInputRef.current?.click()}
@@ -747,7 +734,6 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
                   onChange={handleFileSelect}
                 />
 
-                {/* R2 Library Button (Admin Only) */}
                 {user?.role === 'super_admin' && (
                   <button
                     onClick={() => setIsR2ModalOpen(true)}
@@ -759,7 +745,6 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
                   </button>
                 )}
 
-                {/* Voice Mode Toggle */}
                 <button
                   onClick={() => setIsVoiceMode(!isVoiceMode)}
                   className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isVoiceMode ? 'text-green-500 hover:bg-green-500/10' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
@@ -769,18 +754,13 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
                 </button>
               </div>
 
-              {/* CENTER: Text Input OR Voice Button */}
               {isVoiceMode ? (
                 <div className="w-full h-14 pl-28 md:pl-32 pr-4 py-2">
                   <button
-                    className={`w-full h-full rounded-lg font-bold text-sm uppercase tracking-widest transition-all select-none touch-none flex items-center justify-center gap-2 ${
-                      isRecording
-                        ? 'bg-emerald-500 text-white animate-pulse shadow-lg shadow-emerald-900/50'
-                        : 'bg-[#3a3a3a] text-gray-300 hover:bg-[#444]'
-                    }`}
+                    className={`w-full h-full rounded-lg font-bold text-sm uppercase tracking-widest transition-all select-none touch-none flex items-center justify-center gap-2 ${isRecording ? 'bg-emerald-500 text-white animate-pulse shadow-lg shadow-emerald-900/50' : 'bg-[#3a3a3a] text-gray-300 hover:bg-[#444]'}`}
                     onPointerDown={startRecording}
                     onPointerUp={stopAndSend}
-                    onPointerLeave={stopAndSend} // Safety catch if finger slides off
+                    onPointerLeave={stopAndSend}
                   >
                     {isRecording ? (
                       <>
@@ -807,7 +787,6 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
                 />
               )}
 
-              {/* RIGHT SIDE: Send Button (Only visible in Text Mode) */}
               {!isVoiceMode && (
                 <button
                   onClick={(e) => handleSubmit(e)}
