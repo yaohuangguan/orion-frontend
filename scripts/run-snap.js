@@ -1,10 +1,9 @@
 import { run } from 'react-snap';
-import puppeteer from 'puppeteer'; // 本地开发用
+import puppeteer from 'puppeteer';
 import path from 'path';
 import fs from 'fs';
 import process from 'process';
 
-// 判断是否在 Vercel 环境
 const isVercel = process.env.VERCEL === '1';
 
 (async () => {
@@ -14,29 +13,18 @@ const isVercel = process.env.VERCEL === '1';
 
     if (isVercel) {
       console.log('☁️ Detected Vercel Environment. Loading @sparticuz/chromium...');
-
-      // 动态导入，防止本地开发报错
       const chromium = await import('@sparticuz/chromium').then((m) => m.default);
-
-      // Vercel 必须用这个专用图形库，它解决了 libnspr4.so 缺失的问题
-      // 这里的 executablePath() 会解压出一个能在极简 Linux 上跑的浏览器
       executablePath = await chromium.executablePath();
-
-      // Vercel 推荐的参数
       launchArgs = chromium.args;
     } else {
       console.log('💻 Detected Local Environment. Using Standard Puppeteer...');
-
-      // 本地逻辑保持不变
       executablePath = puppeteer.executablePath();
-      executablePath = path.resolve(executablePath);
 
-      // Windows 修复
+      // Windows 路径兼容修复
       if (process.platform === 'win32') {
-        executablePath = executablePath.split(path.sep).join('/');
+        executablePath = path.resolve(executablePath).split(path.sep).join('/');
       }
 
-      // 本地参数
       launchArgs = [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -47,42 +35,46 @@ const isVercel = process.env.VERCEL === '1';
 
     console.log(`🚀 Final Executable Path: ${executablePath}`);
 
-    // 双重检查 (Vercel 上 sparticuz 会自动处理路径，通常不需要 fs.check，但保留无妨)
-    if (!isVercel && !fs.existsSync(executablePath)) {
-      throw new Error(`Chrome executable missing at ${executablePath}`);
-    }
-
     // 运行 react-snap
     await run({
       puppeteerExecutablePath: executablePath,
       source: 'dist',
       destination: 'dist',
-      include: ['/', '/blogs'],
+      include: ['/', '/blogs', '/404.html'], // 显式包含 404
 
-      // 🔥 新增核心配置：强制根路径
+      // 🔥 核心修复 1: 强制根路径
       publicPath: '/',
 
-      // 🔥 新增配置：禁用 Webpack 专用修复 (避免破坏 Vite 的 module script)
-      fixWebpackChunksIssue: false,
+      // 🔥 核心修复 2: 彻底禁用所有 HTML/CSS 篡改功能
+      // Vite 已经压缩得很好了，react-snap 再搞一次只会破坏 ESM 标签
+      minifyCss: false,
+      inlineCss: false, // 👈 最可能是它导致了 SyntaxError
+      minifyHtml: false, // 先关掉，排查问题，Vite 已经压缩过 HTML 了
 
-      // 合并参数
+      // 🔥 核心修复 3: 禁用 Webpack 专用逻辑
+      fixWebpackChunksIssue: false,
+      asyncScriptTags: false, // Vite 默认就是 module defer，不要乱动
+
+      // 🔥 核心修复 4: 忽略外部资源报错 (比如图片 404 不应该挂断构建)
+      skipThirdPartyRequests: true,
+
+      // Vercel 性能限制
+      concurrency: 1,
+
       puppeteerArgs: [
         ...launchArgs,
         '--single-process',
         '--no-zygote',
-        '--disable-web-security' // 允许跨域，减少 404 干扰
+        '--disable-web-security' // 允许跨域加载
       ],
 
-      pageLoadTimeout: 120000,
-      minifyCss: true,
-      inlineCss: true
-      // asyncScriptTags: true // 可选：如果上面都不行，可以尝试解开这个注释
+      pageLoadTimeout: 60000
     });
 
     console.log('✅ Pre-rendering complete!');
   } catch (error) {
     console.error('⚠️ Pre-rendering failed, but continuing build...', error);
-    // 依然保持 exit 0，先让你的网站上线再说
+    // 保持 exit 0，确保即使 snap 失败，网站也能上线（虽然是未预渲染的版本）
     process.exit(0);
   }
 })();
