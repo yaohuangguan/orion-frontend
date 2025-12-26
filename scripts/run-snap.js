@@ -9,7 +9,7 @@ import process from 'process';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = path.resolve(__dirname, '../dist');
 
-// 🔥 配置并发数 (Vercel 建议 3-5，太高会内存溢出)
+// 🔥 配置并发数 (Vercel 建议 3-5)
 const CONCURRENCY_LIMIT = 5;
 
 // 1. 静态页面路由
@@ -20,22 +20,6 @@ const API_BASE_URL =
   process.env.VITE_API_URL || 'https://bananaboom-api-242273127238.asia-east1.run.app/api';
 
 const isVercel = process.env.VERCEL === '1';
-
-// --- Slug 处理 (精准匹配你的前端逻辑) ---
-function slugify(text) {
-  if (!text) return 'post';
-  return (
-    text
-      .toString()
-      // 匹配所有非字母和非数字的字符，替换为横杠 (支持中文)
-      .replace(/[^\p{L}\p{N}]+/gu, '-')
-      // 去掉头尾的横杠
-      .replace(/^-+|-+$/g, '')
-      // 转小写
-      .toLowerCase()
-      .slice(0, 60) || 'post'
-  );
-}
 
 // --- 启动预览服务器 ---
 function startServer() {
@@ -53,7 +37,7 @@ function startServer() {
   });
 }
 
-// --- 获取动态路由 (精准匹配 data 结构) ---
+// --- 获取动态路由 (纯 ID 模式) ---
 async function fetchPostRoutes() {
   console.log(`🌍 Fetching posts from API: ${API_BASE_URL}/posts...`);
   try {
@@ -62,19 +46,20 @@ async function fetchPostRoutes() {
 
     const json = await response.json();
 
-    // 🔥 直接读取 json.data，不再猜测
-    const posts = json.data;
+    // 兼容 data 结构
+    // 有些 API 返回 { data: [] }, 有些直接返回 []
+    const posts = Array.isArray(json) ? json : json.data || [];
 
     if (!Array.isArray(posts)) {
-      console.error('⚠️ Expected "data" to be an array but got:', typeof posts);
+      console.error('⚠️ Expected posts to be an array but got:', typeof posts);
       return [];
     }
 
-    // 🔥 直接读取 _id 和 name
+    // 🔥🔥🔥 核心修改：只使用 ID，不再拼接中文标题 🔥🔥🔥
+    // 这样能确保 URL 简短且无特殊字符，避免 Vercel 500 错误
     const routes = posts.map((post) => {
-      const id = post._id;
-      const cleanTitle = slugify(post.name);
-      return `/blogs/${cleanTitle}-${id}`;
+      const id = post._id || post.id;
+      return `/blogs/${id}`;
     });
 
     console.log(`📚 Found ${routes.length} posts to prerender.`);
@@ -96,7 +81,7 @@ async function snapPage(browser, route, index, total) {
     page.on('request', (req) => {
       const resourceType = req.resourceType();
       if (['image', 'font'].includes(resourceType)) {
-        req.continue(); // 暂时放行，如果觉得慢可以改成 req.abort()
+        req.continue();
       } else {
         req.continue();
       }
@@ -104,8 +89,8 @@ async function snapPage(browser, route, index, total) {
 
     await page.setViewport({ width: 1280, height: 800 });
 
-    // 访问页面 (处理中文路径编码)
-    const url = `http://localhost:4173${encodeURI(route)}`;
+    // 访问页面 (纯 ID 路径不需要复杂编码)
+    const url = `http://localhost:4173${route}`;
 
     // 放宽超时时间
     await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
@@ -126,9 +111,9 @@ async function snapPage(browser, route, index, total) {
     if (route === '/404') {
       filePath = path.join(DIST_DIR, '404.html');
     } else {
-      // 解码中文路径: /blogs/有志者... -> dist/blogs/有志者.../index.html
-      const decodedRoute = decodeURIComponent(route);
-      const routePath = decodedRoute.startsWith('/') ? decodedRoute.slice(1) : decodedRoute;
+      // 路由: /blogs/694b... -> 目录: dist/blogs/694b.../index.html
+      // 移除开头的 /
+      const routePath = route.startsWith('/') ? route.slice(1) : route;
       const dir = path.join(DIST_DIR, routePath);
 
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -136,7 +121,7 @@ async function snapPage(browser, route, index, total) {
     }
 
     fs.writeFileSync(filePath, html);
-    console.log(`✅ [${index + 1}/${total}] Saved: ${decodeURIComponent(route)}`);
+    console.log(`✅ [${index + 1}/${total}] Saved: ${route}`);
   } catch (e) {
     console.error(`❌ [${index + 1}/${total}] Error: ${route} - ${e.message}`);
   } finally {

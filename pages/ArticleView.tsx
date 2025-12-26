@@ -251,6 +251,8 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
           {structuredData && (
             <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
           )}
+          <link rel="canonical" href={`https://www.ps5.space/blogs/${blog._id}`} />
+          <link rel="canonical" href={`https://www.ps6.space/blogs/${blog._id}`} />
         </Helmet>
       )}
 

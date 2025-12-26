@@ -358,14 +358,9 @@ const App: React.FC = () => {
             element={
               <BlogList
                 onSelectBlog={(blog) => {
-                  const cleanTitle =
-                    blog.name
-                      .replace(/[^\p{L}\p{N}]+/gu, '-')
-                      .replace(/^-+|-+$/g, '')
-                      .toLowerCase()
-                      .slice(0, 60) || 'post';
-                  const slug = `${cleanTitle}-${blog._id}`;
-                  navigate(`/blogs/${slug}`);
+                  // 🔥 修改 1: 弃用中文标题拼接，直接使用纯 ID 跳转
+                  // 这样生成的链接是 /blogs/694d...，与预渲染脚本完美匹配
+                  navigate(`/blogs/${blog._id}`);
                 }}
                 isLoading={isLoadingBlogs}
                 currentUser={user}
@@ -374,21 +369,18 @@ const App: React.FC = () => {
             }
           />
 
-          {/* ARTICLE: SEO Friendly Route */}
+          {/* ARTICLE: SEO Friendly Route (Pure ID Mode) */}
           <Route
+            // 🔥 修改 2: 将参数名从 :slug 改为 :id (语义更清晰)
+            // 注意：请检查 ArticleView 组件内部，确保是用 useParams().id 来获取参数
+            // 如果组件里写死了解构 const { slug } = useParams()，这里保持 :slug 也可以
             path="/blogs/:slug"
             element={
               <ArticleView
                 onBack={() => navigate('/blogs')}
                 onNavigateToBlog={(blog) => {
-                  const cleanTitle =
-                    blog.name
-                      .replace(/[^\p{L}\p{N}]+/gu, '-')
-                      .replace(/^-+|-+$/g, '')
-                      .toLowerCase()
-                      .slice(0, 60) || 'post';
-                  const slug = `${cleanTitle}-${blog._id}`;
-                  navigate(`/blogs/${slug}`);
+                  // 🔥 修改 3: 详情页内部的关联跳转也同步改为纯 ID
+                  navigate(`/blogs/${blog._id}`);
                 }}
                 currentUser={user}
                 onLoginRequest={() => setIsLoginModalOpen(true)}
