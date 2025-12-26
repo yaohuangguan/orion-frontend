@@ -9,10 +9,10 @@ import process from 'process';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = path.resolve(__dirname, '../dist');
 
-// 🔥 配置并发数：Vercel 免费版建议设置 3-5，本地性能好可以设 10
+// 🔥 配置并发数 (Vercel 建议 3-5，太高会内存溢出)
 const CONCURRENCY_LIMIT = 5;
 
-// 1. 静态页面
+// 1. 静态页面路由
 const STATIC_ROUTES = ['/', '/blogs', '/profile', '/footprints', '/404'];
 
 // 2. API 地址
@@ -21,14 +21,17 @@ const API_BASE_URL =
 
 const isVercel = process.env.VERCEL === '1';
 
-// --- Slug 处理 (保持与前端一致) ---
+// --- Slug 处理 (精准匹配你的前端逻辑) ---
 function slugify(text) {
   if (!text) return 'post';
   return (
     text
       .toString()
+      // 匹配所有非字母和非数字的字符，替换为横杠 (支持中文)
       .replace(/[^\p{L}\p{N}]+/gu, '-')
+      // 去掉头尾的横杠
       .replace(/^-+|-+$/g, '')
+      // 转小写
       .toLowerCase() || 'post'
   );
 }
@@ -42,25 +45,34 @@ function startServer() {
       shell: true,
       detached: false
     });
-    // 给它一点时间启动
+    // 等待 3 秒确保服务启动
     setTimeout(() => {
       resolve(server);
     }, 3000);
   });
 }
 
-// --- 获取动态路由 ---
+// --- 获取动态路由 (精准匹配 data 结构) ---
 async function fetchPostRoutes() {
-  console.log(`🌍 Fetching posts from API: ${API_BASE_URL}...`);
+  console.log(`🌍 Fetching posts from API: ${API_BASE_URL}/posts...`);
   try {
     const response = await fetch(`${API_BASE_URL}/posts`);
     if (!response.ok) throw new Error(`API responded with ${response.status}`);
-    const posts = await response.json();
 
+    const json = await response.json();
+
+    // 🔥 直接读取 json.data，不再猜测
+    const posts = json.data;
+
+    if (!Array.isArray(posts)) {
+      console.error('⚠️ Expected "data" to be an array but got:', typeof posts);
+      return [];
+    }
+
+    // 🔥 直接读取 _id 和 name
     const routes = posts.map((post) => {
-      const id = post._id || post.id;
-      const rawTitle = post.name || post.title || '';
-      const cleanTitle = slugify(rawTitle);
+      const id = post._id;
+      const cleanTitle = slugify(post.name);
       return `/blogs/${cleanTitle}-${id}`;
     });
 
@@ -72,21 +84,18 @@ async function fetchPostRoutes() {
   }
 }
 
-// --- 🔥 单个页面处理任务 ---
+// --- 单个页面处理任务 ---
 async function snapPage(browser, route, index, total) {
   let page = null;
   try {
     page = await browser.newPage();
-    // 禁用不必要的资源请求以加速 (比如图片、字体、CSS)
-    // 注意：如果你的页面严重依赖 CSS/JS 布局来决定内容显示，这里要谨慎
-    // 这里为了 SEO 内容，图片拦截是安全的，CSS 最好还是加载
+
+    // 拦截不必要的资源以加速 (图片、字体)
     await page.setRequestInterception(true);
     page.on('request', (req) => {
       const resourceType = req.resourceType();
-      if (['image', 'font', 'stylesheet'].includes(resourceType)) {
-        // 如果你希望渲染结果带样式（避免闪烁），请注释掉 'stylesheet'
-        // req.abort();
-        req.continue();
+      if (['image', 'font'].includes(resourceType)) {
+        req.continue(); // 暂时放行，如果觉得慢可以改成 req.abort()
       } else {
         req.continue();
       }
@@ -94,11 +103,13 @@ async function snapPage(browser, route, index, total) {
 
     await page.setViewport({ width: 1280, height: 800 });
 
+    // 访问页面 (处理中文路径编码)
     const url = `http://localhost:4173${encodeURI(route)}`;
 
-    // 稍微放宽超时时间，并发时可能会慢
+    // 放宽超时时间
     await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
 
+    // 针对博客详情页和 Profile，等待主内容加载
     if (route.includes('/blogs/') || route === '/profile') {
       try {
         await page.waitForSelector('main', { timeout: 5000 });
@@ -109,13 +120,16 @@ async function snapPage(browser, route, index, total) {
 
     const html = await page.content();
 
+    // 计算保存路径
     let filePath;
     if (route === '/404') {
       filePath = path.join(DIST_DIR, '404.html');
     } else {
+      // 解码中文路径: /blogs/有志者... -> dist/blogs/有志者.../index.html
       const decodedRoute = decodeURIComponent(route);
       const routePath = decodedRoute.startsWith('/') ? decodedRoute.slice(1) : decodedRoute;
       const dir = path.join(DIST_DIR, routePath);
+
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
       filePath = path.join(dir, 'index.html');
     }
@@ -125,7 +139,7 @@ async function snapPage(browser, route, index, total) {
   } catch (e) {
     console.error(`❌ [${index + 1}/${total}] Error: ${route} - ${e.message}`);
   } finally {
-    if (page) await page.close(); // 必须关闭页面以释放内存
+    if (page) await page.close(); // 必须关闭 Tab 释放内存
   }
 }
 
@@ -135,6 +149,7 @@ async function snapPage(browser, route, index, total) {
   let browser;
 
   try {
+    // 1. 并行：启动服务 + 抓取接口
     const [_, dynamicRoutes] = await Promise.all([startServer(), fetchPostRoutes()]);
 
     const ALL_ROUTES = [...STATIC_ROUTES, ...dynamicRoutes];
@@ -142,7 +157,7 @@ async function snapPage(browser, route, index, total) {
 
     console.log(`🎯 Total pages to snap: ${total} | Concurrency: ${CONCURRENCY_LIMIT}`);
 
-    // 启动浏览器
+    // 2. 启动浏览器
     let executablePath;
     let launchArgs = [];
     if (isVercel) {
@@ -162,34 +177,25 @@ async function snapPage(browser, route, index, total) {
       args: [...launchArgs, '--single-process', '--no-zygote']
     });
 
-    // 🔥🔥🔥 核心并发控制逻辑 🔥🔥🔥
-    // 维护一个正在执行的 Promise 列表
+    // 3. 并发控制队列
     const executing = [];
     const results = [];
 
     for (let i = 0; i < total; i++) {
       const route = ALL_ROUTES[i];
-
-      // 创建一个 Promise 任务
       const p = snapPage(browser, route, i, total);
       results.push(p);
 
-      // 如果任务数量小于并发限制，直接继续往里塞
       if (CONCURRENCY_LIMIT <= total) {
-        // 包装 Promise：当它完成时，把自己从 executing 数组里移除
         const e = p.then(() => executing.splice(executing.indexOf(e), 1));
         executing.push(e);
-
-        // 如果达到并发限制，就等待任意一个任务完成
         if (executing.length >= CONCURRENCY_LIMIT) {
           await Promise.race(executing);
         }
       }
     }
 
-    // 等待所有剩余任务完成
     await Promise.all(results);
-
     console.log('🎉 All pages prerendered successfully!');
   } catch (error) {
     console.error('⚠️ Prerender script global error:', error);
