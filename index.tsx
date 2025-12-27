@@ -26,11 +26,21 @@ const appContent = (
   </HelmetProvider>
 );
 
-// 隐藏 Splash Screen 的逻辑现在由 App.tsx 根据 Auth 状态和最小时间控制
+// 渲染后的处理函数：移除原生启动屏
+const onRenderComplete = () => {
+  // 给一小段延迟，确保 React 已经把 DOM 刷到屏幕上
+  setTimeout(() => {
+    document.body.classList.add('app-ready');
+  }, 100);
+};
 
 if (rootElement.hasChildNodes()) {
   hydrateRoot(rootElement, appContent);
+  onRenderComplete();
 } else {
   const root = createRoot(rootElement);
   root.render(appContent);
+  // 对于 createRoot，render 是异步的，但在现代浏览器中直接调用紧接其后的逻辑通常没问题
+  // 或者可以在 App 的 useEffect 中处理。这里采用简单有效的 Body Class 方案。
+  onRenderComplete();
 }

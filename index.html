@@ -5,10 +5,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#020617" />
-    <script>
-      // 记录应用启动精确时间，用于计算最小 Loading 时间
-      window.__APP_START_TIME__ = Date.now();
-    </script>
     
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
@@ -26,87 +22,108 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sen:wght@400;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     
     <style>
+      /* 关键：Splash Screen 样式必须在 Head 中内联，以实现零延迟渲染 */
       #pwa-splash {
         position: fixed;
         inset: 0;
         z-index: 9999;
-        background-color: #020617;
+        background-color: #020617; /* 匹配深色主题 */
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        /* 增加消失动画的持续时间和缓动函数 */
-        transition: opacity 0.8s cubic-bezier(0.7, 0, 0.3, 1), visibility 0.8s;
+        transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s;
       }
 
       #pwa-splash .logo-container {
         position: relative;
-        width: 100px;
-        height: 100px;
-        margin-bottom: 48px;
+        width: 120px;
+        height: 120px;
+        margin-bottom: 40px;
+        animation: logo-pulse 2s ease-in-out infinite;
       }
 
       #pwa-splash .logo-container img {
         width: 100%;
         height: 100%;
-        filter: drop-shadow(0 0 25px rgba(14, 165, 233, 0.5));
-        animation: logo-float 3s ease-in-out infinite;
+        filter: drop-shadow(0 0 20px rgba(14, 165, 233, 0.4));
       }
 
       #pwa-splash .loader-wrapper {
-        width: 180px;
-        height: 1px;
-        background: rgba(255, 255, 255, 0.03);
-        position: relative;
+        width: 200px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 4px;
         overflow: hidden;
+        position: relative;
       }
 
       #pwa-splash .loader-bar {
         position: absolute;
         height: 100%;
-        width: 60px;
+        width: 50%;
         background: linear-gradient(90deg, transparent, #0ea5e9, transparent);
-        animation: loader-slide 2s infinite cubic-bezier(0.65, 0, 0.35, 1);
+        animation: loader-slide 1.5s infinite ease-in-out;
       }
 
       #pwa-splash .status-text {
-        margin-top: 24px;
-        color: rgba(255, 255, 255, 0.25);
+        margin-top: 20px;
+        color: rgba(255, 255, 255, 0.3);
         font-family: 'Fira Code', monospace;
-        font-size: 9px;
+        font-size: 10px;
         text-transform: uppercase;
-        letter-spacing: 0.4em;
-        font-weight: 500;
+        letter-spacing: 0.3em;
       }
 
-      @keyframes logo-float {
-        0%, 100% { transform: translateY(0) scale(1); }
-        50% { transform: translateY(-10px) scale(1.02); }
+      @keyframes logo-pulse {
+        0%, 100% { transform: scale(1); opacity: 0.8; }
+        50% { transform: scale(1.05); opacity: 1; }
       }
 
       @keyframes loader-slide {
-        0% { left: -100px; }
-        100% { left: 280px; }
+        0% { left: -100%; }
+        100% { left: 100%; }
       }
 
-      /* 只有当 body 获得 app-ready 类时才隐藏，隐藏时伴随轻微缩放 */
       body.app-ready #pwa-splash {
         opacity: 0;
         visibility: hidden;
         pointer-events: none;
-        transform: scale(1.05);
       }
     </style>
+
+    <script type="importmap">
+{
+  "imports": {
+    "react-dom": "https://esm.sh/react-dom@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.34.0",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.11.0",
+    "recharts": "https://esm.sh/recharts@^3.6.0",
+    "react-helmet-async": "https://esm.sh/react-helmet-async@^2.0.5",
+    "socket.io-client": "https://esm.sh/socket.io-client@^4.8.3",
+    "leaflet": "https://esm.sh/leaflet@^1.9.4",
+    "echarts": "https://esm.sh/echarts@^6.0.0",
+    "@vercel/analytics": "https://esm.sh/@vercel/analytics@^1.6.1",
+    "@vercel/speed-insights/": "https://esm.sh/@vercel/speed-insights@^1.3.1/",
+    "remixicon/": "https://esm.sh/remixicon@^4.7.0/",
+    "react-phone-input-2": "https://esm.sh/react-phone-input-2@^2.15.1"
+  }
+}
+</script>
 </head>
   <body class="bg-milky-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-500 overflow-x-hidden">
+    <!-- 启动屏幕：在 React 加载前显示 -->
     <div id="pwa-splash">
       <div class="logo-container">
-        <img src="/logo.svg" alt="Orion" />
+        <img src="/logo.svg" alt="Orion Logo" />
       </div>
       <div class="loader-wrapper">
         <div class="loader-bar"></div>
       </div>
-      <div class="status-text">Synchronizing Systems...</div>
+      <div class="status-text">Initializing Systems...</div>
     </div>
 
     <div id="root"></div>
@@ -118,11 +135,14 @@
           navigator.serviceWorker.getRegistrations().then((registrations) => {
             for (let registration of registrations) {
               registration.unregister();
+              console.log('🧹 Localhost detected: Service Worker unregistered.');
             }
           });
         } else {
           window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js');
+            navigator.serviceWorker.register('/sw.js')
+              .then(registration => { console.log('SW registered: ', registration); })
+              .catch(registrationError => { console.log('SW registration failed: ', registrationError); });
           });
         }
       }

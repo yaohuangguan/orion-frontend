@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { Routes, Route, Navigate, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { Header } from './components/Header';
@@ -13,13 +13,15 @@ import { Theme, PageView, User, BlogPost, ChatUser, PERM_KEYS, can } from './typ
 import { useTranslation } from './i18n/LanguageContext';
 import { Helmet } from 'react-helmet-async';
 
+// New Component Imports
 import { LoginModal } from './components/LoginModal';
-import { ResumeView } from './components/ResumeView';
+import { ResumeView } from './components/ResumeView'; // Used inside Home Route
 import { Footer } from './components/Footer';
 import { PageLoader } from './components/PageLoader';
 import { AccessRestricted } from './components/AccessRestricted';
 import { InstallPwa } from './components/InstallPwa';
 
+// --- PAGES IMPORTS (Moved from components) ---
 import { BlogList } from './pages/BlogList';
 import { ArticleView } from './pages/ArticleView';
 import { PortfolioPage } from './pages/PortfolioPage';
@@ -32,11 +34,13 @@ import { NotFound } from './pages/NotFound';
 import { NoPermission } from './pages/NoPermission';
 import { createLazyComponent } from './components/LazyLoader';
 
+// Lazy Load Heavy Pages
 const PrivateSpaceDashboard = createLazyComponent(
   () => import('./pages/private/PrivateSpaceDashboard')
 );
 const FootprintSpace = createLazyComponent(() => import('./pages/FootprintSpace'));
 
+// Lazy Load Private Sub-Spaces
 const JournalSpace = createLazyComponent(() => import('./pages/private/JournalSpace'));
 const SecondBrainSpace = createLazyComponent(() => import('./pages/private/SecondBrainSpace'));
 const LeisureSpace = createLazyComponent(() => import('./pages/private/LeisureSpace'));
@@ -45,15 +49,16 @@ const FitnessSpace = createLazyComponent(() => import('./pages/private/FitnessSp
 
 const SOCKET_URL = 'https://bananaboom-api-242273127238.asia-east1.run.app';
 
-// 声明全局变量以访问 index.html 中的时间戳
 declare global {
   interface Window {
-    __APP_START_TIME__: number;
-    marked: { parse: (text: string) => string };
+    marked: {
+      parse: (text: string) => string;
+    };
     hljs: any;
   }
 }
 
+// Layout Wrapper Component to handle common elements like Header, Background, Footer
 const Layout: React.FC<{
   user: User | null;
   socket: Socket | null;
@@ -65,17 +70,23 @@ const Layout: React.FC<{
 }> = ({ user, socket, theme, toggleTheme, onLogin, onLogout, onNavigateToChat }) => {
   const location = useLocation();
   const isPrivateSpace = location.pathname.startsWith('/captain-cabin');
+
+  // Logic to identify Article View (slug based route) to remove animations
   const isArticleView = /^\/blogs\/.+/.test(location.pathname);
 
+  // Determine Main Background
   let mainBgClass = '';
   if (isPrivateSpace) {
     mainBgClass = 'bg-gradient-to-br from-pink-200 via-rose-200 to-pink-200';
   } else if (isArticleView) {
+    // Specific solid backgrounds for Article View
     mainBgClass = theme === Theme.DARK ? 'bg-[#111]' : 'bg-white';
   } else {
+    // Default Public Pages
     mainBgClass = theme === Theme.DARK ? 'bg-slate-950' : 'bg-transparent';
   }
 
+  // Helper to map path to PageView enum for Header highlight
   const getCurrentPageView = (path: string): PageView => {
     if (path.startsWith('/blogs')) return PageView.BLOG;
     if (path.startsWith('/profile')) return PageView.RESUME;
@@ -102,6 +113,7 @@ const Layout: React.FC<{
       <ToastContainer />
       <InstallPwa />
 
+      {/* Hide Background Animations on Private Space OR Article View */}
       {!isPrivateSpace && !isArticleView && (
         <>{theme === Theme.DARK ? <CosmicBackground theme={theme} /> : <ScenicBackground />}</>
       )}
@@ -109,7 +121,7 @@ const Layout: React.FC<{
       <Header
         theme={theme}
         toggleTheme={toggleTheme}
-        setPage={() => {}}
+        setPage={() => {}} // Not used with Router Links in Header
         currentPage={getCurrentPageView(location.pathname)}
         currentUser={user}
         onLogin={onLogin}
@@ -130,6 +142,7 @@ const Layout: React.FC<{
         onLogin={onLogin}
       />
 
+      {/* Mobile Bottom Navigation */}
       <div className="block xl:hidden">
         <MobileBottomNav currentUser={user} onLoginRequest={onLogin} />
       </div>
@@ -144,8 +157,12 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ user, element, requiredPerm }) => {
-  if (!user) return <Navigate to="/" replace />;
+  if (!user) {
+    // Not logged in -> Redirect to home (or could show login modal trigger)
+    return <Navigate to="/" replace />;
+  }
   if (requiredPerm && !can(user, requiredPerm)) {
+    // Logged in but no permission -> Show Restricted Component
     return (
       <div className="pt-32 container mx-auto px-6">
         <AccessRestricted permission={requiredPerm} />
@@ -158,24 +175,43 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ user, element, required
 const App: React.FC = () => {
   const [theme, setTheme] = useState<Theme>(() => {
     const savedTheme = localStorage.getItem('app_theme');
-    if (savedTheme === Theme.DARK || savedTheme === Theme.LIGHT) return savedTheme as Theme;
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    if (savedTheme === Theme.DARK || savedTheme === Theme.LIGHT) {
+      return savedTheme as Theme;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       return Theme.DARK;
+    }
     return Theme.LIGHT;
   });
   const [user, setUser] = useState<User | null>(null);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
 
+  // Public Blog State
   const [isLoadingBlogs, setIsLoadingBlogs] = useState(false);
   const [publicPostToDelete, setPublicPostToDelete] = useState<BlogPost | null>(null);
+
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [socket, setSocket] = useState<Socket | null>(null);
+
+  // Chat Navigation State
   const [chatTarget, setChatTarget] = useState<ChatUser | null>(null);
 
   const { t, language, toggleLanguage } = useTranslation();
   const navigate = useNavigate();
 
-  // 1. 核心初始化与鉴权
+  useEffect(() => {
+    // 区分构建工具
+    const ver = import.meta.env?.VITE_APP_VERSION;
+
+    if (ver) {
+      console.log(
+        `%c ✅ Deployed Version: ${ver.substring(0, 7)} `,
+        'background:#333; color:#bada55; border-radius:4px; padding:4px;'
+      );
+    }
+  }, []);
+
+  // Initial Auth Check
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem('auth_token');
@@ -184,6 +220,7 @@ const App: React.FC = () => {
           const userData = await apiService.getCurrentUser();
           setUser(userData);
         } catch (e) {
+          console.error('Session expired or invalid', e);
           apiService.logout();
         }
       }
@@ -192,34 +229,21 @@ const App: React.FC = () => {
     checkAuth();
   }, []);
 
-  // 2. 控制 Splash Screen 的隐藏逻辑（核心优化点）
+  // Theme Sync
   useEffect(() => {
-    if (!isAuthChecking) {
-      // 策略：核心数据（Auth）加载完成后，检查是否满足最小展示时长
-      const MIN_LOADING_TIME = 1200; // 1.2秒，让 Logo 展示完整，不产生闪烁感
-      const startTime = window.__APP_START_TIME__ || Date.now();
-      const elapsed = Date.now() - startTime;
-      const remaining = Math.max(0, MIN_LOADING_TIME - elapsed);
-
-      const hideTimer = setTimeout(() => {
-        document.body.classList.add('app-ready');
-      }, remaining);
-
-      return () => clearTimeout(hideTimer);
+    if (theme === Theme.DARK) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
-  }, [isAuthChecking]);
-
-  useEffect(() => {
-    if (theme === Theme.DARK) document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
     localStorage.setItem('app_theme', theme);
   }, [theme]);
 
+  // Socket Connection
   useEffect(() => {
     if (user && !socket) {
       const newSocket = io(SOCKET_URL);
-      // Fix: Cast to any to resolve 'on' not existing on Socket type
-      (newSocket as any).on('connect', () => {
+      newSocket.on('connect', () => {
         newSocket.emit('USER_CONNECTED', {
           name: user.displayName,
           id: user._id,
@@ -227,9 +251,10 @@ const App: React.FC = () => {
           photoURL: user.photoURL
         });
       });
-      // Fix: Cast to any to resolve 'on' not existing on Socket type
-      (newSocket as any).on('NEW_NOTIFICATION', (data: any) => {
-        if (data.type === 'private_message') toast.info(data.content);
+      newSocket.on('NEW_NOTIFICATION', (data: any) => {
+        if (data.type === 'private_message') {
+          toast.info(data.content);
+        }
         window.dispatchEvent(new CustomEvent('sys_notification', { detail: data }));
       });
       setSocket(newSocket);
@@ -243,7 +268,10 @@ const App: React.FC = () => {
     };
   }, [user]);
 
-  const handleLoginSuccess = (loggedInUser: User) => setUser(loggedInUser);
+  // Handlers
+  const handleLoginSuccess = (loggedInUser: User) => {
+    setUser(loggedInUser);
+  };
 
   const handleLogout = () => {
     apiService.logout();
@@ -265,14 +293,17 @@ const App: React.FC = () => {
       await apiService.deletePost(publicPostToDelete._id);
       setPublicPostToDelete(null);
       window.dispatchEvent(new Event('blog:refresh'));
-    } catch (error) {}
+    } catch (error) {
+      console.error('Failed to delete public post', error);
+    }
   };
 
-  const toggleTheme = () => setTheme((prev) => (prev === Theme.LIGHT ? Theme.DARK : Theme.LIGHT));
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === Theme.LIGHT ? Theme.DARK : Theme.LIGHT));
+  };
 
-  // 此时不再返回 PageLoader，而是保持原位，Splash Screen 会在 body.app-ready 之前一直覆盖
   if (isAuthChecking) {
-    return null;
+    return <PageLoader />;
   }
 
   return (
@@ -291,6 +322,9 @@ const App: React.FC = () => {
             />
           }
         >
+          {/* Public Routes */}
+
+          {/* ROOT: Console / Home */}
           <Route
             path="/"
             element={
@@ -353,7 +387,10 @@ const App: React.FC = () => {
               />
             }
           />
+
           <Route path="/profile" element={<PortfolioPage currentUser={user} />} />
+
+          {/* Authenticated Routes */}
           <Route
             path="/user-profile"
             element={
@@ -363,6 +400,7 @@ const App: React.FC = () => {
               />
             }
           />
+
           <Route
             path="/system-management"
             element={
@@ -373,6 +411,7 @@ const App: React.FC = () => {
               />
             }
           />
+
           <Route
             path="/system-settings"
             element={
@@ -384,6 +423,7 @@ const App: React.FC = () => {
               />
             }
           />
+
           <Route
             path="/audit-log"
             element={
@@ -394,6 +434,7 @@ const App: React.FC = () => {
               />
             }
           />
+
           <Route
             path="/footprints"
             element={
@@ -408,6 +449,7 @@ const App: React.FC = () => {
               />
             }
           />
+
           <Route
             path="/chatroom"
             element={
@@ -417,6 +459,8 @@ const App: React.FC = () => {
               />
             }
           />
+
+          {/* Private Space (Captain Cabin) */}
           <Route
             path="/captain-cabin"
             element={
@@ -473,7 +517,11 @@ const App: React.FC = () => {
               }
             />
           </Route>
+
+          {/* System Pages */}
           <Route path="/403" element={<NoPermission />} />
+
+          {/* Catch All - Must be last */}
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
