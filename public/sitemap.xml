@@ -12,14 +12,26 @@
   </url>
   
   <url>
-    <loc>https://www.ps5.space/blogs/有志者事竟成-破釜沉舟-百二秦关终属楚-苦心人天不负-卧薪尝胆-三千越甲可吞吴-694d0e849f8fe64da538b6aa</loc>
-    <lastmod>2025-12-25T10:14:28.538Z</lastmod>
+    <loc>https://www.ps5.space/blogs/深度解析-自研预渲染脚本的执行生命周期-694e8a6056a96295dbeb4faf</loc>
+    <lastmod>2025-12-26T13:15:12.153Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.ps5.space/blogs/破局-spa-痛点-react-snap-sitemap-与-json-ld-的三位一体-seo-改造-694b7ed980663deaa33036f0</loc>
-    <lastmod>2025-12-24T05:49:13.071Z</lastmod>
+    <loc>https://www.ps5.space/blogs/deep-dive-the-execution-lifecycle-of-the-custom-prerender-script-694e8a4a56a96295dbeb4f9e</loc>
+    <lastmod>2025-12-26T13:14:50.402Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.ps5.space/blogs/architecture-evolution-solving-spa-seo-pain-points-with-custom-puppeteer-pre-rendering-694e88f556a96295dbeb4f1b</loc>
+    <lastmod>2025-12-26T13:09:09.722Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.ps5.space/blogs/有志者事竟成-破釜沉舟-百二秦关终属楚-苦心人天不负-卧薪尝胆-三千越甲可吞吴-694d0e849f8fe64da538b6aa</loc>
+    <lastmod>2025-12-25T10:14:28.538Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
