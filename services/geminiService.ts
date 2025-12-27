@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI } from '@google/genai';
 
 export const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
@@ -13,16 +13,16 @@ export const askThinkingAgent = async (prompt: string): Promise<string> => {
       contents: prompt,
       config: {
         thinkingConfig: {
-          thinkingBudget: 32768, // Max budget for deep reasoning
-        },
+          thinkingBudget: 32768 // Max budget for deep reasoning
+        }
         // IMPORTANT: maxOutputTokens is omitted to allow full thinking + response as per guidelines
       }
     });
 
-    return response.text || "I thought deeply but could not articulate a response.";
+    return response.text || 'I thought deeply but could not articulate a response.';
   } catch (error) {
-    console.error("Error in thinking agent:", error);
-    return "I encountered an error while thinking. Please try again later.";
+    console.error('Error in thinking agent:', error);
+    return 'I encountered an error while thinking. Please try again later.';
   }
 };
 
@@ -32,12 +32,13 @@ export const askThinkingAgent = async (prompt: string): Promise<string> => {
 export const askStandardAssistant = async (prompt: string): Promise<string> => {
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
+      // Fix: Use 'gemini-3-flash-preview' for basic text tasks as per guidelines
+      model: 'gemini-3-flash-preview',
+      contents: prompt
     });
-    return response.text || "No response generated.";
+    return response.text || 'No response generated.';
   } catch (error) {
-    console.error("Error in standard assistant:", error);
-    return "Error connecting to AI service.";
+    console.error('Error in standard assistant:', error);
+    return 'Error connecting to AI service.';
   }
 };

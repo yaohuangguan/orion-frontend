@@ -89,8 +89,9 @@ const DefaultErrorFallback = ({ retry }: { retry: () => void }) => (
 );
 
 // --- 5. 内部错误边界组件 ---
+// Fix: Make children optional in props to avoid JSX requirement errors when children are passed as elements
 interface ErrorBoundaryProps {
-  children: ReactNode;
+  children?: ReactNode;
   fallback?: ReactNode;
 }
 
@@ -98,9 +99,11 @@ interface ErrorBoundaryState {
   hasError: boolean;
 }
 
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+// Fix: Explicitly extend React.Component to ensure that 'state', 'props', and 'setState' are correctly identified by the compiler
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
+    // Fix: Explicitly initialize state to avoid existence errors
     this.state = { hasError: false };
   }
 
@@ -114,6 +117,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
   handleRetry = () => {
     // 简单的重试逻辑：清除错误状态，这会触发子组件重新渲染（重新尝试加载）
+    // Fix: Properly access this.setState
     this.setState({ hasError: false });
     // 清除 sessionStorage 里的重试标记，允许再次尝试刷新
     const storageKey = `retry-${window.location.pathname}`;
@@ -121,6 +125,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   };
 
   render() {
+    // Fix: Properly access this.state and this.props
     if (this.state.hasError) {
       if (React.isValidElement(this.props.fallback)) {
         return this.props.fallback;
@@ -155,6 +160,7 @@ export function createLazyComponent<T extends ComponentType<any>>(
     }, []);
 
     return (
+      // Fix: children is now optional in ErrorBoundaryProps, allowing JSX nested elements to satisfy the contract
       <ErrorBoundary fallback={options.errorFallback}>
         <Suspense fallback={options.loading || <DefaultLoader />}>
           {/* @ts-ignore: TS 很难推断 LazyExoticComponent 的具体 Props，这里忽略 */}

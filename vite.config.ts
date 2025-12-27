@@ -12,9 +12,11 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
       proxy: {
         '/api': {
-          target: 'http://localhost:5000',
+          target: 'https://bananaboom-api-242273127238.asia-east1.run.app/api',
           changeOrigin: true,
-          secure: false
+          secure: false,
+          // 🔥 关键：把请求路径中的 '/api' 替换为空字符串
+          rewrite: (path) => path.replace(/^\/api/, '')
         }
       }
     },

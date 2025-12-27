@@ -1,6 +1,5 @@
-
 {
   "name": "Orion",
   "description": "A modern, high-performance blog and portfolio built with Next.js 14 architecture, React, and Tailwind CSS.",
-  "requestFramePermissions": []
+  "requestFramePermissions": ["camera", "microphone"]
 }
