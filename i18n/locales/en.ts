@@ -2,11 +2,11 @@ export const en = {
   header: {
     home: 'Home',
     blog: 'Journal',
-    about: 'Profile',
+    about: 'Application',
     privateSpace: "Captain's Cabin",
-    chat: 'Comms Link',
-    signOut: 'Sign Out',
-    signIn: 'Sign In',
+    chat: 'Comm Link',
+    signOut: 'Disconnect',
+    signIn: 'Login',
     profile: 'Personal Center',
     settings: 'System Settings',
     audit: 'System Audit',
@@ -14,48 +14,48 @@ export const en = {
     clearAll: 'Clear All',
     emptyNotifications: 'No new alerts',
     footprint: 'Star Map',
-    system: 'System Mgmt'
+    system: 'System Management'
   },
   pwa: {
     title: 'Orion',
-    desc: 'Install on home screen for better experience',
+    desc: 'Install to home screen for a better experience',
     install: 'Install',
-    ios: "Tap share <i class='fas fa-share-square'></i> and select <b>'Add to Home Screen'</b>"
+    ios: "Tap share icon <i class='fas fa-share-square'></i> then select <b>'Add to Home Screen'</b>"
   },
   bottomNav: {
     home: 'Home',
-    archives: 'Archives',
+    archives: 'Application',
     cabin: 'Cabin',
     me: 'Me'
   },
   hero: {
     status: 'System Online',
-    title1: 'Explore',
+    title1: 'Exploring',
     title2: 'the Unknown',
     introPrefix: 'I am ',
     introName: 'Sam',
     introSuffix:
       '. Navigating the digital cosmos, building robust architectures, and exploring the frontiers of Artificial Intelligence.',
     ctaPrimary: 'Explore Journal',
-    ctaSecondary: 'System Profile'
+    ctaSecondary: 'Orion Applications'
   },
   portfolio: {
-    title: 'Portfolio',
-    subtitle: 'A collection of engineering projects and professional history.',
-    resume: 'Resume',
-    projects: 'Projects',
+    title: 'Orion App Store',
+    subtitle: 'App Portfolio & Engineering Projects Showcase.',
+    resume: 'Intro of Owner',
+    projects: 'Apps & Projects',
     liveDemo: 'Live Demo',
     sourceCode: 'Source Code',
     demoOptions: {
-      title: 'Select View Mode',
+      title: 'Select Viewing Mode',
       local: 'Preview Here',
       newTab: 'New Tab',
       iframeTitle: 'Live Preview'
     }
   },
   blogList: {
-    title: 'Journal & Insights',
-    subtitle: 'Thoughts on technology, investment, and personal growth.',
+    title: 'Insights & Logs',
+    subtitle: 'A collection of thoughts on technology, investment, and personal growth.',
     titlePrivate: 'Encrypted Vault',
     subtitlePrivate: 'Classified documentation and personal logs.',
     viewAll: 'View all logs',
@@ -64,13 +64,23 @@ export const en = {
     entries: 'ENTRIES',
     status: 'STATUS',
     online: 'ONLINE',
-    searchPlaceholder: 'Search logs by keywords...',
+    searchPlaceholder: 'Search logs via keywords...',
     filter: 'Filter:',
     all: 'All',
     noLogs: 'No logs found',
     adjustSearch: 'Adjust your search parameters',
-    clearFilters: 'Clear filters',
+    clearFilters: 'Clear Filters',
     page: 'PAGE'
+  },
+  articleView: {
+    back: 'Back to Insights',
+    ctaTitle: 'End of Transmission',
+    ctaMessage:
+      'Resonating with this signal? Boost the frequency with a like, or broadcast the link to your network.',
+    like: 'Like',
+    liked: 'Liked',
+    share: 'Share Link',
+    copied: 'Link Copied'
   },
   auditLog: {
     title: 'System Activity Log',
@@ -79,37 +89,37 @@ export const en = {
     action: 'Command',
     target: 'Target Object',
     time: 'Timestamp',
-    ip: 'Source IP',
+    ip: 'Origin IP',
     noData: 'No activity recorded in current sector.'
   },
   pagination: {
-    prev: 'Prev Sector',
+    prev: 'Previous Sector',
     next: 'Next Sector',
     page: 'Sector'
   },
   login: {
     welcome: 'Identify Yourself',
     welcomeRegister: 'New Entity',
-    welcomeReset: 'Reset Access',
+    welcomeReset: 'Reset Clearance',
     subtitle: 'Authenticate to access restricted sectors',
     subtitleRegister: 'Register to obtain clearance',
     subtitleReset: 'Use secret protocol to restore access',
     name: 'Codename',
-    email: 'Comms Link',
+    email: 'Comm Link',
     emailOrPhone: 'Email or Phone',
     phone: 'Phone Number',
-    phoneError: 'Invalid format',
+    phoneError: 'Invalid phone format',
     password: 'Access Key',
-    newPassword: 'New Key',
+    newPassword: 'New Access Key',
     secretKey: 'Secret Protocol Key',
     confirmPassword: 'Confirm Key',
     signin: 'Authenticate',
     register: 'Initialize',
-    reset: 'Restore',
+    reset: 'Restore Access',
     toRegister: 'No clearance? Initialize',
-    toLogin: 'Already authorized? Authenticate',
+    toLogin: 'Have clearance? Authenticate',
     forgotPassword: 'Lost Access Key?',
-    backToLogin: 'Return to Auth',
+    backToLogin: 'Back to Authentication',
     error: 'Authentication failed. Access denied.',
     passwordMismatch: 'Access Keys do not match.'
   },
@@ -121,13 +131,13 @@ export const en = {
     phone: 'Phone Number',
     uid: 'Entity ID',
     save: 'Update Identity',
-    developing: 'Module developing...',
+    developing: 'Module under development...',
     security: 'Security Protocol',
     changePassword: 'Change Access Key',
-    oldPassword: 'Current Key',
-    newPassword: 'New Key',
+    oldPassword: 'Current Access Key',
+    newPassword: 'New Access Key',
     admin: 'Admin Console',
-    grantVip: 'Grant VIP Access',
+    grantVip: 'Grant VIP Clearance',
     targetEmail: 'Target Entity Email',
     dataManagement: 'Data Management',
     exportLogs: 'Export Logs',
@@ -155,14 +165,14 @@ export const en = {
     accessControl: 'Access & Permissions',
     requestPermissionTitle: 'Request Permission',
     permissionKey: 'Permission Key',
-    applyAdmin: 'Request Admin Role',
+    applyAdmin: 'Apply for Admin Role',
     customRequest: 'Custom Permission Request',
-    reasonLabel: 'Request Reason',
+    reasonLabel: 'Reason for Request',
     reasonPlaceholder: 'Please describe why you need this permission...',
     submitRequest: 'Submit Request'
   },
   settings: {
-    title: 'System Config',
+    title: 'System Configuration',
     subtitle: 'Adjust interface parameters and localization.',
     theme: 'Visual Interface',
     language: 'Language Protocol',
@@ -181,6 +191,69 @@ export const en = {
       permissions: 'Permissions',
       requests: 'Requests'
     },
+    common: {
+      loading: 'Loading...',
+      save: 'Save',
+      cancel: 'Cancel',
+      delete: 'Delete',
+      edit: 'Edit',
+      update: 'Update',
+      search: 'Search...',
+      actions: 'Actions',
+      confirm: 'Confirm',
+      success: 'Success',
+      error: 'Error'
+    },
+    r2: {
+      title: 'Cloudflare R2 Objects',
+      tab_storage: 'R2 Storage',
+      tab_cloudinary: 'Cloudinary',
+      images: 'Images',
+      backups: 'Backups',
+      others: 'Others',
+      upload: 'Upload',
+      home: 'Home',
+      folders: 'Folders',
+      empty: 'Folder is empty.',
+      loadMore: 'Load More Files',
+      plan: 'Cloudflare R2 Plan',
+      planDesc: 'Monthly Free Tier: 10GB Storage, 1M Class A Ops, 10M Class B Ops. Egress is free.',
+      storageUsage: 'Storage Usage',
+      estCost: 'Est. Cost (Month)',
+      freeTier: 'Free Tier Active',
+      overage: 'Overage Active',
+      distribution: 'Distribution',
+      totalObjects: 'Total Objects',
+      allBuckets: 'Across all buckets',
+      deleteTitle: 'Delete File',
+      deleteMsg: 'Permanently remove this file from {storage}?',
+      uploadSuccess: 'File uploaded successfully.',
+      deleteSuccess: 'File deleted successfully.'
+    },
+    users: {
+      search: 'Search users...',
+      vipStatus: 'VIP Status',
+      active: 'Active',
+      inactive: 'Inactive',
+      revoke: 'Revoke',
+      grant: 'Grant',
+      role: 'Role',
+      directPerms: 'Direct Permissions',
+      botError: 'Operation Denied: Cannot modify Bot account.',
+      verifyTitle: 'Security Verification',
+      verifyMsg: 'Please enter the system secret key to authorize this privilege escalation.',
+      verifyBtn: 'Verify & Execute'
+    },
+    backup: {
+      terminalTitle: 'System Backup Terminal',
+      processing: 'Processing...',
+      init: '> Initializing secure connection to backup subsystem...',
+      reqDump: '> Requesting database dump...',
+      success: '> Backup process completed successfully.',
+      terminated: '> Process Terminated.',
+      viewFiles: 'View Files',
+      wait: 'Please wait...'
+    },
     cloudinary: {
       title: 'Cloudinary Image Library',
       credits: 'Credits Used',
@@ -192,52 +265,9 @@ export const en = {
       resources: 'Total Resources',
       lastUpdated: 'Last Updated'
     },
-    r2: {
-      title: 'Cloudflare R2 Storage',
-      tab_storage: 'Storage (R2)',
-      tab_cloudinary: 'Media (Cloudinary)',
-      plan: 'Free Tier Status',
-      planDesc: 'Using Cloudflare R2 object storage. No egress fees.',
-      storageUsage: 'Class A Ops',
-      estCost: 'Est. Cost',
-      overage: 'Overage',
-      freeTier: 'Free Tier',
-      images: 'Images',
-      backups: 'Backups',
-      others: 'Others',
-      totalObjects: 'Total Objects',
-      allBuckets: 'Across all buckets',
-      distribution: 'Storage Distribution',
-      empty: 'No files found in this bucket/prefix.',
-      loadMore: 'Load More Files',
-      upload: 'Upload File',
-      deleteTitle: 'Delete File?',
-      deleteMsg: 'Are you sure you want to permanently delete this file from {storage}?',
-      deleteSuccess: 'File deleted successfully.',
-      home: 'Home',
-      folders: 'Folders'
-    },
-    backup: {
-      terminalTitle: 'Database Backup Terminal',
-      processing: 'Processing...',
-      init: '> Initializing backup sequence...',
-      reqDump: '> Requesting mongodump stream from server...',
-      success: '> Backup stream complete. File downloaded.',
-      terminated: '> Process terminated.',
-      viewFiles: 'View Backups',
-      wait: 'Please Wait...'
-    },
-    common: {
-      loading: 'Loading...',
-      save: 'Save',
-      cancel: 'Cancel',
-      delete: 'Delete',
-      actions: 'Actions',
-      update: 'Update'
-    },
     requests: {
       title: 'Access Requests',
-      pending: 'Pending',
+      pending: 'Pending Review',
       approve: 'Approve',
       reject: 'Reject',
       noPending: 'No pending requests.',
@@ -264,20 +294,6 @@ export const en = {
       desc: 'Description',
       save: 'Save Permission',
       delete: 'Delete Permission'
-    },
-    users: {
-      search: 'Search users...',
-      vipStatus: 'VIP Status',
-      active: 'Active',
-      inactive: 'Inactive',
-      grant: 'Grant VIP',
-      revoke: 'Revoke VIP',
-      verifyTitle: 'Verify Authorization',
-      verifyMsg: 'Please enter the secret key to confirm this action.',
-      verifyBtn: 'Verify',
-      role: 'Role',
-      directPerms: 'Direct Permissions',
-      botError: 'Cannot modify Bot account.'
     }
   },
   access: {
@@ -286,15 +302,15 @@ export const en = {
     message: 'You do not have the required security clearance to access this sector.',
     request: 'Request Access',
     requestTitle: 'Submit Access Request',
+    reasonPlaceholder: 'Why do you need access to this sector?',
     submit: 'Submit Request',
     cancel: 'Cancel',
-    pending: 'Access Request Pending',
-    reasonPlaceholder: 'Please provide a valid reason...'
+    pending: 'Access Request Pending Approval'
   },
   footprint: {
     title: 'Star Map',
     subtitle: 'Tracking footprints across the galaxy.',
-    intro: "Illuminate the provinces you've explored and pin your memories on the global grid.",
+    intro: "Light up the provinces you've explored and pin your memories on the global grid.",
     tabs: {
       china: 'China Sector',
       world: 'Global Markers'
@@ -308,8 +324,8 @@ export const en = {
     add: 'Add Footprint',
     edit: 'Edit Footprint',
     form: {
-      name: 'Place Name',
-      province: 'Province / Region',
+      name: 'Location Name',
+      province: 'Province',
       city: 'City',
       date: 'Visit Date',
       mood: 'Mood',
@@ -328,64 +344,67 @@ export const en = {
     credentials: 'Ex-Tencent & Lalamove Senior Dev',
     siteIntro: {
       title: 'System Architecture',
-      subtitle: 'Overview of modules available in this digital space.',
+      subtitle: 'Overview of the modules available in this digital space.',
       journalTitle: 'Public Journal',
       journalDesc:
-        'My personal transmission log. Sharing insights on technology, code, and life experiences.',
-      profileTitle: 'Captain Profile',
+        'My personal transmission log. Sharing insights on technology, coding, and life experiences.',
+      profileTitle: "Captain's Profile",
       profileDesc:
-        'A dossier of my journey: Big Tech experience, startups, and financial exploration.',
+        'A dossier of my journey: Big tech experience, startups, and financial exploration.',
       chatTitle: 'Interstellar Chat',
       chatDesc:
         'Real-time quantum link. Login required. Connect and chat with other voyagers in the system.',
       privateTitle: "Captain's Cabin",
       privateDesc:
-        "Encrypted vault for my love story and personal memories. Strictly for Captain's eyes only (haha)."
+        "Encrypted vault for my personal love story and memories. Strictly for the Captain's eyes (haha)."
     },
     websiteIntro: {
-      title: 'Website Specification',
+      title: 'About This System',
       description:
-        'This platform is built with a micro-frontend architecture, utilizing React 18, TypeScript, and Tailwind CSS. It features a custom-built component library and a robust backend service.',
-      viewSpecs: 'View System Specs',
-      modalTitle: 'System Specifications',
+        'Orion is a modern Personal Knowledge Management (PKM) and Digital Garden system. It acts as a bridge between public expression and private introspection, powered by React 19 and Gemini AI.',
+      viewSpecs: 'View Full Architecture',
+      modalTitle: 'Orion System Architecture',
       sections: {
         public: {
-          title: 'Public Sector',
-          desc: 'Accessible to all visitors.',
+          title: 'Public Sector (The Bridge)',
+          desc: 'The outward-facing interface accessible to all voyagers.',
           features: [
-            '<b>Blog Engine:</b> Markdown rendering, code highlighting.',
-            '<b>Portfolio:</b> Interactive project showcase.',
-            '<b>Performance:</b> SSR & Static Generation.'
+            'Interactive 3D-style Hero with dynamic status indicators.',
+            'Transmission Log (Blog) with Markdown, tagging, and search.',
+            'Dual-mode Portfolio (Resume Document / Project Cards).',
+            'AI Agents: Thinking Agent (Gemini 3.0 Pro) & Live Agent (Multimodal).'
           ]
         },
         private: {
-          title: 'Private Sector',
-          desc: 'Encrypted personal space.',
+          title: "Captain's Cabin (Private Space)",
+          desc: 'A restricted area protected by JWT authentication and RBAC.',
           features: [
-            '<b>Journaling:</b> Rich text editor with auto-save.',
-            '<b>Fitness Tracker:</b> Charts & calendar visualization.',
-            '<b>Finance:</b> Asset tracking (Hidden).'
+            'Second Brain: RAG-style context-aware AI chat with memory.',
+            'Fitness Space: Holistic tracking (Weight, BMI, Sleep, Workout Log).',
+            "Leisure: AI Smart Kitchen (Chef's Wheel), Moon Cycle Tracker, Pirate Lords Game.",
+            'Star Map: ECharts & Leaflet based travel footprint tracking.',
+            'Capsule Gallery: Draggable corkboard UI for memories.'
           ]
         },
         admin: {
-          title: 'Command Center',
-          desc: 'System administration.',
+          title: 'System Management',
+          desc: 'Administrative controls and monitoring.',
           features: [
-            '<b>User Management:</b> RBAC & Permissions.',
-            '<b>System Resources:</b> R2 & Cloudinary monitoring.',
-            '<b>Audit Logs:</b> Security tracking.'
+            'RBAC: Granular control over Users, Roles, and Permissions.',
+            'Audit Log: Comprehensive tracking of all system actions (Login, Delete, Edit).',
+            'Resource Monitor: Real-time usage stats for Cloudinary (Storage, Bandwidth).'
           ]
         },
         stack: {
           title: 'Tech Stack',
           list: [
-            'React 18',
+            'React 19 & Vite',
             'TypeScript',
             'Tailwind CSS',
-            'Node.js',
-            'MongoDB',
-            'Redis',
-            'Cloudflare R2'
+            'Google GenAI SDK',
+            'Recharts & ECharts',
+            'Socket.io',
+            'PWA'
           ]
         }
       }
@@ -394,22 +413,22 @@ export const en = {
       etymology1: '(French: Gold)',
       etymology2: '(The Hunter)',
       description:
-        'The brightest constellation in the night sky. A navigation star guiding you through the digital cosmos to discover your value.',
-      slogan: 'Navigate Your Value'
+        'The brightest constellation in the night sky. A navigational star guiding you through the digital cosmos to discover your value.',
+      slogan: 'Navigate your Value'
     },
     education: 'Database: Education',
     educationSchool: 'Miami University',
     educationDegree: 'BA, Interactive Media Studies (STEM)',
     skills: 'Tech Stack',
     experience: 'Mission History',
-    basedIn: 'Earth Orbit',
+    basedIn: 'Orbiting Earth',
     gpa: "GPA: 3.7 • Dean's List",
     jobs: [
       {
         company: 'Gold Woodbath Capital',
         role: 'Founder / Investor',
         description:
-          'Founded a private equity firm focused on technology and emerging markets. Managed portfolio strategies.',
+          'Founded a private equity firm focusing on tech and emerging markets. Managed portfolio strategies.',
         color: 'bg-amber-500'
       },
       {
@@ -423,14 +442,13 @@ export const en = {
         company: 'Tencent Cloud',
         role: 'Frontend Developer',
         description:
-          'Led frontend development for Coding OA platform. Implemented DevOps toolchains.',
+          'Spearheaded frontend development for the Coding OA platform. Implemented DevOps toolchains.',
         color: 'bg-blue-500'
       },
       {
-        company: 'BeeHex (NASA Spin-off)',
+        company: 'BeeHex',
         role: 'Frontend Engineer',
-        description:
-          'Revolutionized food automation with 3D printing technology. Built custom Vue.js platform.',
+        description: 'Revolutionized food automation with 3D printing technology (NASA Spin-off).',
         color: 'bg-slate-500'
       }
     ]
@@ -441,14 +459,14 @@ export const en = {
     postButton: 'Send Transmission',
     loginToComment: 'Authenticate to transmit',
     noComments: 'No transmissions received.',
-    reply: 'Reply',
-    replyTo: 'Reply to',
+    reply: 'Respond',
+    replyTo: 'Respond to',
     cancel: 'Abort',
     error: 'Transmission failed.'
   },
   chat: {
     title: 'Quantum Link',
-    subtitle: 'Encrypted real-time subspace communication channel.',
+    subtitle: 'Real-time encrypted subspace communication channel.',
     crewManifest: 'Crew Manifest',
     publicChannel: 'Public Channel',
     privateChannel: 'Private Channel',
@@ -473,10 +491,10 @@ export const en = {
     disconnect: 'Terminate Link'
   },
   footer: {
-    tagline: 'Refining digital experience through code and design.',
+    tagline: 'Refining the digital experience through code and design.',
     rights: '© 2024 Sam Yao. System Operational.',
-    builtBy: 'Built with Pride, Love and Peace by Sam Yao',
-    strengthHonor: 'Strength & Honor'
+    builtBy: 'Built with Pride, Love, and Peace by Sam Yao',
+    strengthHonor: 'Strength and Honor'
   },
   privateSpace: {
     tabs: {
@@ -495,9 +513,9 @@ export const en = {
     },
     hotSearch: {
       title: 'News Center',
-      hot: 'Trends',
+      hot: 'Hot Trends',
       finance: 'Finance',
-      game: 'Games',
+      game: 'Gaming',
       guonei: 'Domestic',
       world: 'World',
       updated: 'Updated',
@@ -509,12 +527,12 @@ export const en = {
       search: 'Library',
       placeholderUrl: 'MP3 URL...',
       placeholderSearch: 'Search...',
-      nowPlaying: 'Now Playing',
+      nowPlaying: 'Playing',
       stopped: 'Idle',
       mahjong: 'Mahjong Soul Zone',
-      mahjongDesc: 'Accessing Maj-Soul network.',
-      drawingBoard: 'Drawing Board',
-      drawingDesc: 'Unleash your creativity.',
+      mahjongDesc: 'Access the Maj-Soul network.',
+      drawingBoard: 'Creative Canvas',
+      drawingDesc: 'Unleash your imagination.',
       clock: {
         title: 'Smart Hub',
         subtitle: 'Shenzhen Live'
@@ -526,11 +544,11 @@ export const en = {
         nextPeriod: 'Next Period',
         inDays: 'in {days} days',
         log: 'Log Period',
-        save: 'Save',
+        save: 'Save Log',
         flow: 'Flow',
         symptoms: 'Symptoms',
         note: 'Note',
-        delete: 'Delete',
+        delete: 'Delete Record',
         startDate: 'Start Date',
         endDate: 'End Date',
         color: 'Color',
@@ -557,8 +575,8 @@ export const en = {
       },
       chefWheel: {
         title: 'AI Smart Kitchen',
-        subtitle: 'Automated Meal Decision System',
-        spin: 'SPIN',
+        subtitle: 'Automated Meal Selection System',
+        spin: 'START DRAW',
         spinning: 'ANALYZING...',
         confirm: 'Confirm Selection',
         retry: 'Back & Retry',
@@ -566,7 +584,7 @@ export const en = {
         recommendations: 'You might also like:',
         manage: 'Manage Menu',
         viewRecipe: 'View Recipe',
-        searchMode: 'Recipe Search',
+        searchMode: 'Search Recipes',
         wheelMode: 'Wheel Mode',
         backToSearch: 'Back to Search',
         searchPlaceholder: 'Search for a recipe (e.g. Kung Pao Chicken)...',
@@ -580,10 +598,10 @@ export const en = {
           target: 'Target',
           fallbackTitle: 'Priority Logic (Fallback)',
           fallback1:
-            'If you logged your weight recently in Fitness, AI prioritizes the latest log.',
+            'If you logged your weight in Fitness recently, AI prioritizes the latest log.',
           fallback2:
-            "If you explicitly set a different goal today (e.g. 'Bulk') in diet log, AI recommends for that goal.",
-          error: 'Nutritionist AI is busy. Try again later.'
+            "If you explicitly set a different goal (e.g., 'Bulk') in your Fitness diet log today, AI recommends for that goal instead of your long-term User Profile goal.",
+          error: 'Nutritional AI is busy. Try again later.'
         },
         form: {
           add: 'Add Dish',
@@ -602,7 +620,7 @@ export const en = {
           calories: 'Calories',
           tags: 'Tags',
           options: {
-            any: 'Any',
+            any: 'All',
             lunch: 'Lunch',
             dinner: 'Dinner',
             supper: 'Supper',
@@ -612,7 +630,7 @@ export const en = {
           },
           tooltips: {
             healthy: 'Prioritizes low-calorie and balanced meals.',
-            variety: 'Avoids dishes eaten recently.'
+            variety: 'Avoids dishes eaten recently to ensure variety.'
           }
         },
         menu: {
@@ -639,9 +657,9 @@ export const en = {
         rules: [
           'Objective: Coordinate the 4 Factions (Red, Blue, Green, Yellow) to their home territories simultaneously.',
           'Home Territories: Red (Top-Left), Blue (Top-Right), Green (Bottom-Left), Yellow (Bottom-Right).',
-          'Units: Each faction has 4 units (Captain, Ship, Treasure, Map). All 4 must be within their colored 3x3 zone.',
-          'Neutral Zone: The central column and empty spaces allow movement.',
-          'Difficulty: Hard. Requires forward planning.'
+          'Units: Each faction has 4 units (Captain, Ship, Treasure, Map). All 4 must be inside their specific 3x3 colored zone.',
+          'Neutral Zone: The center column and empty spaces allow for movement.',
+          'Difficulty: Hard. Requires look-ahead planning.'
         ]
       }
     },
@@ -657,16 +675,16 @@ export const en = {
         weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
         holidays: {
           '1-1': 'New Year',
-          '2-14': "Valentine's",
-          '3-8': "Women's Day",
+          '2-14': 'Valentine',
+          '3-8': 'Women Day',
           '3-12': 'Arbor Day',
           '4-1': 'April Fools',
           '5-1': 'Labor Day',
           '5-4': 'Youth Day',
-          '6-1': "Children's Day",
-          '7-1': 'CPC Day',
+          '6-1': 'Children Day',
+          '7-1': 'CCP Day',
           '8-1': 'Army Day',
-          '9-10': "Teacher's Day",
+          '9-10': 'Teacher Day',
           '10-1': 'National Day',
           '12-24': 'Xmas Eve',
           '12-25': 'Christmas'
@@ -681,7 +699,7 @@ export const en = {
           'Pure Brightness',
           'Grain Rain',
           'Start of Summer',
-          'Grain Full',
+          'Grain Buds',
           'Grain in Ear',
           'Summer Solstice',
           'Minor Heat',
@@ -703,10 +721,10 @@ export const en = {
       photoWall: {
         title: 'Fitness Gallery',
         captured: '{n} Photos Captured This Month',
-        empty: 'No photos for this range',
+        empty: 'No photos uploaded for this range',
         view: 'View Day Photos',
-        prev6: 'Prev 6 Mo',
-        next6: 'Next 6 Mo'
+        prev6: 'Prev 6 Months',
+        next6: 'Next 6 Months'
       },
       stats: {
         progress: 'Progress',
@@ -730,15 +748,15 @@ export const en = {
         isDone: 'Task Done?',
         duration: 'Duration (min)',
         type: 'Activities',
-        notes: 'Daily Highlights',
+        notes: "Today's Highlights",
         types: {
-          run: 'Run',
-          swim: 'Swim',
-          lift: 'Lift',
+          run: 'Running',
+          swim: 'Swimming',
+          lift: 'Lifting',
           yoga: 'Yoga',
           hiit: 'HIIT',
           trip: 'Trip',
-          hike: 'Hike',
+          hike: 'Hiking',
           movie: 'Movie',
           love: 'Love',
           other: 'Other'
@@ -761,7 +779,7 @@ export const en = {
         water: 'Water Intake (ml)'
       },
       photos: {
-        upload: 'Upload Moments',
+        upload: 'Upload Daily Moments',
         empty: 'No photos today'
       },
       charts: {
@@ -966,11 +984,11 @@ export const en = {
     },
     tasks: 'Tasks',
     newTask: 'New Task...',
-    caughtUp: "You're all caught up!",
-    emptyJournal: 'Journal is empty.',
+    caughtUp: 'All caught up!',
+    emptyJournal: 'The journal is empty.',
     writeFirst: 'Write your first memory on the right.',
     read: 'Read',
-    preview: 'No preview...',
+    preview: 'No preview available...',
     unknownDate: 'Unknown Date',
     editor: {
       titlePlaceholder: 'Title...',
@@ -984,7 +1002,7 @@ export const en = {
       update: 'Update Entry',
       cancel: 'Cancel Edit',
       chars: 'Chars',
-      tellStory: 'Tell your story...',
+      tellStory: 'Write your story...',
       saving: 'Saving...',
       saved: 'Saved',
       saveDraft: 'Save Draft',
@@ -996,7 +1014,7 @@ export const en = {
       upload: 'Upload Photo',
       caption: 'Caption',
       location: 'Location',
-      save: 'Pin It',
+      save: 'Pin to Board',
       cancel: 'Discard',
       replace: 'Replace Image',
       delete: 'Delete',
@@ -1008,16 +1026,6 @@ export const en = {
       pinButton: 'Pin It',
       developing: 'Developing Photo...',
       reserved: 'Reserved'
-    },
-    articleView: {
-      back: 'Back to Insights',
-      ctaTitle: 'End of Transmission',
-      ctaMessage:
-        'Resonating with this signal? Boost the frequency with a like, or broadcast the link to your network.',
-      like: 'Like',
-      liked: 'Liked',
-      share: 'Share Link',
-      copied: 'Link Copied'
     }
   }
 };

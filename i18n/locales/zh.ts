@@ -1,64 +1,64 @@
 export const zh = {
   header: {
-    home: '首页',
+    home: '主控台',
     blog: '日志',
-    about: '关于',
+    about: '应用',
     privateSpace: '舰长室',
-    chat: '通讯链路',
+    chat: '星际通讯',
     signOut: '登出',
-    signIn: '登入',
+    signIn: '用户登录',
     profile: '个人中心',
     settings: '系统设置',
     audit: '系统审计',
-    notifications: '通知',
-    clearAll: '清除全部',
-    emptyNotifications: '暂无新通知',
-    footprint: '星图足迹',
+    notifications: '警报',
+    clearAll: '清除',
+    emptyNotifications: '无新警报',
+    footprint: '星图',
     system: '系统管理'
   },
   pwa: {
     title: 'Orion',
-    desc: '安装到主屏幕以获得更好的体验',
+    desc: '安装到桌面，体验更丝滑',
     install: '安装',
-    ios: "点击分享 <i class='fas fa-share-square'></i> 然后选择 <b>'添加到主屏幕'</b>"
+    ios: "点击底部分享按钮 <i class='fas fa-share-square'></i> 选择 <b>“添加到主屏幕”</b>"
   },
   bottomNav: {
-    home: '首页',
-    archives: '归档',
-    cabin: '座舱',
-    me: '我'
+    home: '主页',
+    archives: '应用',
+    cabin: '舰长室',
+    me: '我的'
   },
   hero: {
     status: '系统在线',
     title1: '探索',
-    title2: '未知领域',
+    title2: '未知',
     introPrefix: '我是 ',
     introName: 'Sam',
-    introSuffix: '。航行于数字宇宙，构建稳健架构，探索人工智能的疆界。',
+    introSuffix: '。漫游在数字宇宙，构建稳健的架构，探索人工智能的疆界。',
     ctaPrimary: '查阅日志',
-    ctaSecondary: '系统档案'
+    ctaSecondary: 'Orion 应用广场'
   },
   portfolio: {
-    title: '作品集',
-    subtitle: '工程项目与职业生涯记录。',
-    resume: '简历',
-    projects: '项目',
-    liveDemo: '在线演示',
-    sourceCode: '源代码',
+    title: 'Orion 应用广场',
+    subtitle: '应用作品集：工程项目与职业生涯的合集。',
+    resume: '站长简介',
+    projects: '应用 & 项目',
+    liveDemo: '在线使用',
+    sourceCode: '查看源码',
     demoOptions: {
-      title: '选择预览模式',
-      local: '在此预览',
-      newTab: '新标签页',
+      title: '选择浏览模式',
+      local: '当前页面预览',
+      newTab: '新标签页打开',
       iframeTitle: '实时预览'
     }
   },
   blogList: {
     title: '日志与洞察',
-    subtitle: '关于技术、投资与个人成长的思考。',
-    titlePrivate: '加密金库',
-    subtitlePrivate: '机密文档与个人日志。',
-    viewAll: '查看所有日志',
-    readArticle: '读取数据',
+    subtitle: '关于技术演进、投资策略与个人成长的深度总结。',
+    titlePrivate: '加密库',
+    subtitlePrivate: '机密文档与个人记录。',
+    viewAll: '查看所有',
+    readArticle: '访问数据',
     systemLog: '系统日志 // 公开访问',
     entries: '条目',
     status: '状态',
@@ -66,186 +66,215 @@ export const zh = {
     searchPlaceholder: '搜索日志关键词...',
     filter: '筛选:',
     all: '全部',
-    noLogs: '未找到日志',
-    adjustSearch: '请调整搜索参数',
+    noLogs: '未找到相关日志',
+    adjustSearch: '请调整搜索关键词',
     clearFilters: '清除筛选',
     page: '页码'
   },
+  articleView: {
+    back: '返回列表',
+    ctaTitle: '阅读结束',
+    ctaMessage: '如果这篇文章对你有帮助，请点亮红心，或分享给更多朋友。',
+    like: '点赞',
+    liked: '已赞',
+    share: '分享链接',
+    copied: '链接已复制'
+  },
   auditLog: {
     title: '系统活动日志',
-    subtitle: '追踪主机内的所有操作指令。',
+    subtitle: '追踪主机内所有操作指令。',
     operator: '操作员',
     action: '指令',
     target: '目标对象',
     time: '时间戳',
-    ip: '来源IP',
+    ip: '源 IP',
     noData: '当前扇区无活动记录。'
   },
   pagination: {
-    prev: '上一扇区',
-    next: '下一扇区',
-    page: '扇区'
+    prev: '上一页',
+    next: '下一页',
+    page: '页码'
   },
   login: {
-    welcome: '身份识别',
-    welcomeRegister: '新实体',
-    welcomeReset: '重置访问',
-    subtitle: '验证身份以访问受限扇区',
+    welcome: '身份验证',
+    welcomeRegister: '新实体注册',
+    welcomeReset: '重置权限',
+    subtitle: '验证身份以访问加密区域',
     subtitleRegister: '注册以获取权限',
-    subtitleReset: '使用机密协议恢复访问',
+    subtitleReset: '使用秘密协议恢复访问',
     name: '代号',
     email: '通讯链路',
-    emailOrPhone: '邮箱或电话',
-    phone: '电话号码',
-    phoneError: '格式无效',
-    password: '访问密钥',
+    emailOrPhone: '邮箱或手机号',
+    phone: '手机号',
+    phoneError: '手机号格式错误',
+    password: '密钥',
     newPassword: '新密钥',
-    secretKey: '机密协议密钥',
+    secretKey: '秘密协议口令',
     confirmPassword: '确认密钥',
     signin: '验证',
     register: '初始化',
-    reset: '恢复',
+    reset: '恢复访问',
     toRegister: '无权限？初始化',
-    toLogin: '已授权？验证',
-    forgotPassword: '丢失访问密钥？',
+    toLogin: '已有权限？验证',
+    forgotPassword: '丢失密钥？',
     backToLogin: '返回验证',
     error: '验证失败。访问被拒绝。',
-    passwordMismatch: '访问密钥不匹配。'
+    passwordMismatch: '两次输入的密钥不一致。'
   },
   profile: {
     title: '个人中心',
     subtitle: '管理您的身份与权限详情。',
     displayName: '显示名称',
     email: '注册邮箱',
-    phone: '电话号码',
-    uid: '实体ID',
+    phone: '注册手机号',
+    uid: '实体 ID',
     save: '更新身份',
     developing: '模块开发中...',
     security: '安全协议',
-    changePassword: '更改访问密钥',
+    changePassword: '变更访问密钥',
     oldPassword: '当前密钥',
     newPassword: '新密钥',
     admin: '管理控制台',
-    grantVip: '授予VIP权限',
+    grantVip: '授予 VIP 权限',
     targetEmail: '目标实体邮箱',
     dataManagement: '数据管理',
-    exportLogs: '导出日志',
+    exportLogs: '一键导出日志',
     active: '活跃',
     vipBadge: 'VIP',
-    downloadBackup: '下载所有个人日志的JSON备份。',
+    downloadBackup: '下载所有个人日志的 JSON 备份。',
     height: '身高 (cm)',
     fitnessGoal: '健身目标',
-    barkUrl: 'Bark URL (推送)',
-    barkUrlPlaceholder: 'https://api.day.app/your-key/...',
-    timezone: '时区',
+    barkUrl: 'Bark 推送链接',
+    barkUrlPlaceholder: 'https://api.day.app/你的Key/...',
+    timezone: '时区设置',
     goals: {
       cut: '减脂 (Cut)',
       bulk: '增肌 (Bulk)',
-      maintain: '保持'
+      maintain: '保持 (Maintain)'
     },
     role: '角色权限',
     updateRole: '更新角色',
     roles: {
-      user: '用户',
+      user: '普通用户',
       admin: '管理员',
       super_admin: '超级管理员',
       bot: '机器人 (不可变)'
     },
     accessControl: '访问与权限',
     requestPermissionTitle: '申请权限',
-    permissionKey: '权限键值',
+    permissionKey: '权限代码',
     applyAdmin: '申请管理员角色',
     customRequest: '自定义权限申请',
     reasonLabel: '申请理由',
-    reasonPlaceholder: '请描述为何需要此权限...',
+    reasonPlaceholder: '请说明申请该权限的具体原因...',
     submitRequest: '提交申请'
   },
   settings: {
     title: '系统配置',
-    subtitle: '调整界面参数与本地化设置。',
-    theme: '视觉界面',
+    subtitle: '调整界面参数与本地化协议。',
+    theme: '视觉接口',
     language: '语言协议',
     light: '日间模式',
     dark: '夜间模式',
-    en: '英语',
+    en: 'English',
     zh: '中文'
   },
   system: {
     title: '系统管理',
-    subtitle: '监控系统资源与外部服务的仪表盘。',
+    subtitle: '系统资源和外部服务监控仪表盘。',
     tabs: {
-      resources: '资源',
-      users: '用户',
-      roles: '角色',
-      permissions: '权限',
-      requests: '请求'
-    },
-    cloudinary: {
-      title: 'Cloudinary 图片库',
-      credits: '已用额度',
-      plan: '当前计划',
-      storage: '存储',
-      bandwidth: '带宽',
-      objects: '对象数',
-      transformations: '转换数',
-      resources: '总资源',
-      lastUpdated: '最后更新'
-    },
-    r2: {
-      title: 'Cloudflare R2 存储',
-      tab_storage: '存储 (R2)',
-      tab_cloudinary: '媒体 (Cloudinary)',
-      plan: '免费层状态',
-      planDesc: '使用 Cloudflare R2 对象存储。无流量费。',
-      storageUsage: 'A类操作',
-      estCost: '预估成本',
-      overage: '超额',
-      freeTier: '免费层',
-      images: '图片',
-      backups: '备份',
-      others: '其他',
-      totalObjects: '总对象数',
-      allBuckets: '跨所有存储桶',
-      distribution: '存储分布',
-      empty: '此存储桶/前缀下无文件。',
-      loadMore: '加载更多文件',
-      upload: '上传文件',
-      deleteTitle: '删除文件？',
-      deleteMsg: '确定要从 {storage} 永久删除此文件吗？',
-      deleteSuccess: '文件已成功删除。',
-      home: '根目录',
-      folders: '文件夹'
-    },
-    backup: {
-      terminalTitle: '数据库备份终端',
-      processing: '处理中...',
-      init: '> 初始化备份序列...',
-      reqDump: '> 请求服务器 mongodump 流...',
-      success: '> 备份流完成。文件已下载。',
-      terminated: '> 进程终止。',
-      viewFiles: '查看备份',
-      wait: '请稍候...'
+      resources: '资源监控',
+      users: '用户管理',
+      roles: '角色管理',
+      permissions: '权限列表',
+      requests: '审批请求'
     },
     common: {
       loading: '加载中...',
       save: '保存',
       cancel: '取消',
       delete: '删除',
+      edit: '编辑',
+      update: '更新',
+      search: '搜索...',
       actions: '操作',
-      update: '更新'
+      confirm: '确认',
+      success: '成功',
+      error: '错误'
+    },
+    r2: {
+      title: 'Cloudflare R2 对象存储',
+      tab_storage: 'R2 存储',
+      tab_cloudinary: 'Cloudinary',
+      images: '图片',
+      backups: '备份',
+      others: '其他',
+      upload: '上传',
+      home: '根目录',
+      folders: '文件夹',
+      empty: '文件夹为空。',
+      loadMore: '加载更多文件',
+      plan: 'Cloudflare R2 方案',
+      planDesc: '每月免费额度: 10GB 存储, 100万次 A 类操作, 1000万次 B 类操作。出口流量免费。',
+      storageUsage: '存储用量',
+      estCost: '预估成本 (月)',
+      freeTier: '免费额度内',
+      overage: '超额计费中',
+      distribution: '分布情况',
+      totalObjects: '对象总数',
+      allBuckets: '跨所有存储桶',
+      deleteTitle: '删除文件',
+      deleteMsg: '永久从 {storage} 中删除此文件？',
+      uploadSuccess: '文件上传成功。',
+      deleteSuccess: '文件删除成功。'
+    },
+    users: {
+      search: '搜索用户...',
+      vipStatus: 'VIP 状态',
+      active: '活跃',
+      inactive: '未激活',
+      revoke: '撤销',
+      grant: '授予',
+      role: '角色',
+      directPerms: '直接权限',
+      botError: '操作拒绝：无法修改机器人账户。',
+      verifyTitle: '安全验证',
+      verifyMsg: '请输入系统密钥以授权此特权操作。',
+      verifyBtn: '验证并执行'
+    },
+    backup: {
+      terminalTitle: '系统备份终端',
+      processing: '处理中...',
+      init: '> 正在初始化备份子系统安全连接...',
+      reqDump: '> 正在请求数据库转储...',
+      success: '> 备份流程成功完成。',
+      terminated: '> 流程已终止。',
+      viewFiles: '查看文件',
+      wait: '请稍候...'
+    },
+    cloudinary: {
+      title: 'Cloudinary 图片库',
+      credits: '信用点数使用',
+      plan: '当前方案',
+      storage: '存储空间',
+      bandwidth: '带宽',
+      objects: '对象数量',
+      transformations: '图像转换',
+      resources: '资源总数',
+      lastUpdated: '最后更新'
     },
     requests: {
-      title: '访问请求',
-      pending: '待处理',
+      title: '权限申请',
+      pending: '待审核',
       approve: '批准',
       reject: '拒绝',
-      noPending: '无待处理请求。',
+      noPending: '无待处理申请',
       permission: '申请权限',
       reason: '理由'
     },
     roles: {
       title: '角色管理',
-      add: '添加角色',
+      add: '新增角色',
       edit: '编辑角色',
       name: '角色名称',
       desc: '描述',
@@ -255,170 +284,159 @@ export const zh = {
     },
     permissions: {
       title: '权限注册表',
-      add: '添加权限',
+      add: '新增权限',
       edit: '编辑权限',
-      key: '键值',
+      key: 'Key',
       name: '名称',
       category: '分类',
       desc: '描述',
       save: '保存权限',
       delete: '删除权限'
-    },
-    users: {
-      search: '搜索用户...',
-      vipStatus: 'VIP 状态',
-      active: '已激活',
-      inactive: '未激活',
-      grant: '授予 VIP',
-      revoke: '撤销 VIP',
-      verifyTitle: '验证授权',
-      verifyMsg: '请输入密钥以确认此操作。',
-      verifyBtn: '验证',
-      role: '角色',
-      directPerms: '直接权限',
-      botError: '无法修改机器人账户。'
     }
   },
   access: {
-    denied: '访问拒绝',
+    denied: '访问被拒绝',
     restricted: '受限区域',
-    message: '您没有访问此扇区所需的安全许可。',
+    message: '您没有足够的安全许可进入该扇区。',
     request: '申请访问',
     requestTitle: '提交访问申请',
-    reasonPlaceholder: '为何需要访问此扇区？',
+    reasonPlaceholder: '请说明您需要访问该扇区的理由...',
     submit: '提交申请',
     cancel: '取消',
-    pending: '访问申请审核中'
+    pending: '申请审核中'
   },
   footprint: {
-    title: '星图',
-    subtitle: '追踪穿越星系的足迹。',
-    intro: '点亮你探索过的省份，将记忆钉在星球网格上。',
+    title: '星图计划',
+    subtitle: '追踪跨越星系的足迹。',
+    intro: '点亮你探索过的省份，在全球坐标上钉住你的独家记忆。',
     tabs: {
       china: '中国扇区',
-      world: '全球标记'
+      world: '全球坐标'
     },
     stats: {
       total: '足迹总数',
-      countries: '访问国家',
+      countries: '探索国家',
       provinces: '点亮省份',
       cities: '抵达城市'
     },
-    add: '添加足迹',
+    add: '记录足迹',
     edit: '编辑足迹',
     form: {
       name: '地点名称',
-      province: '省份 / 地区',
+      province: '省份 / 区域',
       city: '城市',
-      date: '访问日期',
-      mood: '心情',
-      content: '记忆 / 笔记',
-      photos: '照片',
+      date: '抵达日期',
+      mood: '心情指数',
+      content: '探索笔记',
+      photos: '影像记录',
       status: '状态',
-      visited: '已访问',
+      visited: '已抵达',
       planned: '计划中',
-      save: '保存足迹'
+      save: '保存记录'
     },
-    mapTip: '点击地图设置坐标'
+    mapTip: '点击地图选取坐标'
   },
   resume: {
     role: '工程师 / 旅行者',
-    bio: '专注于技术、投资与个人成长。',
-    credentials: '前腾讯 & Lalamove 高级开发',
+    bio: '专注于科技，投资与个人成长。',
+    credentials: '前腾讯/货拉拉资深开发',
     siteIntro: {
-      title: '系统架构',
-      subtitle: '此数字空间可用模块概览。',
-      journalTitle: '公开日志',
-      journalDesc: '我的个人传输日志。分享关于技术、代码和生活经历的见解。',
-      profileTitle: '舰长档案',
-      profileDesc: '我的旅程档案：大厂经历、创业历程和金融探索。',
+      title: '站点导航',
+      subtitle: '本数字空间主要模块功能概览。',
+      journalTitle: '日志空间',
+      journalDesc: '我分享个人日志的地方。记录技术心得、创业思考与生活点滴。',
+      profileTitle: '档案室',
+      profileDesc: '关于我的详细经历：大厂历练、创业搞钱之路。',
       chatTitle: '星际通讯',
-      chatDesc: '实时量子链路。需登录。连接并与系统中的其他旅行者聊天。',
+      chatDesc: '登陸后即可接入聊天室，与其他探索者实时畅聊。',
       privateTitle: '舰长室',
-      privateDesc: '加密金库，存放我的爱情故事和私人记忆。仅限舰长阅览（哈哈）。'
+      privateDesc: '加密的爱情档案库，用来保存属于我的珍贵回忆，仅供舰长本人查阅（哈哈）。'
     },
     websiteIntro: {
-      title: '网站规格说明',
+      title: '关于本站',
       description:
-        '本平台采用微前端架构构建，使用 React 18、TypeScript 和 Tailwind CSS。拥有自定义组件库和稳健的后端服务。',
-      viewSpecs: '查看系统规格',
-      modalTitle: '系统规格',
+        'Orion 是一个现代化的个人知识管理 (PKM) 与数字花园系统。它完美融合了面向公众的作品集博客与加密的私人仪表盘——「舰长室」，用于全方位管理个人数据、健康指标与 AI 深度协作。本项目基于 React 19 构建并由 Google Gemini 驱动，旨在连接公开表达与私人内省的数字桥梁。',
+      viewSpecs: '查看完整架构',
+      modalTitle: 'Orion 系统架构',
       sections: {
         public: {
-          title: '公共扇区',
-          desc: '所有访客可访问。',
+          title: '公共扇区 (舰桥)',
+          desc: '面向所有访客开放的展示接口。',
           features: [
-            '<b>博客引擎：</b> Markdown 渲染、代码高亮。',
-            '<b>作品集：</b> 交互式项目展示。',
-            '<b>性能：</b> SSR 与静态生成。'
+            '沉浸式首页：动态 3D 风格 CSS 动画与状态指示器。',
+            '传输日志 (Blog)：支持 Markdown，包含标签、搜索及嵌套评论。',
+            '双模式档案室：简历文档模式 / 项目卡片模式，中英双语切换。',
+            'AI 代理：思考者 (Gemini 3.0 Pro 推理) & 实时链路 (多模态交互)。'
           ]
         },
         private: {
-          title: '私人扇区',
-          desc: '加密的个人空间。',
+          title: '舰长室 (私人空间)',
+          desc: '受 JWT 认证与 RBAC 保护的加密区域。',
           features: [
-            '<b>日记：</b> 带自动保存的富文本编辑器。',
-            '<b>健身追踪：</b> 图表与日历可视化。',
-            '<b>财务：</b> 资产追踪（隐藏）。'
+            '第二大脑：基于 RAG 的上下文感知 AI 对话。',
+            '运动空间：全维度追踪（体重、BMI、睡眠、活动日志）。',
+            '休闲空间：AI 智能厨房（大转盘/食谱）、月相周期、海战游戏。',
+            '星图：ECharts 与 Leaflet 驱动的足迹追踪。',
+            '胶囊相册：可拖拽的照片墙 UI。'
           ]
         },
         admin: {
-          title: '指挥中心',
-          desc: '系统管理。',
+          title: '系统管理',
+          desc: '行政控制与监控。',
           features: [
-            '<b>用户管理：</b> RBAC 与权限控制。',
-            '<b>系统资源：</b> R2 与 Cloudinary 监控。',
-            '<b>审计日志：</b> 安全追踪。'
+            'RBAC：用户、角色与权限的颗粒度管理。',
+            '审计日志：追踪系统内所有操作。',
+            '资源监控：实时 Cloudinary 资源使用情况。'
           ]
         },
         stack: {
           title: '技术栈',
           list: [
-            'React 18',
+            'React 19 & Vite',
             'TypeScript',
             'Tailwind CSS',
-            'Node.js',
-            'MongoDB',
-            'Redis',
-            'Cloudflare R2'
+            'Google GenAI SDK',
+            'Recharts & ECharts',
+            'Socket.io',
+            'PWA'
           ]
         }
       }
     },
     orion: {
-      etymology1: '(法语：金)',
-      etymology2: '(猎户座)',
-      description: '夜空中最亮的星座。指引你在数字宇宙中发现自我价值的导航星。',
-      slogan: '导航你的价值'
+      etymology1: '(法语: 金)',
+      etymology2: '(猎户座/猎人)',
+      description: '夜空中最明亮的星座。一颗指引你穿越数字宇宙、发现自我价值的导航之星。',
+      slogan: '指引价值航向'
     },
     education: '数据库：教育',
     educationSchool: '迈阿密大学 (Miami University)',
-    educationDegree: 'BA, 交互媒体研究 (STEM)',
+    educationDegree: '互动媒体研究学士 (STEM)',
     skills: '技术栈',
-    experience: '任务历史',
+    experience: '任务记录',
     basedIn: '地球轨道',
-    gpa: "GPA: 3.7 • 院长名单 (Dean's List)",
+    gpa: "GPA: 3.7 • 院长嘉许名单 (Dean's List)",
     jobs: [
       {
         company: 'Gold Woodbath Capital',
         role: '创始人 / 投资人',
-        description: '创立专注于技术和新兴市场的私募股权公司。管理投资组合策略。',
+        description: '创立专注于科技与新兴市场的私募股权公司。管理投资组合策略。',
         color: 'bg-amber-500'
       },
       {
-        company: 'Lalamove',
-        role: '高级前端工程师',
-        description: '优化核心物流调度系统。增强司机端和用户端应用的 Webview 体验。',
+        company: '货拉拉 (Lalamove)',
+        role: '资深前端开发工程师',
+        description: '优化核心物流调度系统。提升司机端与用户端 Webview 性能。',
         color: 'bg-orange-500'
       },
       {
         company: '腾讯云',
         role: '前端开发工程师',
-        description: '主导 Coding OA 平台的前端开发。实施 DevOps 工具链。',
+        description: '负责 Coding OA 平台前端开发。实施 CI/CD 与自动化测试工具链。',
         color: 'bg-blue-500'
       },
       {
-        company: 'BeeHex (NASA 衍生公司)',
+        company: 'BeeHex (NASA 衍生)',
         role: '前端工程师',
         description: '利用 3D 打印技术革新食品自动化。构建 Vue.js 定制平台。',
         color: 'bg-slate-500'
@@ -426,46 +444,46 @@ export const zh = {
     ]
   },
   comments: {
-    title: '通讯频道',
-    placeholder: '传输讯息...',
-    postButton: '发送传输',
-    loginToComment: '验证身份以传输',
-    noComments: '未收到传输信号。',
+    title: '评论区',
+    placeholder: '发送评论...',
+    postButton: '发送',
+    loginToComment: '验证身份以发送',
+    noComments: '暂无评论。',
     reply: '回复',
-    replyTo: '回复给',
-    cancel: '中止',
-    error: '传输失败。'
+    replyTo: '回复',
+    cancel: '取消',
+    error: '发送失败。'
   },
   chat: {
     title: '量子链路',
-    subtitle: '加密实时亚空间通讯频道。',
-    crewManifest: '船员名册',
+    subtitle: '实时加密的亚空间通讯频道。',
+    crewManifest: '乘员名册',
     publicChannel: '公共频道',
     privateChannel: '私人频道',
-    connecting: '建立上行链路...',
+    connecting: '正在建立上行链路...',
     placeholder: '广播消息...',
     typing: '正在传输...',
-    send: '传输',
+    send: '发送',
     me: '我',
     welcome: '欢迎来到舰桥',
-    encrypted: '已加密'
+    encrypted: '加密'
   },
   delete: {
     confirmTitle: '删除日志？',
-    confirmMessage: '此操作不可逆。确认删除请键入：',
-    confirmSecretMessage: '受限操作。输入机密密钥以授权删除：',
-    button: '删除日志'
+    confirmMessage: '此操作不可逆。确认删除，请输入：',
+    confirmSecretMessage: '受限操作。请输入密钥以授权删除：',
+    button: '确认删除'
   },
   live: {
-    title: '实时上行',
-    subtitle: '实时神经接口已激活。正在将音视频数据流传输至 Gemini 核心。',
-    connect: '初始化链路',
-    disconnect: '终止链路'
+    title: '实时链路',
+    subtitle: '实时神经接口已激活。正在向 Gemini 核心传输音视频数据。',
+    connect: '初始化连接',
+    disconnect: '终止连接'
   },
   footer: {
-    tagline: '通过代码与设计升华数字体验。',
+    tagline: '通过代码与设计重塑数字体验。',
     rights: '© 2024 Sam Yao. 系统运转正常。',
-    builtBy: 'Sam Yao 用自豪、爱与和平构建',
+    builtBy: '由 Sam Yao 倾注荣耀、爱与和平构建',
     strengthHonor: '力量与荣耀'
   },
   privateSpace: {
@@ -473,56 +491,57 @@ export const zh = {
       secondBrain: '第二大脑',
       journal: '日志空间',
       leisure: '休闲空间',
-      gallery: '照片墙',
+      gallery: '胶囊相册',
       fitness: '运动空间'
     },
     secondBrain: {
       title: '数字孪生',
       subtitle: '全知 AI 核心',
-      welcome: '你好。我是你的第二大脑。我可以访问你的日志、健身记录和项目数据。有什么可以帮你？',
-      placeholder: '问我任何关于你数据的问题...'
+      welcome:
+        '你好。我是你的第二大脑。我已经接入了你的日志、运动记录与项目数据。请问有什么可以帮你？',
+      placeholder: '问我关于你数据的任何事...'
     },
     hotSearch: {
       title: '资讯中心',
-      hot: '热榜',
-      finance: '财经',
-      game: '游戏',
-      guonei: '国内',
-      world: '国际',
+      hot: '热搜榜',
+      finance: '财经快讯',
+      game: '游戏电竞',
+      guonei: '国内新闻',
+      world: '国际新闻',
       updated: '已更新',
-      loading: '扫描网络...'
+      loading: '正在扫描网络...'
     },
     leisure: {
-      musicTitle: '声波播放器',
-      playUrl: '播放 URL',
-      search: '库',
+      musicTitle: '音乐播放器',
+      playUrl: '播放链接',
+      search: '搜索曲库',
       placeholderUrl: 'MP3 URL...',
       placeholderSearch: '搜索...',
       nowPlaying: '正在播放',
-      stopped: '空闲',
-      mahjong: '雀魂特区',
-      mahjongDesc: '接入 Maj-Soul 网络。',
-      drawingBoard: '绘图板',
-      drawingDesc: '释放你的创造力。',
+      stopped: '已停止',
+      mahjong: '雀魂麻将区',
+      mahjongDesc: '接入 Maj-Soul 神经网络',
+      drawingBoard: '创意画板',
+      drawingDesc: '释放你的想象力。',
       clock: {
-        title: '智能枢纽',
-        subtitle: '深圳实况'
+        title: '智能中枢',
+        subtitle: '深圳实时'
       },
       cycle: {
         title: '月相周期',
-        subtitle: '生物追踪',
-        prediction: '预测',
-        nextPeriod: '下一次经期',
+        subtitle: '生理记录',
+        prediction: '周期预测',
+        nextPeriod: '下次经期',
         inDays: '{days} 天后',
         log: '记录经期',
-        save: '保存',
+        save: '保存记录',
         flow: '流量',
         symptoms: '症状',
         note: '备注',
-        delete: '删除',
+        delete: '删除记录',
         startDate: '开始日期',
         endDate: '结束日期',
-        color: '颜色',
+        color: '经血颜色',
         flows: {
           light: '少量',
           medium: '中等',
@@ -531,54 +550,54 @@ export const zh = {
         symptomList: {
           cramps: '痛经',
           headache: '头痛',
-          backpain: '背痛',
-          fatigue: '疲劳',
+          backpain: '腰酸',
+          fatigue: '疲乏',
           bloating: '腹胀',
-          acne: '痤疮',
+          acne: '痘痘',
           moody: '情绪波动'
         },
         legend: {
           period: '经期',
-          predicted: '预测',
+          predicted: '预测经期',
           fertile: '易孕期',
           ovulation: '排卵日'
         }
       },
       chefWheel: {
-        title: 'AI 智慧厨房',
-        subtitle: '自动膳食决策系统',
-        spin: '旋转',
+        title: 'AI 智能厨房',
+        subtitle: '全自动膳食决策系统',
+        spin: '开始抽取',
         spinning: '分析中...',
         confirm: '确认选择',
-        retry: '返回重试',
-        recommending: 'Gemini 建议...',
-        recommendations: '你可能也喜欢：',
+        retry: '返回重抽',
+        recommending: 'Gemini 思考建议中...',
+        recommendations: '你可能也喜欢:',
         manage: '管理菜单',
-        viewRecipe: '查看食谱',
-        searchMode: '搜索食谱',
-        wheelMode: '转盘模式',
+        viewRecipe: '查看做法',
+        searchMode: '菜谱搜寻',
+        wheelMode: '大转盘',
         backToSearch: '返回搜索',
-        searchPlaceholder: '搜索食谱 (如：宫保鸡丁)...',
+        searchPlaceholder: '输入菜名 (例如: 宮保雞丁)...',
         searching: '搜索中...',
-        library: '库管理',
+        library: '菜单库管理',
         smartPlan: {
-          button: 'AI 智能计划',
-          title: '智能计划',
+          button: 'AI 智能膳食',
+          title: '智能方案',
           nutritionist: 'AI 营养师',
-          personalized: '个性化菜单计划',
+          personalized: '个性化菜单定制',
           target: '目标',
-          fallbackTitle: '优先级逻辑 (回退)',
-          fallback1: '如果你最近在健身模块记录了体重，AI 将优先使用最新记录。',
+          fallbackTitle: '优先级逻辑 (Fallback)',
+          fallback1: 'AI 优先参考您最近在「运动空间」记录的体重数据。',
           fallback2:
-            '如果你今天在饮食记录中明确设定了不同的目标（如‘增肌’），AI 将针对该目标进行推荐。',
-          error: '营养师 AI 正忙。请稍后再试。'
+            '如果您今日在饮食记录中明确设置了临时目标（如“增肌”），AI 將优先基于该目标推荐，而非个人檔案中的长期目标。',
+          error: '营养师 AI 正忙，请稍后再试。'
         },
         form: {
-          add: '添加菜品',
+          add: '新增菜品',
           edit: '编辑菜品',
           name: '菜名',
-          image: '图片 URL',
-          category: '类别',
+          image: '图片链接',
+          category: '分类',
           tags: '标签',
           cancel: '取消',
           save: '保存'
@@ -586,30 +605,30 @@ export const zh = {
         filters: {
           healthy: '健康模式',
           cooldown: '多样化模式',
-          category: '类别',
-          calories: '卡路里',
+          category: '分类',
+          calories: '热量',
           tags: '标签',
           options: {
             any: '任意',
             lunch: '午餐',
             dinner: '晚餐',
             supper: '夜宵',
-            low: '低卡',
+            low: '低热量',
             medium: '中等',
-            high: '高卡'
+            high: '高热量'
           },
           tooltips: {
-            healthy: '优先推荐低卡路里和均衡的膳食。',
-            variety: '避免最近吃过的菜品。'
+            healthy: '优先选择低热量且营养均衡的餐食。',
+            variety: '避开最近吃过的菜品（冷却期生效）。'
           }
         },
         menu: {
-          add: '添加菜品',
+          add: '新增菜品',
           edit: '编辑菜品',
           name: '菜名',
-          category: '类别',
+          category: '分类',
           weight: '权重 (1-10)',
-          calories: '卡路里等级',
+          calories: '热量等级',
           save: '保存菜品'
         },
         ingredients: {},
@@ -617,25 +636,25 @@ export const zh = {
         cats: {}
       },
       pirate: {
-        title: '四大海盗领主',
-        reset: '重置',
+        title: '四皇海战 (华容道)',
+        reset: '重置牌局',
         moves: '步数',
-        victory: '已征服',
-        victoryDesc: '四海臣服。',
-        playAgain: '再玩一次',
+        victory: '征服完成',
+        victoryDesc: '四海已平定。',
+        playAgain: '再战',
         rulesTitle: '任务参数',
         rules: [
-          '目标：同时协调 4 个阵营（红、蓝、绿、黄）回到各自的领地。',
-          '领地：红（左上），蓝（右上），绿（左下），黄（右下）。',
-          '单位：每个阵营有 4 个单位（船长、船只、宝藏、地图）。所有 4 个单位必须位于其颜色的 3x3 区域内。',
-          '中立区：中央列和空白处允许移动。',
-          '难度：困难。需要提前规划。'
+          '目标: 将红、蓝、绿、黄四个阵营的滑块同时移动到对应的领地。',
+          '领地分布: 红(左上), 蓝(右上), 绿(左下), 黄(右下)。',
+          '单位: 每个阵营包含4个单位（船长、船、宝箱、地图）。所有单位必须位于其3x3的领地内。',
+          '中立区: 中间列及空位允许通行。',
+          '难度: 困难。需要极强的预判能力。'
         ]
       }
     },
     fitness: {
-      title: '健身空间',
-      subtitle: '追踪身体与运动指标。',
+      title: '运动空间',
+      subtitle: '追踪您的生理机能与训练数据。',
       goals: {
         cut: '减脂',
         bulk: '增肌',
@@ -685,50 +704,50 @@ export const zh = {
           '大雪',
           '冬至'
         ],
-        noActivity: '无活动',
-        summaryTitle: '每日活动摘要'
+        noActivity: '无记录',
+        summaryTitle: '每日运动摘要'
       },
       photoWall: {
-        title: '健身画廊',
-        captured: '本月拍摄 {n} 张照片',
-        empty: '此时间段无照片',
+        title: '运动光影墙',
+        captured: '本月拍摄 {n} 张',
+        empty: '该时段暂无照片',
         view: '查看当日照片',
-        prev6: '前 6 月',
-        next6: '后 6 月'
+        prev6: '前半年',
+        next6: '后半年'
       },
       stats: {
         progress: '进度',
         userProgress: '{name} 的进度',
-        activeProfile: '活跃档案',
+        activeProfile: '当前用户',
         loading: '加载中...',
         loadMore: '加载更多',
-        noData: '尚未收集数据'
+        noData: '暂无数据'
       },
       input: {
-        loggingFor: '记录对象：',
+        loggingFor: '记录对象:',
         selectUser: '选择用户'
       },
       tabs: {
-        workout: '活动',
-        status: '身体 & 心情',
+        workout: '活动记录',
+        status: '身体 & 状态',
         diet: '饮食',
         photos: '照片'
       },
       workout: {
-        isDone: '任务完成？',
+        isDone: '今日打卡?',
         duration: '时长 (分钟)',
         type: '活动类型',
-        notes: '今日亮点',
+        notes: '今日流水账/高光',
         types: {
           run: '跑步',
           swim: '游泳',
           lift: '举铁',
           yoga: '瑜伽',
           hiit: 'HIIT',
-          trip: '出行',
-          hike: '徒步',
-          movie: '观影',
-          love: '恋爱',
+          trip: '出游',
+          hike: '爬山',
+          movie: '电影',
+          love: '爱爱',
           other: '其他'
         }
       },
@@ -736,37 +755,37 @@ export const zh = {
         weight: '体重 (kg)',
         height: '身高 (cm)',
         sleep: '睡眠 (小时)',
-        mood: '心情',
+        mood: '今日心情',
         moods: {
           happy: '开心',
-          neutral: '平淡',
-          bad: '糟糕'
+          neutral: '一般',
+          bad: '难受'
         }
       },
       diet: {
-        content: '吃了什么？',
+        content: '今天吃了什么？',
         contentPlaceholder: '早餐：面包，牛奶...',
-        water: '饮水量 (ml)'
+        water: '喝水 (ml)'
       },
       photos: {
-        upload: '上传瞬间',
-        empty: '今日无照片'
+        upload: '上传今日瞬间',
+        empty: '今日暂无照片'
       },
       charts: {
         weightTitle: '体重趋势',
         duration: '时长',
         weight: '体重',
-        bmi: 'BMI'
+        bmi: 'BMI指数'
       },
       save: '保存记录',
       saved: '记录已更新'
     },
     journal: '我们的日志',
-    memories: '回忆',
+    memories: '篇回忆',
     together: '在一起',
     years: '年',
     days: '天',
-    loveMsg: '永远爱你！ ❤',
+    loveMsg: '永远爱你! ❤',
     bucketList: {
       title: '愿望清单',
       subtitle: '梦想与目标',
@@ -952,13 +971,13 @@ export const zh = {
         callMode: '连续响铃 (电话模式)'
       }
     },
-    tasks: '任务',
+    tasks: '待办事项',
     newTask: '新任务...',
-    caughtUp: '全部完成！',
+    caughtUp: '全部完成了！',
     emptyJournal: '日志是空的。',
-    writeFirst: '在右侧写下你的第一条回忆。',
+    writeFirst: '在右侧写下第一篇回忆吧。',
     read: '阅读',
-    preview: '无预览...',
+    preview: '暂无简介...',
     unknownDate: '未知日期',
     editor: {
       titlePlaceholder: '标题...',
@@ -966,45 +985,36 @@ export const zh = {
       tags: '标签 (空格分隔)',
       private: '私密',
       public: '公开',
-      summary: '摘要',
+      summary: '简介',
       code: '代码 / 脚本',
-      publish: '发布条目',
-      update: '更新条目',
+      publish: '发布故事',
+      update: '更新故事',
       cancel: '取消编辑',
       chars: '字数',
-      tellStory: '讲述你的故事...',
+      tellStory: '写下你的故事...',
       saving: '保存中...',
       saved: '已保存',
       saveDraft: '保存草稿',
       processing: '处理中...'
     },
     gallery: {
-      title: '胶囊画廊',
-      subtitle: '由光影连接的永恒瞬间。',
+      title: '胶囊相册',
+      subtitle: '被光连接的永恒瞬间。',
       upload: '上传照片',
-      caption: '标题',
+      caption: '备注',
       location: '地点',
-      save: '钉住',
+      save: '固定到板上',
       cancel: '丢弃',
       replace: '替换图片',
       delete: '删除',
-      deleteConfirm: '移除照片？',
-      pinTitle: '记录回忆',
+      deleteConfirm: '移除照片?',
+      pinTitle: '记录新回忆',
       captionLabel: '标题',
-      captionPlaceholder: '命名这段回忆...',
+      captionPlaceholder: '给它起个名字...',
       dateLabel: '日期',
-      pinButton: '钉住',
-      developing: '照片显影中...',
-      reserved: '预留'
-    },
-    articleView: {
-      back: '返回洞察',
-      ctaTitle: '传输结束',
-      ctaMessage: '与此信号共鸣？点赞增加频率，或向你的网络广播此链接。',
-      like: '点赞',
-      liked: '已赞',
-      share: '分享链接',
-      copied: '链接已复制'
+      pinButton: '固定',
+      developing: '正在冲洗照片...',
+      reserved: '预留位'
     }
   }
 };
