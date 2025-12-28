@@ -73,7 +73,7 @@ const uploadToR2 = async (file: File, options?: UploadOptions): Promise<string> 
 
   // 1. Append text fields FIRST
   // Default folder set to 'uploads' to prevent root directory pollution
-  formData.append('folder', options?.folder || 'uploads');
+  formData.append('folder', options?.folder || '');
 
   // Explicitly append metadata for strict backend validation
   formData.append('fileType', file.type || 'application/octet-stream');

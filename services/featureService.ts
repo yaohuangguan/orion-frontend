@@ -311,6 +311,13 @@ export const featureService = {
     return await fetchClient<FitnessRecord[]>(`/fitness?${params.toString()}`);
   },
 
+  getFitnessPhotos: async (start?: string, end?: string): Promise<FitnessRecord[]> => {
+    const params = new URLSearchParams();
+    if (start) params.append('start', start);
+    if (end) params.append('end', end);
+    return await fetchClient<FitnessRecord[]>(`/fitness/photos?${params.toString()}`);
+  },
+
   submitFitnessRecord: async (data: FitnessRecord): Promise<FitnessRecord> => {
     const res = await fetchClient<FitnessRecord>('/fitness', {
       method: 'POST',

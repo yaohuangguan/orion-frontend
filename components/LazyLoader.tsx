@@ -7,6 +7,7 @@ import React, {
   ComponentProps,
   LazyExoticComponent
 } from 'react';
+import { PageLoader } from './PageLoader';
 
 // --- 1. 类型定义 ---
 type ImportFactory<T extends ComponentType<any>> = () => Promise<{ default: T }>;
@@ -57,15 +58,8 @@ function retryImport<T extends ComponentType<any>>(
 }
 
 // --- 3. 默认的 Loading UI (骨架屏或转圈) ---
-// 你可以换成你项目中统一的 <LoadingSpinner />
-const DefaultLoader = () => (
-  <div className="w-full h-96 flex items-center justify-center bg-slate-50 dark:bg-slate-900/50 rounded-xl animate-pulse">
-    <div className="flex flex-col items-center gap-4">
-      <div className="w-10 h-10 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
-      <span className="text-sm text-slate-400 font-medium">Loading content...</span>
-    </div>
-  </div>
-);
+// --- 3. 默认的 Loading UI (覆盖为 PageLoader) ---
+const DefaultLoader = () => <PageLoader />;
 
 // --- 4. 默认的错误 UI ---
 const DefaultErrorFallback = ({ retry }: { retry: () => void }) => (

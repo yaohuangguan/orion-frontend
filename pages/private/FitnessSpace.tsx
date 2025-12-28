@@ -193,7 +193,7 @@ export const FitnessSpace: React.FC<FitnessSpaceProps> = ({ currentUser }) => {
         start.setMonth(start.getMonth() - 6);
 
         try {
-          const records = await apiService.getFitnessRecords(
+          const records = await apiService.getFitnessPhotos(
             toLocalDateStr(start),
             toLocalDateStr(end)
           );
