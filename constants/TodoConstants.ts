@@ -279,6 +279,11 @@ export const getRecurrenceOptions = (t: any) => [
     desc: t.privateSpace.bucketList.routine.descriptions.workday
   },
   {
+    label: t.privateSpace.bucketList.routine.recurrenceOptions.workday8am,
+    value: '0 8 * * 1-5',
+    desc: t.privateSpace.bucketList.routine.descriptions.workday8am
+  },
+  {
     label: t.privateSpace.bucketList.routine.recurrenceOptions.dailyMorning,
     value: '0 9 * * *',
     desc: t.privateSpace.bucketList.routine.descriptions.daily8

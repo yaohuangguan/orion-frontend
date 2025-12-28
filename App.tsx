@@ -214,19 +214,37 @@ const App: React.FC = () => {
   // Initial Auth Check
   useEffect(() => {
     const checkAuth = async () => {
+      console.log('🔐 Starting auth check...');
       const token = localStorage.getItem('auth_token');
+      console.log('🔑 Token found:', !!token);
+
       if (token) {
         try {
+          console.log('🌐 Calling getCurrentUser API...');
           const userData = await apiService.getCurrentUser();
+          console.log('✅ User authenticated:', userData.displayName);
           setUser(userData);
         } catch (e) {
-          console.error('Session expired or invalid', e);
+          console.error('❌ Session expired or invalid', e);
           apiService.logout();
         }
+      } else {
+        console.log('🚫 No token found, user not authenticated');
       }
+
+      console.log('🏁 Setting isAuthChecking to false');
       setIsAuthChecking(false);
     };
-    checkAuth();
+
+    // 添加超时机制，确保即使认证检查卡住，首屏也会在5秒后消失
+    const timeout = setTimeout(() => {
+      console.log('⏰ Auth check timeout, forcing splash screen hide');
+      setIsAuthChecking(false);
+    }, 5000);
+
+    checkAuth().finally(() => {
+      clearTimeout(timeout);
+    });
   }, []);
 
   // Theme Sync
@@ -241,7 +259,9 @@ const App: React.FC = () => {
 
   // 🔥🔥🔥 新增代码：当 Auth 检查结束，通知 HTML 移除 Splash Screen 🔥🔥🔥
   useEffect(() => {
+    console.log('🔍 Auth checking state changed:', isAuthChecking);
     if (!isAuthChecking) {
+      console.log('🚀 Hiding splash screen...');
       // 1. 给 body 添加 class，触发 index.html 中的 CSS 渐隐动画
       document.body.classList.add('app-ready');
 
@@ -249,6 +269,7 @@ const App: React.FC = () => {
       const timer = setTimeout(() => {
         const splash = document.getElementById('pwa-splash');
         if (splash) {
+          console.log('🗑️ Removing splash screen DOM element');
           splash.remove();
         }
       }, 1000); // 对应 CSS 中的 0.8s transition
@@ -256,6 +277,22 @@ const App: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [isAuthChecking]);
+
+  // 🚨 备用机制：确保首屏一定会在10秒后消失，防止卡住
+  useEffect(() => {
+    const emergencyTimer = setTimeout(() => {
+      console.log('🚨 Emergency: Force hiding splash screen after 10 seconds');
+      document.body.classList.add('app-ready');
+      setTimeout(() => {
+        const splash = document.getElementById('pwa-splash');
+        if (splash) {
+          splash.remove();
+        }
+      }, 1000);
+    }, 10000);
+
+    return () => clearTimeout(emergencyTimer);
+  }, []);
 
   // Socket Connection
   useEffect(() => {

@@ -295,20 +295,32 @@ export const TodoModal: React.FC<TodoModalProps> = ({
                   <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">
                     {t.privateSpace.bucketList.routine.rule}
                   </label>
-                  <select
-                    value={todo.recurrence || ''}
-                    onChange={(e) => setTodo((prev) => ({ ...prev, recurrence: e.target.value }))}
-                    className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-emerald-200 outline-none appearance-none"
-                  >
-                    {RECURRENCE_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+                  {todo.recurrence &&
+                  !RECURRENCE_OPTIONS.some((opt) => opt.value === todo.recurrence) ? (
+                    <input
+                      type="text"
+                      value={todo.recurrence}
+                      onChange={(e) => setTodo((prev) => ({ ...prev, recurrence: e.target.value }))}
+                      placeholder="输入 Cron 规则 (例如: 0 9 * * 1-5)"
+                      className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-emerald-200 outline-none"
+                    />
+                  ) : (
+                    <select
+                      value={todo.recurrence || ''}
+                      onChange={(e) => setTodo((prev) => ({ ...prev, recurrence: e.target.value }))}
+                      className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-emerald-200 outline-none appearance-none"
+                    >
+                      {RECURRENCE_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                   {todo.recurrence && (
                     <p className="text-[9px] text-slate-400 mt-1 italic">
-                      {RECURRENCE_OPTIONS.find((o) => o.value === todo.recurrence)?.desc}
+                      {RECURRENCE_OPTIONS.find((o) => o.value === todo.recurrence)?.desc ||
+                        '使用高级 Cron 语法。'}
                     </p>
                   )}
                 </div>
