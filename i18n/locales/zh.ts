@@ -471,10 +471,10 @@ export const zh = {
   privateSpace: {
     tabs: {
       secondBrain: '第二大脑',
-      journal: '日志',
-      leisure: '休闲',
-      gallery: '画廊',
-      fitness: '健身'
+      journal: '日志空间',
+      leisure: '休闲空间',
+      gallery: '照片墙',
+      fitness: '运动空间'
     },
     secondBrain: {
       title: '数字孪生',

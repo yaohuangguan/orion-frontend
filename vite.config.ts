@@ -48,7 +48,8 @@ export default defineConfig(({ mode }) => {
         workbox: {
           // 匹配这些文件进行预缓存
           globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-
+          globIgnores: ['**/remixicon-*.svg', '**/node_modules/**/*'],
+          maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
           // 甚至可以配置 API 请求的缓存策略（可选）
           runtimeCaching: [
             // ...

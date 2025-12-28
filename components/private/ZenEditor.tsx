@@ -1,8 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 // 假设你的图片上传工具在这里
 import { uploadImage } from '../../services/media';
-// 推荐使用 RemixIcon，样式更现代
-import 'remixicon/fonts/remixicon.css';
 
 interface ZenEditorProps {
   initialContent?: string;
@@ -129,6 +127,18 @@ export const ZenEditor: React.FC<ZenEditorProps> = ({
   const [isDark, setIsDark] = useState(false);
   const [showVideoInput, setShowVideoInput] = useState(false);
   const [videoUrl, setVideoUrl] = useState('');
+  const [isCssLoaded, setIsCssLoaded] = useState(false);
+
+  useEffect(() => {
+    // ✅ 使用动态 import()
+    // 只有当这个组件被挂载(Mount)时，浏览器才会去下载这个 CSS
+    import('remixicon/fonts/remixicon.css')
+      .then(() => {
+        setIsCssLoaded(true);
+        console.log('RemixIcon loaded dynamically');
+      })
+      .catch((err) => console.error('Failed to load icons', err));
+  }, []);
 
   // Initialize
   useEffect(() => {
@@ -439,6 +449,10 @@ export const ZenEditor: React.FC<ZenEditorProps> = ({
   const toolbarClass = `flex flex-wrap items-center gap-1 p-2 border-b select-none z-20
     ${isDark ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-gray-50'}
   `;
+
+  if (!isCssLoaded) {
+    return <div>Loading Editor Resources...</div>; // 可选：加载中的占位符
+  }
 
   return (
     <div className={containerClass}>
