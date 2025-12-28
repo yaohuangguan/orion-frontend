@@ -4,6 +4,7 @@ import { apiService } from '../../services/api';
 import { Photo } from '../../types';
 import { toast } from '../../components/Toast';
 import { DeleteModal } from '../../components/DeleteModal';
+import { createPortal } from 'react-dom';
 
 export const PhotoGallery: React.FC = () => {
   const { t } = useTranslation();
@@ -19,6 +20,9 @@ export const PhotoGallery: React.FC = () => {
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [uploadName, setUploadName] = useState('');
   const [uploadDate, setUploadDate] = useState('');
+
+  // State for Image Viewer (Lightbox)
+  const [viewingPhoto, setViewingPhoto] = useState<string | null>(null);
 
   // Dragging State
   const [dragId, setDragId] = useState<string | null>(null);
@@ -73,7 +77,7 @@ export const PhotoGallery: React.FC = () => {
   };
 
   const handlePointerDown = (e: React.PointerEvent, photo: Photo) => {
-    if (editingPhotoId || isUploading) return;
+    if (editingPhotoId || isUploading || viewingPhoto) return;
 
     // Only left click
     if (e.button !== 0) return;
@@ -388,6 +392,29 @@ export const PhotoGallery: React.FC = () => {
         </div>
       )}
 
+      {/* Lightbox Overlay */}
+      {viewingPhoto &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in"
+            onClick={() => setViewingPhoto(null)}
+          >
+            <button
+              onClick={() => setViewingPhoto(null)}
+              className="absolute top-6 right-6 text-white text-3xl hover:text-rose-500 transition-colors z-[10000]"
+            >
+              <i className="fas fa-times"></i>
+            </button>
+            <img
+              src={viewingPhoto}
+              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl animate-fade-in"
+              onClick={(e) => e.stopPropagation()}
+              alt="Full View"
+            />
+          </div>,
+          document.body
+        )}
+
       {/* Wood Texture Overlay */}
       <div
         className="absolute inset-0 opacity-40 pointer-events-none z-0"
@@ -537,14 +564,31 @@ export const PhotoGallery: React.FC = () => {
                 {/* Thumbtack */}
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-red-600 shadow-md z-20 border border-black/20"></div>
 
-                {/* Image */}
-                <div className="aspect-[4/5] bg-slate-200 overflow-hidden mb-3 border border-slate-100 relative group/img pointer-events-none">
+                {/* Image Container */}
+                <div className="aspect-[4/5] bg-slate-200 overflow-hidden mb-3 border border-slate-100 relative group/img">
                   <img
                     src={photo.url}
                     alt={photo.name || photo.caption}
                     className={`w-full h-full object-cover transition-all duration-500 ${isEditing ? 'grayscale-0' : 'grayscale-[0.2] group-hover:grayscale-0'}`}
                     draggable={false}
                   />
+
+                  {/* Zoom/View Button (Show when NOT editing) */}
+                  {!isEditing && (
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center pointer-events-auto">
+                      <button
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setViewingPhoto(photo.url);
+                        }}
+                        className="w-10 h-10 bg-white/90 rounded-full text-slate-800 hover:text-rose-500 flex items-center justify-center shadow-lg transform scale-90 hover:scale-110 transition-all"
+                        title={t.privateSpace.fitness.photoWall.view || 'View'}
+                      >
+                        <i className="fas fa-expand text-sm"></i>
+                      </button>
+                    </div>
+                  )}
 
                   {/* Replace Button (Only in Edit Mode) */}
                   {isEditing && (
