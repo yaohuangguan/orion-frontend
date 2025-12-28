@@ -15,7 +15,21 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sen:wght@400;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
-    
+    <script>
+      (function() {
+        try {
+          const savedTheme = localStorage.getItem('app_theme');
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          
+          // 如果存了 dark，或者没存但是系统是 dark，就直接给 html 加 class
+          if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
     <style>
       /* 关键：Splash Screen 优化 */
       #pwa-splash {

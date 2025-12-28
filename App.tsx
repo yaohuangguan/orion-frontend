@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { Routes, Route, Navigate, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { Header } from './components/Header';
@@ -239,6 +239,24 @@ const App: React.FC = () => {
     localStorage.setItem('app_theme', theme);
   }, [theme]);
 
+  // 🔥🔥🔥 新增代码：当 Auth 检查结束，通知 HTML 移除 Splash Screen 🔥🔥🔥
+  useEffect(() => {
+    if (!isAuthChecking) {
+      // 1. 给 body 添加 class，触发 index.html 中的 CSS 渐隐动画
+      document.body.classList.add('app-ready');
+
+      // 2. (可选) 动画结束后彻底移除 DOM 节点，释放内存
+      const timer = setTimeout(() => {
+        const splash = document.getElementById('pwa-splash');
+        if (splash) {
+          splash.remove();
+        }
+      }, 1000); // 对应 CSS 中的 0.8s transition
+
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthChecking]);
+
   // Socket Connection
   useEffect(() => {
     if (user && !socket) {
@@ -302,9 +320,9 @@ const App: React.FC = () => {
     setTheme((prev) => (prev === Theme.LIGHT ? Theme.DARK : Theme.LIGHT));
   };
 
-  if (isAuthChecking) {
-    return <PageLoader />;
-  }
+  // if (isAuthChecking) {
+  //   return <PageLoader />;
+  // }
 
   return (
     <>
