@@ -17,7 +17,10 @@ export const RoutineList: React.FC<RoutineListProps> = ({ onEdit, refreshKey }) 
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+
   const [checkingIds, setCheckingIds] = useState<Set<string>>(new Set());
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
+  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'paused'>('active');
 
   const RECURRENCE_OPTIONS = getRecurrenceOptions(t);
 
@@ -25,7 +28,16 @@ export const RoutineList: React.FC<RoutineListProps> = ({ onEdit, refreshKey }) 
     if (loading) return;
     setLoading(true);
     try {
-      const { data, pagination } = await featureService.getTodos(p, 50, 'routine');
+      const activeParam =
+        filterStatus === 'all' ? undefined : filterStatus === 'active' ? true : false;
+
+      const { data, pagination } = await featureService.getTodos(
+        p,
+        50,
+        'routine',
+        undefined,
+        activeParam
+      );
       if (reset) {
         setTodos(data);
       } else {
@@ -42,7 +54,7 @@ export const RoutineList: React.FC<RoutineListProps> = ({ onEdit, refreshKey }) 
 
   useEffect(() => {
     fetchRoutines(1, true);
-  }, [refreshKey]);
+  }, [refreshKey, filterStatus]); // Reload when filter changes
 
   const loadMore = () => {
     if (hasMore && !loading) {
@@ -71,6 +83,38 @@ export const RoutineList: React.FC<RoutineListProps> = ({ onEdit, refreshKey }) 
     }
   };
 
+  const handleToggleActive = async (e: React.MouseEvent, todo: Todo) => {
+    e.stopPropagation();
+    if (togglingIds.has(todo._id)) return;
+
+    setTogglingIds((prev) => new Set(prev).add(todo._id));
+    const newStatus = !todo.isActive;
+
+    try {
+      await featureService.updateTodo(todo._id, { isActive: newStatus });
+      toast.success(newStatus ? 'Routine Resumed' : 'Routine Paused');
+
+      // If we are filtering by specific status, remove the item
+      if (filterStatus !== 'all') {
+        setTodos((prev) => prev.filter((t) => t._id !== todo._id));
+      } else {
+        // Otherwise just update it locally
+        setTodos((prev) =>
+          prev.map((t) => (t._id === todo._id ? { ...t, isActive: newStatus } : t))
+        );
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to update status');
+    } finally {
+      setTogglingIds((prev) => {
+        const n = new Set(prev);
+        n.delete(todo._id);
+        return n;
+      });
+    }
+  };
+
   const getRecurrenceLabel = (val?: string) => {
     if (!val) return t.privateSpace.bucketList.routine.recurrenceOptions.none;
     return RECURRENCE_OPTIONS.find((o) => o.value === val)?.label || val;
@@ -78,6 +122,26 @@ export const RoutineList: React.FC<RoutineListProps> = ({ onEdit, refreshKey }) 
 
   return (
     <div className="flex-1 overflow-y-auto px-4 pb-4 custom-scrollbar space-y-3 pt-2 h-full">
+      {/* Filter Tabs */}
+      <div className="flex gap-2 mb-2 bg-slate-100 p-1 rounded-lg w-fit mx-auto sticky top-0 z-30 shadow-sm">
+        {(['active', 'paused', 'all'] as const).map((s) => (
+          <button
+            key={s}
+            onClick={() => {
+              setFilterStatus(s);
+              setPage(1);
+            }}
+            className={`px-3 py-1 text-[10px] font-bold uppercase rounded transition-all ${
+              filterStatus === s
+                ? 'bg-white text-pink-500 shadow-sm'
+                : 'text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            {s === 'active' ? 'Runing' : s}
+          </button>
+        ))}
+      </div>
+
       {todos.length === 0 && !loading ? (
         <div className="text-center py-10 text-slate-400 flex flex-col items-center gap-2 border-2 border-dashed border-pink-100 rounded-2xl">
           <i className="fas fa-sync text-3xl text-pink-100"></i>
@@ -94,7 +158,9 @@ export const RoutineList: React.FC<RoutineListProps> = ({ onEdit, refreshKey }) 
             >
               <div className="flex items-center justify-between pb-2 border-b border-slate-50 mb-1">
                 <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full overflow-hidden bg-slate-100">
+                  <div
+                    className={`w-5 h-5 rounded-full overflow-hidden ${todo.isActive === false ? 'grayscale opacity-50' : 'bg-slate-100'}`}
+                  >
                     <img
                       src={
                         todo.user?.photoURL ||
@@ -108,15 +174,30 @@ export const RoutineList: React.FC<RoutineListProps> = ({ onEdit, refreshKey }) 
                     {todo.user?.displayName || 'Unknown'}
                   </span>
                 </div>
-                <button
-                  className="text-[9px] font-bold text-amber-500 bg-amber-50 px-2 py-0.5 rounded hover:bg-amber-100"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit(todo);
-                  }}
-                >
-                  <i className="fas fa-bolt mr-1"></i> TEST
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    className={`relative w-8 h-4 rounded-full transition-colors ${todo.isActive === false ? 'bg-slate-200' : 'bg-green-400'}`}
+                    onClick={(e) => handleToggleActive(e, todo)}
+                    disabled={togglingIds.has(todo._id)}
+                  >
+                    <div
+                      className={`absolute top-0.5 w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${todo.isActive === false ? 'left-0.5' : 'left-4.5 translate-x-0'}`}
+                    >
+                      {togglingIds.has(todo._id) && (
+                        <i className="fas fa-circle-notch fa-spin text-[6px] text-slate-400 absolute inset-0 m-auto flex items-center justify-center"></i>
+                      )}
+                    </div>
+                  </button>
+                  <button
+                    className="text-[9px] font-bold text-amber-500 bg-amber-50 px-2 py-0.5 rounded hover:bg-amber-100"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(todo);
+                    }}
+                  >
+                    <i className="fas fa-bolt mr-1"></i> TEST
+                  </button>
+                </div>
               </div>
 
               <div className="flex justify-between items-start gap-4">

@@ -282,6 +282,7 @@ export interface Todo {
   description?: string;
   status?: 'todo' | 'in_progress' | 'done';
   type?: 'wish' | 'routine'; // New Type Field
+  isActive?: boolean; // 🔥 New: Routine active state
   images?: string[];
   targetDate?: string;
   remindAt?: string; // 🔥 New: Routine reminder time

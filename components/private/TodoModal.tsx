@@ -216,6 +216,7 @@ export const TodoModal: React.FC<TodoModalProps> = ({
                 setTodo((prev) => ({
                   ...prev,
                   type: 'routine',
+                  isActive: prev.isActive === undefined ? true : prev.isActive,
                   remindAt: prev.remindAt || new Date().toISOString()
                 }))
               }
@@ -325,6 +326,21 @@ export const TodoModal: React.FC<TodoModalProps> = ({
                   )}
                 </div>
               </div>
+
+              <label className="flex items-center justify-between gap-2 p-2 rounded-lg border border-slate-200 bg-white">
+                <span className="text-[10px] font-bold uppercase text-slate-400">
+                  Status: {todo.isActive !== false ? 'Active' : 'Paused'}
+                </span>
+                <div
+                  className={`relative w-10 h-5 rounded-full transition-colors cursor-pointer ${todo.isActive !== false ? 'bg-green-500' : 'bg-slate-300'}`}
+                  onClick={() => setTodo((prev) => ({ ...prev, isActive: !prev.isActive }))}
+                >
+                  <div
+                    className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${todo.isActive !== false ? 'translate-x-5' : 'translate-x-0.5'}`}
+                  ></div>
+                </div>
+              </label>
+
               <label className="flex items-center gap-2 cursor-pointer mt-1">
                 <input
                   type="checkbox"

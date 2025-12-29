@@ -179,7 +179,8 @@ export const featureService = {
     page: number = 1,
     limit: number = 20,
     type?: string,
-    keyword?: string
+    keyword?: string,
+    isActive?: boolean | string
   ): Promise<PaginatedResponse<Todo>> => {
     try {
       const params = new URLSearchParams({
@@ -188,6 +189,7 @@ export const featureService = {
       });
       if (type) params.append('type', type);
       if (keyword) params.append('keyword', keyword);
+      if (isActive !== undefined) params.append('isActive', isActive.toString());
 
       return await fetchClient<PaginatedResponse<Todo>>(`/todo?${params.toString()}`);
     } catch (e) {
@@ -214,7 +216,7 @@ export const featureService = {
     type?: 'wish' | 'routine',
     recurrence?: string,
     remindAt?: string,
-    options?: { notifyUsers?: string[]; bark?: any }
+    options?: { notifyUsers?: string[]; bark?: any; isActive?: boolean }
   ): Promise<Todo[]> => {
     try {
       const payload = {
