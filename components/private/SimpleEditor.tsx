@@ -431,7 +431,7 @@ export const SimpleEditor: React.FC<SimpleEditorProps> = ({
 
             {/* Quick Tag Suggestions (On Hover/Focus) */}
             {availableTags.length > 0 && (
-              <div className="absolute top-full left-0 right-0 pt-2 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity z-50">
+              <div className="absolute top-full left-0 right-0 mt-1 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity z-50">
                 <div className="bg-white border border-slate-100 shadow-xl rounded-xl p-2 flex flex-wrap gap-1 max-h-32 overflow-y-auto custom-scrollbar">
                   {availableTags.slice(0, 20).map((tag) => (
                     <button

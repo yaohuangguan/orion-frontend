@@ -498,66 +498,72 @@ export const ZenEditor: React.FC<ZenEditorProps> = ({
 
         {/* Font & Size */}
         <div className="flex gap-1">
-          <button
-            className={`flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors
-              ${isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-200'}
-            `}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              setActiveDropdown(activeDropdown === 'font' ? null : 'font');
-            }}
-          >
-            Font <i className="ri-arrow-down-s-line"></i>
-          </button>
-          {activeDropdown === 'font' && (
-            <div
-              className={`absolute top-10 left-100 w-40 border shadow-xl rounded-md flex flex-col z-30 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}
+          {/* Font Dropdown */}
+          <div className="relative">
+            <button
+              className={`flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors
+                ${isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-200'}
+              `}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setActiveDropdown(activeDropdown === 'font' ? null : 'font');
+              }}
             >
-              {FONT_FAMILIES.map((font) => (
-                <button
-                  key={font.name}
-                  className={`text-left px-3 py-2 text-xs ${isDark ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-800'}`}
-                  style={{ fontFamily: font.value }}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    exec('fontName', font.value);
-                  }}
-                >
-                  {font.name}
-                </button>
-              ))}
-            </div>
-          )}
+              Font <i className="ri-arrow-down-s-line"></i>
+            </button>
+            {activeDropdown === 'font' && (
+              <div
+                className={`absolute top-full left-0 mt-1 w-40 border shadow-xl rounded-md flex flex-col z-30 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}
+              >
+                {FONT_FAMILIES.map((font) => (
+                  <button
+                    key={font.name}
+                    className={`text-left px-3 py-2 text-xs ${isDark ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-800'}`}
+                    style={{ fontFamily: font.value }}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      exec('fontName', font.value);
+                    }}
+                  >
+                    {font.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
-          <button
-            className={`flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors
-              ${isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-200'}
-            `}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              setActiveDropdown(activeDropdown === 'size' ? null : 'size');
-            }}
-          >
-            Size <i className="ri-arrow-down-s-line"></i>
-          </button>
-          {activeDropdown === 'size' && (
-            <div
-              className={`absolute top-10 left-150 w-24 border shadow-xl rounded-md flex flex-col z-30 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}
+          {/* Size Dropdown */}
+          <div className="relative">
+            <button
+              className={`flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors
+                ${isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-200'}
+              `}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setActiveDropdown(activeDropdown === 'size' ? null : 'size');
+              }}
             >
-              {FONT_SIZES.map((size) => (
-                <button
-                  key={size.name}
-                  className={`text-left px-3 py-2 text-xs ${isDark ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-800'}`}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    exec('fontSize', size.value);
-                  }}
-                >
-                  {size.name}
-                </button>
-              ))}
-            </div>
-          )}
+              Size <i className="ri-arrow-down-s-line"></i>
+            </button>
+            {activeDropdown === 'size' && (
+              <div
+                className={`absolute top-full left-0 mt-1 w-24 border shadow-xl rounded-md flex flex-col z-30 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}
+              >
+                {FONT_SIZES.map((size) => (
+                  <button
+                    key={size.name}
+                    className={`text-left px-3 py-2 text-xs ${isDark ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-800'}`}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      exec('fontSize', size.value);
+                    }}
+                  >
+                    {size.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <Divider />
@@ -576,7 +582,7 @@ export const ZenEditor: React.FC<ZenEditorProps> = ({
           />
           {activeDropdown === 'color' && (
             <div
-              className={`absolute top-full left-0 mt-2 p-2 border shadow-xl rounded-lg grid grid-cols-5 gap-1 z-30 w-40 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}
+              className={`absolute top-full left-0 mt-1 p-2 border shadow-xl rounded-lg grid grid-cols-5 gap-1 z-30 w-40 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}
             >
               {[
                 '#000000',
@@ -610,7 +616,7 @@ export const ZenEditor: React.FC<ZenEditorProps> = ({
           />
           {activeDropdown === 'emoji' && (
             <div
-              className={`absolute top-full left-0 mt-2 p-2 border shadow-xl rounded-lg grid grid-cols-5 gap-1 z-30 w-48 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}
+              className={`absolute top-full left-0 mt-1 p-2 border shadow-xl rounded-lg grid grid-cols-5 gap-1 z-30 w-48 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}
             >
               {EMOJIS.map((emoji) => (
                 <button
@@ -673,7 +679,7 @@ export const ZenEditor: React.FC<ZenEditorProps> = ({
           />
           {showVideoInput && (
             <div
-              className={`absolute top-full left-50 mt-2 p-3 border shadow-xl rounded-lg z-40 w-72 flex flex-col gap-2 animate-in fade-in slide-in-from-top-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}
+              className={`absolute top-full left-0 mt-2 p-3 border shadow-xl rounded-lg z-40 w-72 flex flex-col gap-2 animate-in fade-in slide-in-from-top-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}
             >
               <span
                 className={`text-xs font-semibold ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
