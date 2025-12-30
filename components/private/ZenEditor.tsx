@@ -121,28 +121,47 @@ export const ZenEditor: React.FC<ZenEditorProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const savedRange = useRef<Range | null>(null);
 
+  // Global state to track CSS loading across component remounts
+  let isRemixIconLoaded = false;
+  let loadingPromise: Promise<void> | null = null;
+
   // --- UI States ---
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [showVideoInput, setShowVideoInput] = useState(false);
   const [videoUrl, setVideoUrl] = useState('');
-  const [isCssLoaded, setIsCssLoaded] = useState(false);
+  const [isCssLoaded, setIsCssLoaded] = useState(isRemixIconLoaded);
 
   useEffect(() => {
-    // ✅ 使用动态 import()
-    // 只有当这个组件被挂载(Mount)时，浏览器才会去下载这个 CSS
-    import('remixicon/fonts/remixicon.css')
-      .then(() => {
-        setIsCssLoaded(true);
-        console.log('RemixIcon loaded dynamically');
-      })
-      .catch((err) => console.error('Failed to load icons', err));
+    if (isRemixIconLoaded) {
+      setIsCssLoaded(true);
+      return;
+    }
+
+    if (!loadingPromise) {
+      // ✅ Use dynamic import()
+      // Only download when component mounts for the first time
+      loadingPromise = import('remixicon/fonts/remixicon.css')
+        .then(() => {
+          isRemixIconLoaded = true;
+        })
+        .catch((err) => {
+          console.error('Failed to load icons', err);
+          loadingPromise = null; // Allow retry
+        });
+    }
+
+    loadingPromise.then(() => {
+      if (!isRemixIconLoaded) return; // Failed case
+      setIsCssLoaded(true);
+    });
   }, []);
 
   // Initialize
   useEffect(() => {
-    if (editorRef.current && initialContent) {
+    // Only configure editor when CSS is loaded and ref is available
+    if (isCssLoaded && editorRef.current && initialContent) {
       editorRef.current.innerHTML = initialContent;
 
       const checkHljs = setInterval(() => {
@@ -154,7 +173,7 @@ export const ZenEditor: React.FC<ZenEditorProps> = ({
 
       return () => clearInterval(checkHljs);
     }
-  }, []);
+  }, [isCssLoaded]);
 
   // --- 高亮逻辑 ---
   const highlightAllBlocks = () => {

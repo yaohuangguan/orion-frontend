@@ -29,7 +29,8 @@ const C = {
   ISPRIVATE: 'ISPRIVATE',
   LOADING: 'LOADING',
   RESET: 'RESET',
-  SET_ALL: 'SET_ALL'
+  SET_ALL: 'SET_ALL',
+  APPLY_TEMPLATE: 'APPLY_TEMPLATE'
 };
 
 const INITIAL_STATE = {
@@ -39,7 +40,8 @@ const INITIAL_STATE = {
   title: '',
   tags: '',
   isPrivate: true,
-  loading: false
+  loading: false,
+  editorKey: 0
 };
 
 const reducer = (state: any, action: any) => {
@@ -61,6 +63,14 @@ const reducer = (state: any, action: any) => {
       return { ...state, loading: payload };
     case C.SET_ALL:
       return { ...state, ...payload };
+    case C.APPLY_TEMPLATE:
+      return {
+        ...state,
+        title: payload.title,
+        content: payload.content,
+        tags: payload.tags,
+        editorKey: (state.editorKey || 0) + 1
+      };
     case C.RESET:
       return INITIAL_STATE;
     default:
@@ -111,7 +121,7 @@ export const SimpleEditor: React.FC<SimpleEditorProps> = ({
 
   const [state, dispatch] = useReducer(reducer, null, getInitialState);
 
-  const { content, author, info, title, tags, isPrivate, loading } = state;
+  const { content, author, info, title, tags, isPrivate, loading, editorKey } = state;
 
   // History Snapshots (Debounced slightly or on specific actions)
   const addToHistory = (newState: any) => {
@@ -298,15 +308,22 @@ export const SimpleEditor: React.FC<SimpleEditorProps> = ({
     // Snapshot before apply
     addToHistory(state);
 
-    dispatch({ type: C.TITLE, payload: template.title });
-    dispatch({ type: C.CONTENT, payload: template.content });
     // Merge existing tags with template tags
     const currentTags = tags
       .split(' ')
       .map((t: string) => t.trim())
       .filter((t: string) => t);
     const newTagsSet = new Set([...currentTags, ...template.tags]);
-    dispatch({ type: C.TAGS, payload: Array.from(newTagsSet).join(' ') });
+    const mergedTags = Array.from(newTagsSet).join(' ');
+
+    dispatch({
+      type: C.APPLY_TEMPLATE,
+      payload: {
+        title: template.title,
+        content: template.content,
+        tags: mergedTags
+      }
+    });
 
     toast.info(`Applied template: ${template.name}`);
   };
@@ -477,7 +494,7 @@ export const SimpleEditor: React.FC<SimpleEditorProps> = ({
       {/* EDITOR AREA */}
       <div className="flex-1 min-h-0 relative bg-white flex flex-col p-4 md:p-6 bg-slate-50">
         <ZenEditor
-          key={title} // Force re-render when template changes title
+          key={`${title}-${editorKey || 0}`} // Force re-render when template changes title OR template is reapplied (via atomic update)
           initialContent={content}
           onChange={(html) => {
             // Only dispatch change, don't history every key stroke here, handled by ZenEditor internally for text
