@@ -661,6 +661,11 @@ export const zh = {
         maintain: '保持'
       },
       calendar: {
+        viewMode: {
+          workout: '运动打卡',
+          supplements: '营养补剂',
+          water: '饮水达标'
+        },
         weekdays: ['日', '一', '二', '三', '四', '五', '六'],
         holidays: {
           '1-1': '元旦',
@@ -731,6 +736,7 @@ export const zh = {
         workout: '活动记录',
         status: '身体 & 状态',
         diet: '饮食',
+        supplements: '营养补充',
         photos: '照片'
       },
       workout: {
@@ -765,7 +771,13 @@ export const zh = {
       diet: {
         content: '今天吃了什么？',
         contentPlaceholder: '早餐：面包，牛奶...',
-        water: '喝水 (ml)'
+        water: '喝水 (ml)',
+        supplements: {
+          title: '营养补充',
+          protein: '蛋白粉',
+          vitamins: '维生素',
+          details: '详情'
+        }
       },
       photos: {
         upload: '上传今日瞬间',

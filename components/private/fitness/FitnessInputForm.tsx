@@ -6,7 +6,7 @@ import { apiService } from '../../../services/api';
 import { DeleteModal } from '../../DeleteModal';
 import { R2ImageSelectorModal } from '../../R2ImageSelectorModal';
 
-type FitnessTab = 'WORKOUT' | 'STATUS' | 'DIET' | 'PHOTOS';
+type FitnessTab = 'WORKOUT' | 'STATUS' | 'DIET' | 'SUPPLEMENTS' | 'PHOTOS';
 
 interface FitnessInputFormProps {
   currentDate: Date;
@@ -65,6 +65,10 @@ export const FitnessInputForm: React.FC<FitnessInputFormProps> = ({
     updateRecord({ body: { ...record.body, [field]: value } });
   const updateDiet = (field: string, value: any) =>
     updateRecord({ diet: { ...record.diet, [field]: value } });
+  const updateSupplements = (field: string, value: any) =>
+    updateRecord({
+      supplements: { ...record.supplements, [field]: value }
+    } as any); // Partial update logic handled by parent or spread
 
   const toggleWorkoutType = (type: string) => {
     const currentTypes = record.workout?.types || [];
@@ -204,8 +208,8 @@ export const FitnessInputForm: React.FC<FitnessInputFormProps> = ({
         onSelect={handleR2Select}
       />
 
-      <div className="lg:w-48 bg-rose-50/50 border-b lg:border-b-0 lg:border-r border-rose-100 flex lg:flex-col overflow-x-auto lg:overflow-visible">
-        {(['WORKOUT', 'STATUS', 'DIET', 'PHOTOS'] as FitnessTab[]).map((tab) => (
+      <div className="lg:w-48 bg-rose-50/50 border-b lg:border-b-0 lg:border-r border-rose-100 flex lg:flex-col overflow-x-auto lg:overflow-visible custom-scrollbar">
+        {(['WORKOUT', 'STATUS', 'DIET', 'SUPPLEMENTS', 'PHOTOS'] as FitnessTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -457,16 +461,99 @@ export const FitnessInputForm: React.FC<FitnessInputFormProps> = ({
                 />
               </div>
             </div>
-            <div className="flex-1 flex flex-col min-h-[250px]">
+            <div className="flex-1 flex flex-col min-h-[150px]">
               <label className="block text-xs font-bold uppercase text-slate-400 mb-2">
                 {t.privateSpace.fitness.diet.content}
               </label>
               <textarea
                 value={record.diet?.content || ''}
                 onChange={(e) => updateDiet('content', e.target.value)}
-                className="flex-1 w-full bg-amber-50/50 border border-amber-100 rounded-2xl p-4 text-sm leading-relaxed text-slate-700 outline-none focus:border-amber-300 resize-none min-h-[200px]"
+                className="flex-1 w-full bg-amber-50/50 border border-amber-100 rounded-2xl p-4 text-sm leading-relaxed text-slate-700 outline-none focus:border-amber-300 resize-none min-h-[150px]"
                 placeholder={t.privateSpace.fitness.diet.contentPlaceholder}
               />
+            </div>
+
+            {/* Supplements Section Moved to dedicated tab */}
+          </div>
+        )}
+        {activeTab === 'SUPPLEMENTS' && (
+          <div className="space-y-6 animate-fade-in mt-8 max-w-xl">
+            <div className="p-6 bg-emerald-50/50 rounded-2xl border border-emerald-100 flex flex-col gap-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-500 flex items-center justify-center shadow-sm">
+                  <i className="fas fa-pills text-lg"></i>
+                </div>
+                <div>
+                  <h3 className="font-bold text-emerald-800">
+                    {t.privateSpace.fitness.diet.supplements.title}
+                  </h3>
+                  <p className="text-xs text-emerald-600/70 uppercase tracking-wide">
+                    Daily Intake Tracker
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <label
+                  className={`relative flex flex-col items-center justify-center gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                    record.supplements?.protein
+                      ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-200'
+                      : 'bg-white border-slate-200 text-slate-500 hover:border-emerald-200 hover:bg-emerald-50'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    className="hidden"
+                    checked={record.supplements?.protein || false}
+                    onChange={(e) => updateSupplements('protein', e.target.checked)}
+                  />
+                  <i className="fas fa-prescription-bottle text-2xl"></i>
+                  <span className="font-bold text-sm">
+                    {t.privateSpace.fitness.diet.supplements.protein}
+                  </span>
+                  {record.supplements?.protein && (
+                    <div className="absolute top-2 right-2">
+                      <i className="fas fa-check-circle"></i>
+                    </div>
+                  )}
+                </label>
+
+                <label
+                  className={`relative flex flex-col items-center justify-center gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                    record.supplements?.vitamins
+                      ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-200'
+                      : 'bg-white border-slate-200 text-slate-500 hover:border-emerald-200 hover:bg-emerald-50'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    className="hidden"
+                    checked={record.supplements?.vitamins || false}
+                    onChange={(e) => updateSupplements('vitamins', e.target.checked)}
+                  />
+                  <i className="fas fa-capsules text-2xl"></i>
+                  <span className="font-bold text-sm">
+                    {t.privateSpace.fitness.diet.supplements.vitamins}
+                  </span>
+                  {record.supplements?.vitamins && (
+                    <div className="absolute top-2 right-2">
+                      <i className="fas fa-check-circle"></i>
+                    </div>
+                  )}
+                </label>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase text-emerald-500 mb-2 ml-1">
+                  {t.privateSpace.fitness.diet.supplements.details}
+                </label>
+                <textarea
+                  value={record.supplements?.details || ''}
+                  onChange={(e) => updateSupplements('details', e.target.value)}
+                  className="w-full bg-white border border-emerald-100 rounded-xl p-4 text-sm outline-none focus:border-emerald-300 placeholder-emerald-200/50 resize-none h-24"
+                  placeholder="e.g. Whey Protein, Multivitamins..."
+                />
+              </div>
             </div>
           </div>
         )}

@@ -672,6 +672,11 @@ export const en = {
         maintain: 'Maintain'
       },
       calendar: {
+        viewMode: {
+          workout: 'Workout',
+          supplements: 'Supplements',
+          water: 'Water'
+        },
         weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
         holidays: {
           '1-1': 'New Year',
@@ -742,6 +747,7 @@ export const en = {
         workout: 'Activity',
         status: 'Body & Mood',
         diet: 'Diet',
+        supplements: 'Supplements',
         photos: 'Photos'
       },
       workout: {
@@ -776,7 +782,13 @@ export const en = {
       diet: {
         content: 'What did you eat?',
         contentPlaceholder: 'Breakfast: Bread, Milk...',
-        water: 'Water Intake (ml)'
+        water: 'Water Intake (ml)',
+        supplements: {
+          title: 'Supplements',
+          protein: 'Protein Powder',
+          vitamins: 'Vitamins',
+          details: 'Details'
+        }
       },
       photos: {
         upload: 'Upload Daily Moments',

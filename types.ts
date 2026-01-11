@@ -350,6 +350,12 @@ export interface FitnessStatus {
   sleepHours?: number;
 }
 
+export interface FitnessSupplements {
+  protein: boolean;
+  vitamins: boolean;
+  details?: string;
+}
+
 export interface FitnessRecord {
   _id?: string;
   user?: User | string; // Can be ID or populated object
@@ -358,6 +364,7 @@ export interface FitnessRecord {
   body?: FitnessBody;
   workout?: FitnessWorkout;
   diet?: FitnessDiet; // Changed from nutrition
+  supplements?: FitnessSupplements; // New field
   status?: FitnessStatus; // New field
   photos?: string[];
   targetUserEmail?: string; // For submission only
