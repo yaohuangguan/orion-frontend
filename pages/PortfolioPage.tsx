@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import { useSearchParams } from 'react-router-dom';
 import { ProjectShowcase } from '../components/profile/ProjectShowcase';
 import { ResumeDocument } from '../components/profile/ResumeDocument';
@@ -28,6 +29,13 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ currentUser }) => 
     });
   };
 
+  const resumeRef = useRef<HTMLDivElement>(null);
+
+  const handlePrint = useReactToPrint({
+    contentRef: resumeRef,
+    documentTitle: `Resume - ${currentUser?.displayName || 'Profile'}`
+  });
+
   return (
     <div className="container mx-auto px-6 py-24 pt-32 max-w-6xl animate-fade-in relative z-10 min-h-screen">
       <Helmet>
@@ -39,7 +47,16 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ currentUser }) => 
       </Helmet>
 
       {/* Page Header */}
-      <div className="text-center mb-16">
+      <div className="text-center mb-16 relative">
+        {activeTab === 'RESUME' && currentUser?.role === 'super_admin' && (
+          <button
+            onClick={() => handlePrint()}
+            className="hidden md:flex absolute top-0 right-0 items-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full font-bold text-sm hover:opacity-90 transition-opacity shadow-lg"
+          >
+            <i className="fas fa-file-pdf"></i>
+            <span>Export PDF</span>
+          </button>
+        )}
         <h1 className="text-5xl md:text-7xl font-display font-bold text-slate-900 dark:text-white mb-6 tracking-tight">
           {t.portfolio.title}
         </h1>
@@ -76,7 +93,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ currentUser }) => 
 
       {/* Content Area */}
       <div className="animate-slide-up">
-        {activeTab === 'RESUME' && <ResumeDocument currentUser={currentUser} />}
+        {activeTab === 'RESUME' && <ResumeDocument ref={resumeRef} currentUser={currentUser} />}
         {activeTab === 'PROJECTS' && <ProjectShowcase currentUser={currentUser} />}
       </div>
     </div>

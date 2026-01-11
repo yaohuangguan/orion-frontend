@@ -50,6 +50,9 @@ importers:
       react-router-dom:
         specifier: 6.22.0
         version: 6.22.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      react-to-print:
+        specifier: ^3.2.0
+        version: 3.2.0(react@19.2.3)
       recharts:
         specifier: ^3.5.1
         version: 3.6.0(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react-is@19.2.3)(react@19.2.3)(redux@5.0.1)
@@ -2848,6 +2851,11 @@ packages:
     engines: {node: '>=14.0.0'}
     peerDependencies:
       react: '>=16.8'
+
+  react-to-print@3.2.0:
+    resolution: {integrity: sha512-IX2D0mebKMgYTBD6s5tf9B7YRL3RFWjRoevYK8JKgRwn94Rep7PFZyeOTGjCmXofKB1SKzvPSzDrAMG4I2PIwg==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ~19
 
   react@19.2.3:
     resolution: {integrity: sha512-Ku/hhYbVjOQnXDZFv2+RibmLFGwFdeeKHFcOTlrt7xplBnya5OGn/hIRDsqDiSUcfORsDC7MPxwork8jBwsIWA==}
@@ -6367,6 +6375,10 @@ snapshots:
   react-router@6.22.0(react@19.2.3):
     dependencies:
       '@remix-run/router': 1.15.0
+      react: 19.2.3
+
+  react-to-print@3.2.0(react@19.2.3):
+    dependencies:
       react: 19.2.3
 
   react@19.2.3: {}
