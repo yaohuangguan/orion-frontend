@@ -668,30 +668,32 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
               Experience
             </h3>
             <div className="space-y-10 border-l-2 border-slate-100 dark:border-slate-800 ml-1 pl-8 relative">
-              {resume.work.map((job, idx) => (
-                <div key={idx} className="relative break-inside-avoid page-break-inside-avoid">
-                  <span className="absolute -left-[39px] top-1.5 w-5 h-5 rounded-full border-4 border-white dark:border-slate-900 bg-amber-500"></span>
+              {[...resume.work]
+                .sort((a, b) => (b.startDate || '').localeCompare(a.startDate || ''))
+                .map((job, idx) => (
+                  <div key={idx} className="relative break-inside-avoid page-break-inside-avoid">
+                    <span className="absolute -left-[39px] top-1.5 w-5 h-5 rounded-full border-4 border-white dark:border-slate-900 bg-amber-500"></span>
 
-                  <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-2">
-                    <h4 className="text-xl font-bold text-slate-900 dark:text-white">
-                      {getLocalized(job, 'company')}
-                    </h4>
-                    <span className="font-mono text-xs text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
-                      {job.startDate} — {job.endDate || 'Present'}
-                    </span>
+                    <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-2">
+                      <h4 className="text-xl font-bold text-slate-900 dark:text-white">
+                        {getLocalized(job, 'company')}
+                      </h4>
+                      <span className="font-mono text-xs text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
+                        {job.startDate} — {job.endDate || 'Present'}
+                      </span>
+                    </div>
+
+                    <p className="text-amber-600 dark:text-amber-500 font-bold text-sm mb-4">
+                      {getLocalized(job, 'position')}
+                    </p>
+
+                    <ul className="list-disc list-outside ml-4 space-y-2 text-slate-600 dark:text-slate-400 leading-relaxed marker:text-slate-300 dark:marker:text-slate-600">
+                      {getLocalizedArray(job, 'highlights').map((hl: string, i: number) => (
+                        <li key={i}>{hl}</li>
+                      ))}
+                    </ul>
                   </div>
-
-                  <p className="text-amber-600 dark:text-amber-500 font-bold text-sm mb-4">
-                    {getLocalized(job, 'position')}
-                  </p>
-
-                  <ul className="list-disc list-outside ml-4 space-y-2 text-slate-600 dark:text-slate-400 leading-relaxed marker:text-slate-300 dark:marker:text-slate-600">
-                    {getLocalizedArray(job, 'highlights').map((hl: string, i: number) => (
-                      <li key={i}>{hl}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+                ))}
             </div>
           </section>
 
