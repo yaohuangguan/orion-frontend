@@ -2,7 +2,7 @@ export const en = {
   header: {
     home: 'Home',
     blog: 'Journal',
-    about: 'Application',
+    about: 'Profile',
     privateSpace: "Captain's Cabin",
     chat: 'Comm Link',
     signOut: 'Disconnect',
@@ -24,7 +24,7 @@ export const en = {
   },
   bottomNav: {
     home: 'Home',
-    archives: 'Application',
+    archives: 'Profile',
     cabin: 'Cabin',
     me: 'Me'
   },
@@ -42,7 +42,7 @@ export const en = {
   portfolio: {
     title: 'Orion App Store',
     subtitle: 'App Portfolio & Engineering Projects Showcase.',
-    resume: 'Intro of Owner',
+    resume: 'About Me',
     projects: 'Apps & Projects',
     liveDemo: 'Live Demo',
     sourceCode: 'Source Code',

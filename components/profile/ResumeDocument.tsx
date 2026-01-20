@@ -661,17 +661,20 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
                   <i className="fas fa-phone opacity-50"></i> {resume.basics.phone}
                 </div>
               )}
-              <div className="flex items-center justify-end gap-2">
-                <i className="fas fa-globe opacity-50"></i>{' '}
-                <a
-                  href="https://ps6.space"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="hover:underline"
-                >
-                  ps6.space
-                </a>
-              </div>
+              {targetProfile !== 'jenny' && (
+                <div className="flex items-center justify-end gap-2">
+                  <i className="fas fa-globe opacity-50"></i>{' '}
+                  <span className="opacity-70">Portfolio:</span>
+                  <a
+                    href="https://ps6.space"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hover:underline"
+                  >
+                    https://ps6.space
+                  </a>
+                </div>
+              )}
             </div>
           </div>
 
