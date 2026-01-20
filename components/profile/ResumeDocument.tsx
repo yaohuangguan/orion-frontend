@@ -662,13 +662,59 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
                 </div>
               )}
               <div className="flex items-center justify-end gap-2">
-                <i className="fas fa-map-marker-alt opacity-50"></i>{' '}
-                {getLocalized(resume.basics, 'location')}
+                <i className="fas fa-globe opacity-50"></i>{' '}
+                <a
+                  href="https://ps6.space"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:underline"
+                >
+                  ps6.space
+                </a>
               </div>
             </div>
           </div>
 
-          {/* Summary */}
+          {/* Education - Moved Up & Merged Summary */}
+          <section className="mb-12">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6 border-b border-slate-100 dark:border-slate-800 pb-2">
+              Education
+            </h3>
+
+            <div className="grid grid-cols-1 gap-6">
+              {resume.education.map((edu, idx) => (
+                <div
+                  key={idx}
+                  className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 break-inside-avoid page-break-inside-avoid"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="text-lg font-bold text-slate-900 dark:text-white">
+                      {edu.institution}
+                    </h4>
+                    <span className="text-xs font-mono text-slate-400">
+                      {edu.startDate} — {edu.endDate}
+                    </span>
+                  </div>
+                  {edu.location && (
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 font-mono flex items-center gap-2">
+                      <i className="fas fa-map-marker-alt opacity-50"></i>
+                      {edu.location}
+                    </p>
+                  )}
+                  <p className="text-slate-600 dark:text-slate-300 font-medium text-sm">
+                    {getLocalized(edu, 'studyType')} in {getLocalized(edu, 'area')}
+                  </p>
+                  {edu.score_en && (
+                    <p className="text-slate-500 dark:text-slate-400 text-xs mt-2 italic">
+                      {getLocalized(edu, 'score')}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Summary - Moved Below Education */}
           <section className="mb-12">
             <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">
               Profile
@@ -678,7 +724,7 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
             </p>
           </section>
 
-          {/* Work Experience */}
+          {/* Work Experience - Moved Down */}
           <section className="mb-12">
             <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6 border-b border-slate-100 dark:border-slate-800 pb-2">
               Experience
@@ -721,45 +767,26 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
             </div>
           </section>
 
-          {/* Education */}
+          {/* Languages */}
           <section className="mb-12">
             <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6 border-b border-slate-100 dark:border-slate-800 pb-2">
-              Education
+              Languages
             </h3>
-            <div className="grid grid-cols-1 gap-6">
-              {resume.education.map((edu, idx) => (
-                <div
-                  key={idx}
-                  className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 break-inside-avoid page-break-inside-avoid"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="text-lg font-bold text-slate-900 dark:text-white">
-                      {edu.institution}
-                    </h4>
-                    <span className="text-xs font-mono text-slate-400">
-                      {edu.startDate} — {edu.endDate}
-                    </span>
-                  </div>
-                  {edu.location && (
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 font-mono flex items-center gap-2">
-                      <i className="fas fa-map-marker-alt opacity-50"></i>
-                      {edu.location}
-                    </p>
-                  )}
-                  <p className="text-slate-600 dark:text-slate-300 font-medium text-sm">
-                    {getLocalized(edu, 'studyType')} in {getLocalized(edu, 'area')}
-                  </p>
-                  {edu.score_en && (
-                    <p className="text-slate-500 dark:text-slate-400 text-xs mt-2 italic">
-                      {getLocalized(edu, 'score')}
-                    </p>
-                  )}
+            <div className="flex gap-8">
+              {resume.languages.map((lang, idx) => (
+                <div key={idx}>
+                  <span className="font-bold text-slate-900 dark:text-white block">
+                    {getLocalized(lang, 'language')}
+                  </span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                    {getLocalized(lang, 'fluency')}
+                  </span>
                 </div>
               ))}
             </div>
           </section>
 
-          {/* Skills */}
+          {/* Skills - Moved to Bottom */}
           <section className="mb-12">
             <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6 border-b border-slate-100 dark:border-slate-800 pb-2">
               Skills
@@ -780,25 +807,6 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
                       </span>
                     ))}
                   </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Languages */}
-          <section>
-            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6 border-b border-slate-100 dark:border-slate-800 pb-2">
-              Languages
-            </h3>
-            <div className="flex gap-8">
-              {resume.languages.map((lang, idx) => (
-                <div key={idx}>
-                  <span className="font-bold text-slate-900 dark:text-white block">
-                    {getLocalized(lang, 'language')}
-                  </span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400">
-                    {getLocalized(lang, 'fluency')}
-                  </span>
                 </div>
               ))}
             </div>
