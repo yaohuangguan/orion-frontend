@@ -221,6 +221,8 @@ export interface ResumeData {
     company_en?: string;
     position_zh?: string;
     position_en?: string;
+    location_zh?: string; // New
+    location_en?: string; // New
     startDate?: string;
     endDate?: string;
     highlights_zh?: string[];

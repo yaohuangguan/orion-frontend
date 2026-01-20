@@ -344,6 +344,22 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
                             />
                             <input
                               className={inputClass}
+                              value={job.location_zh || ''}
+                              onChange={(e) =>
+                                updateField('work', '', e.target.value, idx, 'location_zh')
+                              }
+                              placeholder="Location (ZH)"
+                            />
+                            <input
+                              className={inputClass}
+                              value={job.location_en || ''}
+                              onChange={(e) =>
+                                updateField('work', '', e.target.value, idx, 'location_en')
+                              }
+                              placeholder="Location (EN)"
+                            />
+                            <input
+                              className={inputClass}
                               value={job.startDate || ''}
                               onChange={(e) =>
                                 updateField('work', '', e.target.value, idx, 'startDate')
@@ -630,7 +646,7 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
               <h1 className="text-4xl md:text-5xl font-display font-bold text-slate-900 dark:text-white mb-2">
                 {getLocalized(resume.basics, 'name')}
               </h1>
-              <p className="text-xl text-amber-600 dark:text-amber-500 font-medium">
+              <p className="text-xl text-slate-600 dark:text-slate-300 font-medium">
                 {getLocalized(resume.basics, 'label')}
               </p>
             </div>
@@ -672,7 +688,7 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
                 .sort((a, b) => (b.startDate || '').localeCompare(a.startDate || ''))
                 .map((job, idx) => (
                   <div key={idx} className="relative break-inside-avoid page-break-inside-avoid">
-                    <span className="absolute -left-[39px] top-1.5 w-5 h-5 rounded-full border-4 border-white dark:border-slate-900 bg-amber-500"></span>
+                    <span className="absolute -left-[39px] top-1.5 w-5 h-5 rounded-full border-4 border-white dark:border-slate-900 bg-slate-400 dark:bg-slate-500"></span>
 
                     <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-2">
                       <h4 className="text-xl font-bold text-slate-900 dark:text-white">
@@ -683,9 +699,17 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
                       </span>
                     </div>
 
-                    <p className="text-amber-600 dark:text-amber-500 font-bold text-sm mb-4">
+                    <p className="text-slate-700 dark:text-slate-300 font-bold text-sm mb-4">
                       {getLocalized(job, 'position')}
                     </p>
+
+                    {/* Location Display */}
+                    {(job.location_zh || job.location_en) && (
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 font-mono flex items-center gap-2">
+                        <i className="fas fa-map-marker-alt opacity-50"></i>
+                        {getLocalized(job, 'location')}
+                      </p>
+                    )}
 
                     <ul className="list-disc list-outside ml-4 space-y-2 text-slate-600 dark:text-slate-400 leading-relaxed marker:text-slate-300 dark:marker:text-slate-600">
                       {getLocalizedArray(job, 'highlights').map((hl: string, i: number) => (
@@ -716,7 +740,13 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
                       {edu.startDate} — {edu.endDate}
                     </span>
                   </div>
-                  <p className="text-amber-600 dark:text-amber-500 font-medium text-sm">
+                  {edu.location && (
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 font-mono flex items-center gap-2">
+                      <i className="fas fa-map-marker-alt opacity-50"></i>
+                      {edu.location}
+                    </p>
+                  )}
+                  <p className="text-slate-600 dark:text-slate-300 font-medium text-sm">
                     {getLocalized(edu, 'studyType')} in {getLocalized(edu, 'area')}
                   </p>
                   {edu.score_en && (
