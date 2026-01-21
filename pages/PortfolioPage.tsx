@@ -15,9 +15,9 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ currentUser }) => 
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Derived state from URL, default to 'PROJECTS'
+  // Derived state from URL, default to 'RESUME' (About Me)
   const activeTabRaw = searchParams.get('tab');
-  const activeTab = activeTabRaw === 'resume' ? 'RESUME' : 'PROJECTS';
+  const activeTab = activeTabRaw === 'projects' ? 'PROJECTS' : 'RESUME';
 
   const handleTabChange = (tab: 'PROJECTS' | 'RESUME') => {
     setSearchParams((prev) => {
