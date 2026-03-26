@@ -201,7 +201,7 @@ export const zhHK = {
       estCost: '預估成本',
       overage: '超額',
       freeTier: '免費層',
-      images: '圖片',
+      resources: '資源',
       backups: '備份',
       others: '其他',
       totalObjects: '總對象數',

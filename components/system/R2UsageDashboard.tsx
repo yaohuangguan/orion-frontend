@@ -8,7 +8,7 @@ interface R2UsageDashboardProps {
 }
 
 const COLORS = {
-  IMAGES: '#3b82f6', // Blue-500
+  RESOURCES: '#3b82f6', // Blue-500
   BACKUPS: '#f59e0b', // Amber-500
   OTHERS: '#64748b' // Slate-500
 };
@@ -18,10 +18,10 @@ export const R2UsageDashboard: React.FC<R2UsageDashboardProps> = ({ usage }) => 
 
   const chartData = [
     {
-      name: t.system.r2.images,
-      value: usage.images.size,
-      formatted: usage.images.sizeFormatted,
-      color: COLORS.IMAGES
+      name: t.system.r2.resources,
+      value: usage.resources.size,
+      formatted: usage.resources.sizeFormatted,
+      color: COLORS.RESOURCES
     },
     {
       name: t.system.r2.backups,
@@ -133,11 +133,11 @@ export const R2UsageDashboard: React.FC<R2UsageDashboardProps> = ({ usage }) => 
         {/* Left: Summary Stats Grid */}
         <div className="lg:col-span-2 grid grid-cols-2 gap-4">
           <StatCard
-            title={t.system.r2.images}
-            count={usage.images.count}
-            size={usage.images.sizeFormatted}
+            title={t.system.r2.resources}
+            count={usage.resources.count}
+            size={usage.resources.sizeFormatted}
             color="bg-blue-500 shadow-blue-500/20"
-            icon="fa-images"
+            icon="fa-layer-group"
           />
           <StatCard
             title={t.system.r2.backups}

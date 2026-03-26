@@ -496,10 +496,10 @@ export interface CloudinaryUsage {
 // --- R2 Usage Types ---
 export interface R2UsageStats {
   total: { count: number; size: number; sizeFormatted: string };
-  images: { count: number; size: number; sizeFormatted: string };
+  resources: { count: number; size: number; sizeFormatted: string };
   backups: { count: number; size: number; sizeFormatted: string };
   others: { count: number; size: number; sizeFormatted: string };
-  percentages: { images: string; backups: string; others: string };
+  percentages: { resources: string; backups: string; others: string };
 }
 
 export enum Theme {

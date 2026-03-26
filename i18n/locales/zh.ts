@@ -206,7 +206,7 @@ export const zh = {
       title: 'Cloudflare R2 对象存储',
       tab_storage: 'R2 存储',
       tab_cloudinary: 'Cloudinary',
-      images: '图片',
+      resources: '资源',
       backups: '备份',
       others: '其他',
       upload: '上传',

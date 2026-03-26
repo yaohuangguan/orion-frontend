@@ -39,7 +39,7 @@ export const SystemResources: React.FC = () => {
   const [loadingR2Usage, setLoadingR2Usage] = useState(false);
 
   // R2 Navigation State
-  const [r2Type, setR2Type] = useState<'image' | 'backup'>('image');
+  const [r2Type, setR2Type] = useState<'resource' | 'backup'>('resource');
   const [currentFolder, setCurrentFolder] = useState<string>(''); // Current subfolder path (e.g. "2023-12-25/")
 
   // Common Delete State
@@ -607,12 +607,12 @@ export const SystemResources: React.FC = () => {
                   <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
                     <button
                       onClick={() => {
-                        setR2Type('image');
+                        setR2Type('resource');
                         setCurrentFolder('');
                       }}
-                      className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase transition-all ${r2Type === 'image' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500'}`}
+                      className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase transition-all ${r2Type === 'resource' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500'}`}
                     >
-                      {t.system.r2.images}
+                      {t.system.r2.resources}
                     </button>
                     <button
                       onClick={() => {

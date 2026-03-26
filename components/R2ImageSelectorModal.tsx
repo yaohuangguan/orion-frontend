@@ -33,7 +33,7 @@ export const R2ImageSelectorModal: React.FC<R2ImageSelectorModalProps> = ({
   const fetchData = async (folder: string, nextCursor?: string) => {
     setLoading(true);
     try {
-      const res: any = await featureService.getR2Files(50, nextCursor, 'image', folder);
+      const res: any = await featureService.getR2Files(50, nextCursor, 'resource', folder);
       if (res.success) {
         if (nextCursor) {
           setFiles((prev) => [...prev, ...(res.data.files || [])]);

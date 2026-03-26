@@ -208,7 +208,7 @@ export const en = {
       title: 'Cloudflare R2 Objects',
       tab_storage: 'R2 Storage',
       tab_cloudinary: 'Cloudinary',
-      images: 'Images',
+      resources: 'Resources',
       backups: 'Backups',
       others: 'Others',
       upload: 'Upload',
