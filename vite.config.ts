@@ -104,9 +104,7 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       'process.env': {
-        VITE_API_URL: JSON.stringify(env.VITE_API_URL),
-        API_KEY: JSON.stringify(env.GEMINI_API_KEY),
-        GEMINI_API_KEY: JSON.stringify(env.GEMINI_API_KEY)
+        VITE_API_URL: JSON.stringify(env.VITE_API_URL)
       },
       'import.meta.env.VITE_APP_VERSION': JSON.stringify(
         process.env.VERCEL_GIT_COMMIT_SHA || 'Dev-Mode'

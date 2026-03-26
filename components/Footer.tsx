@@ -136,7 +136,7 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, currentUser, onLogi
                   <i className="fab fa-linkedin-in"></i>
                 </a>
                 <a
-                  href="mailto:719919153@qq.com"
+                  href="mailto:moviegoer24@gmail.com"
                   className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-rose-600 transition-all"
                 >
                   <i className="fas fa-envelope"></i>

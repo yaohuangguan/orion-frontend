@@ -35,6 +35,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
   const [demoProject, setDemoProject] = useState<PortfolioProject | null>(null);
   const [viewMode, setViewMode] = useState<'CHOICE' | 'IFRAME' | null>(null);
   const [iframeLoading, setIframeLoading] = useState(true);
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
   const isVip = currentUser?.vip && currentUser?.private_token === 'ilovechenfangting';
 
@@ -230,8 +231,8 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-pulse">
-        {[1, 2, 3, 4].map((i) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-pulse">
+        {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
           <div key={i} className="h-80 bg-slate-200 dark:bg-slate-800 rounded-3xl"></div>
         ))}
       </div>
@@ -585,7 +586,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
           document.body
         )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
         {projects.map((project, index) => (
           <div
             key={project._id}
@@ -616,7 +617,16 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
             )}
 
             {/* Cover Image */}
-            <div className="aspect-[16/9] shrink-0 bg-slate-100 dark:bg-slate-950 overflow-hidden relative">
+            <div
+              onClick={() => project.coverImage && setZoomedImage(project.coverImage)}
+              className="aspect-[16/9] shrink-0 bg-slate-100 dark:bg-slate-950 overflow-hidden relative cursor-zoom-in group/img"
+            >
+              {/* Zoom Prompt Icon */}
+              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center z-10">
+                <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white text-xl transform scale-50 group-hover/img:scale-100 transition-transform">
+                  <i className="fas fa-search-plus"></i>
+                </div>
+              </div>
               {/* Badge for Top Projects */}
               {index < 10 && (
                 <div
@@ -684,8 +694,8 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
             </div>
 
             {/* Content */}
-            <div className="p-6 md:p-8 flex flex-col flex-1">
-              <h3 className="shrink-0 text-2xl font-display font-bold text-slate-900 dark:text-white mb-2 group-hover:text-amber-500 transition-colors">
+            <div className="p-4 md:p-6 flex flex-col flex-1">
+              <h3 className="shrink-0 text-xl md:text-2xl font-display font-bold text-slate-900 dark:text-white mb-2 group-hover:text-amber-500 transition-colors">
                 {getLocalized(project, 'title')}
               </h3>
 
@@ -745,6 +755,37 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
           </div>
         ))}
       </div>
+
+      {/* Image Zoom Modal */}
+      {zoomedImage &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[10001] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 md:p-12 animate-fade-in transition-all duration-300"
+            onClick={() => setZoomedImage(null)}
+          >
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setZoomedImage(null);
+              }}
+              className="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors z-50 border border-white/20"
+            >
+              <i className="fas fa-times text-xl"></i>
+            </button>
+
+            <div
+              className="relative max-w-7xl max-h-[90vh] w-full flex items-center justify-center animate-zoom-in"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={zoomedImage}
+                alt="Project detail"
+                className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+              />
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

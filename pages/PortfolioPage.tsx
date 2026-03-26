@@ -37,7 +37,11 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ currentUser }) => 
   });
 
   return (
-    <div className="container mx-auto px-6 py-24 pt-32 max-w-6xl animate-fade-in relative z-10 min-h-screen">
+    <div
+      className={`container mx-auto px-6 py-24 pt-32 ${
+        activeTab === 'PROJECTS' ? 'max-w-[85vw]' : 'max-w-6xl'
+      } transition-all duration-500 animate-fade-in relative z-10 min-h-screen`}
+    >
       <Helmet>
         <title>Orion App Store | Sam's Engineering Portfolio | 工程项目与作品集</title>
         <meta

@@ -20,9 +20,6 @@ Designed with **Atomic Design principles**, powered by **React 19**, and orchest
 - **Interactive Hero:** Dynamic 3D-style CSS animations and status indicators.
 - **Transmission Log (Blog):** Markdown-supported journal with tagging, search, and nested comments. Supports embedded iframes and rich media.
 - **Portfolio & Resume:** A dual-mode showcase (Resume Document / Project Cards) with multi-language support (EN/ZH).
-- **AI Agents:**
-  - **Thinking Agent:** Leveraging Gemini 3.0 Pro for complex reasoning tasks.
-  - **Live Agent:** Real-time multimodal (audio/video) communication interface.
 
 ### 2. Captain's Cabin (Private Space)
 
@@ -72,7 +69,6 @@ A restricted area protected by JWT authentication and Role-Based Access Control 
 ### Libraries
 
 - **Styling:** Tailwind CSS, FontAwesome
-- **AI:** @google/genai SDK (Gemini 3 Pro, Flash 2.5)
 - **Visualization:** Recharts, ECharts, Leaflet
 - **Real-time:** Socket.io-client
 
@@ -109,7 +105,6 @@ pnpm install
 
 ```properties
 VITE_API_URL=http://localhost:5000/api
-VITE_GEMINI_API_KEY=your_key_here
 VITE_CLOUDINARY_CLOUD_NAME=your_cloud_name
 
 ```
