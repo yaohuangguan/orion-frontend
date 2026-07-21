@@ -911,22 +911,22 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
             document.body
           )}
 
-        {/* --- Resume Document Content --- */}
+        {/* --- Resume Document Content (Permanently Light Theme / 白纸黑字) --- */}
         <div
           ref={ref}
-          className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-xl border border-slate-200 dark:border-slate-800 p-8 md:p-16 max-w-4xl mx-auto print:shadow-none print:border-none print:m-0 print:p-8 print:max-w-none print:rounded-none font-serif text-slate-900"
+          className="bg-white text-slate-900 rounded-[2rem] shadow-xl border border-slate-200 p-8 md:p-16 max-w-4xl mx-auto print:shadow-none print:border-none print:m-0 print:p-8 print:max-w-none print:rounded-none font-serif"
         >
           {/* Header / Basics */}
           <div className="pb-2 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-black dark:text-white mb-1.5">
+              <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-1.5">
                 {renderRichText(getLocalized(resume.basics, 'name'))}
               </h1>
-              <p className="text-lg text-slate-800 dark:text-slate-300 font-medium">
+              <p className="text-lg text-slate-700 font-medium">
                 {renderRichText(getLocalized(resume.basics, 'label'))}
               </p>
             </div>
-            <div className="text-sm text-slate-700 dark:text-slate-400 font-sans space-y-1 text-right">
+            <div className="text-sm text-slate-600 font-sans space-y-1 text-right">
               {resume.basics.email && (
                 <div className="flex items-center justify-end gap-2">
                   <i className="fas fa-envelope opacity-70"></i> {resume.basics.email}
@@ -945,7 +945,7 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
                     href="https://ps6.space"
                     target="_blank"
                     rel="noreferrer"
-                    className="hover:underline font-bold"
+                    className="hover:underline font-bold text-slate-900"
                   >
                     https://ps6.space
                   </a>
@@ -956,7 +956,7 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
 
           {/* Education */}
           <section className="mb-12">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900 dark:text-slate-400 mb-6 border-b-2 border-slate-900 dark:border-slate-800 pb-2">
+            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-6 border-b-2 border-slate-900 pb-2">
               Education
             </h3>
 
@@ -964,28 +964,28 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
               {resume.education.map((edu, idx) => (
                 <div
                   key={idx}
-                  className="bg-transparent dark:bg-slate-800/50 p-0 dark:p-6 rounded-none dark:rounded-2xl border-none dark:border dark:border-slate-800 break-inside-avoid page-break-inside-avoid"
+                  className="bg-transparent p-0 rounded-none border-none break-inside-avoid page-break-inside-avoid"
                 >
                   <div className="flex justify-between items-start mb-1">
-                    <h4 className="text-lg font-bold text-black dark:text-white">
+                    <h4 className="text-lg font-bold text-slate-900">
                       {renderRichText(edu.institution)}
                     </h4>
-                    <span className="text-sm font-sans text-slate-700 dark:text-slate-400 font-medium">
+                    <span className="text-sm font-sans text-slate-600 font-medium">
                       {edu.startDate} — {edu.endDate}
                     </span>
                   </div>
                   {edu.location && (
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-2 font-sans flex items-center gap-2">
+                    <p className="text-sm text-slate-600 mb-2 font-sans flex items-center gap-2">
                       <i className="fas fa-map-marker-alt opacity-70"></i>
                       {renderRichText(edu.location)}
                     </p>
                   )}
-                  <p className="text-slate-800 dark:text-slate-300 font-medium text-base">
+                  <p className="text-slate-800 font-medium text-base">
                     {renderRichText(getLocalized(edu, 'studyType'))} in{' '}
                     {renderRichText(getLocalized(edu, 'area'))}
                   </p>
                   {edu.score_en && (
-                    <p className="text-slate-700 dark:text-slate-400 text-sm mt-1 italic">
+                    <p className="text-slate-600 text-sm mt-1 italic">
                       {renderRichText(getLocalized(edu, 'score'))}
                     </p>
                   )}
@@ -996,53 +996,53 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
 
           {/* Summary / Profile */}
           <section className="mb-12">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900 dark:text-slate-400 mb-4 border-b-2 border-slate-900 dark:border-slate-800 pb-2">
+            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-4 border-b-2 border-slate-900 pb-2">
               Profile
             </h3>
-            <div className="text-slate-800 dark:text-slate-300 leading-relaxed text-base md:text-lg text-left whitespace-pre-line">
+            <div className="text-slate-800 leading-relaxed text-base md:text-lg text-left whitespace-pre-line">
               {renderRichText(getLocalized(resume.basics, 'summary'))}
             </div>
           </section>
 
           {/* Work Experience */}
           <section className="mb-12">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900 dark:text-slate-400 mb-6 border-b-2 border-slate-900 dark:border-slate-800 pb-2">
+            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-6 border-b-2 border-slate-900 pb-2">
               Experience
             </h3>
-            <div className="space-y-10 border-l-2 border-slate-300 dark:border-slate-800 ml-1 pl-8 relative">
+            <div className="space-y-10 border-l-2 border-slate-300 ml-1 pl-8 relative">
               {getSortedWork().map((job, idx) => (
                 <div key={idx} className="relative break-inside-avoid page-break-inside-avoid">
-                  <span className="absolute -left-[39px] top-1.5 w-5 h-5 rounded-full border-4 border-white dark:border-slate-900 bg-slate-900 dark:bg-slate-500"></span>
+                  <span className="absolute -left-[39px] top-1.5 w-5 h-5 rounded-full border-4 border-white bg-slate-900"></span>
 
                   <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-1">
-                    <h4 className="text-xl font-bold text-black dark:text-white flex items-center gap-2">
+                    <h4 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                       {renderRichText(getLocalized(job, 'company'))}
                     </h4>
                     <div className="flex items-center gap-2">
                       {typeof job.weight === 'number' && job.weight > 0 && (
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700 font-bold">
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300 font-bold">
                           Weight: {job.weight}
                         </span>
                       )}
-                      <span className="font-sans text-sm text-slate-700 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded font-medium">
+                      <span className="font-sans text-sm text-slate-700 bg-slate-100 px-2 py-1 rounded font-medium">
                         {job.startDate} — {job.endDate || 'Present'}
                       </span>
                     </div>
                   </div>
 
-                  <p className="text-slate-800 dark:text-slate-300 font-bold text-base mb-3 italic">
+                  <p className="text-slate-800 font-bold text-base mb-3 italic">
                     {renderRichText(getLocalized(job, 'position'))}
                   </p>
 
                   {/* Location Display */}
                   {(job.location_zh || job.location_en) && (
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-2 font-sans flex items-center gap-2">
+                    <p className="text-sm text-slate-600 mb-2 font-sans flex items-center gap-2">
                       <i className="fas fa-map-marker-alt opacity-70"></i>
                       {renderRichText(getLocalized(job, 'location'))}
                     </p>
                   )}
 
-                  <ul className="list-disc list-outside ml-4 space-y-1.5 text-slate-800 dark:text-slate-400 leading-relaxed marker:text-slate-500 dark:marker:text-slate-600 text-base text-left">
+                  <ul className="list-disc list-outside ml-4 space-y-1.5 text-slate-800 leading-relaxed marker:text-slate-500 text-base text-left">
                     {getLocalizedArray(job, 'highlights').map((hl: string, i: number) => (
                       <li key={i}>{renderRichText(hl)}</li>
                     ))}
@@ -1054,26 +1054,22 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
 
           {/* Unified Skills Section (Frontend, Backend, Devops, Language) */}
           <section className="mb-12">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900 dark:text-slate-400 mb-6 border-b-2 border-slate-900 dark:border-slate-800 pb-2">
+            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-6 border-b-2 border-slate-900 pb-2">
               Skills
             </h3>
-            <div className="space-y-3 font-sans text-sm md:text-base text-slate-800 dark:text-slate-300">
+            <div className="space-y-3 font-sans text-sm md:text-base text-slate-800">
               {getCombinedSkills().map((skillGroup, idx) => (
                 <div
                   key={idx}
                   className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2 leading-relaxed break-inside-avoid"
                 >
-                  <span className="font-bold text-black dark:text-white sm:min-w-[100px] shrink-0">
+                  <span className="font-bold text-slate-900 sm:min-w-[100px] shrink-0">
                     {renderRichText(getLocalized(skillGroup, 'name'))}:
                   </span>
-                  <span className="font-normal text-slate-800 dark:text-slate-300">
+                  <span className="font-normal text-slate-800">
                     {skillGroup.keywords.map((kw, i) => (
                       <React.Fragment key={i}>
-                        {i > 0 && (
-                          <span className="mr-1.5 font-bold text-slate-400 dark:text-slate-500">
-                            ,
-                          </span>
-                        )}
+                        {i > 0 && <span className="mr-1.5 font-bold text-slate-400">,</span>}
                         {renderRichText(kw)}
                       </React.Fragment>
                     ))}
