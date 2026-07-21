@@ -5,7 +5,9 @@ import { toast } from '../components/Toast';
 // ==================================================================================
 
 // 定义硬编码的远程地址 (仅作为最后的兜底，防止环境变量彻底丢失)
-const FALLBACK_REMOTE_API = 'https://bananaboom-api-242273127238.asia-east1.run.app/api';
+const FALLBACK_REMOTE_API = import.meta.env.DEV
+  ? '/api'
+  : 'https://bananaboom-api-242273127238.asia-east1.run.app/api';
 
 /**
  * 核心逻辑：

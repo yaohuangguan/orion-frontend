@@ -225,6 +225,7 @@ export interface ResumeData {
     location_en?: string; // New
     startDate?: string;
     endDate?: string;
+    weight?: number; // Weight for sorting (higher ranks first)
     highlights_zh?: string[];
     highlights_en?: string[];
   }>;
