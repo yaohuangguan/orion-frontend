@@ -201,6 +201,8 @@ export interface ResumeData {
     phone?: string;
     location_zh?: string;
     location_en?: string;
+    visaStatus_zh?: string;
+    visaStatus_en?: string;
     summary_zh?: string;
     summary_en?: string;
   };
@@ -226,6 +228,7 @@ export interface ResumeData {
     startDate?: string;
     endDate?: string;
     weight?: number; // Weight for sorting (higher ranks first)
+    isProject?: boolean;
     highlights_zh?: string[];
     highlights_en?: string[];
   }>;

@@ -333,6 +333,18 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
       });
     };
 
+    const isProject = (job: any) => {
+      return !!job.isProject;
+    };
+
+    const getSortedWorkExperience = () => {
+      return getSortedWork().filter((job) => !isProject(job));
+    };
+
+    const getSortedFeaturedProjects = () => {
+      return getSortedWork().filter((job) => isProject(job));
+    };
+
     if (isLoading) {
       return (
         <div className="text-center py-20 text-slate-400 animate-pulse">Retrieving dossier...</div>
@@ -474,6 +486,22 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
                           value={editResume.basics.location_en || ''}
                           onChange={(e) => updateField('basics', 'location_en', e.target.value)}
                           placeholder="Location (EN)"
+                        />
+
+                        <label className="block text-xs font-bold uppercase opacity-60 mt-4">
+                          Work Authorization / Visa Status
+                        </label>
+                        <input
+                          className={inputClass}
+                          value={editResume.basics.visaStatus_zh || ''}
+                          onChange={(e) => updateField('basics', 'visaStatus_zh', e.target.value)}
+                          placeholder="Visa Status (ZH) e.g., 工作签证 / 学生签证"
+                        />
+                        <input
+                          className={inputClass}
+                          value={editResume.basics.visaStatus_en || ''}
+                          onChange={(e) => updateField('basics', 'visaStatus_en', e.target.value)}
+                          placeholder="Visa Status (EN) e.g., Student Visa (20 hrs/week)"
                         />
                       </div>
                       <div className="md:col-span-2 space-y-4">
@@ -649,6 +677,25 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
                                 placeholder="0 (例如: 10, 100)"
                               />
                             </div>
+
+                            {/* Project Toggle */}
+                            <div className="md:col-span-2 flex items-center gap-2 p-3 bg-blue-500/10 rounded-lg border border-blue-500/30">
+                              <input
+                                type="checkbox"
+                                id={`work-isproject-${idx}`}
+                                checked={!!job.isProject}
+                                onChange={(e) =>
+                                  updateField('work', '', e.target.checked, idx, 'isProject')
+                                }
+                                className="w-4 h-4 rounded border-blue-300 text-blue-600 focus:ring-blue-500 focus:ring-opacity-25"
+                              />
+                              <label
+                                htmlFor={`work-isproject-${idx}`}
+                                className="text-xs font-bold uppercase text-blue-600 dark:text-blue-400 cursor-pointer select-none"
+                              >
+                                Is Project / 是否为作品项目 (勾选后会在此简历的 Featured Projects 栏目展示；不勾选则在 Work Experience 展示)
+                              </label>
+                            </div>
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
@@ -693,12 +740,52 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
                           </div>
                         </div>
                       ))}
-                      <button
-                        onClick={() => addItem('work')}
-                        className="w-full py-3 border-2 border-dashed border-current/30 text-current/60 font-bold uppercase rounded-xl hover:bg-black/5 dark:hover:bg-white/5"
-                      >
-                        + Add Work Experience
-                      </button>
+                      <div className="flex flex-col sm:flex-row gap-4">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!editResume) return;
+                            const newResume = { ...editResume };
+                            const arr = newResume.work || [];
+                            arr.push({
+                              company_zh: '新公司 / New Company',
+                              company_en: 'New Company',
+                              position_zh: '岗位 / Position',
+                              position_en: 'Position',
+                              highlights_zh: [],
+                              highlights_en: [],
+                              weight: 0,
+                              isProject: false
+                            });
+                            setEditResume(newResume);
+                          }}
+                          className="flex-1 py-3 border-2 border-dashed border-current/30 text-current/60 font-bold uppercase rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-xs transition-colors"
+                        >
+                          + Add Work Experience
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!editResume) return;
+                            const newResume = { ...editResume };
+                            const arr = newResume.work || [];
+                            arr.push({
+                              company_zh: '新项目 / New Project',
+                              company_en: 'New Project',
+                              position_zh: '项目角色 / Project Role',
+                              position_en: 'Project Role',
+                              highlights_zh: [],
+                              highlights_en: [],
+                              weight: 0,
+                              isProject: true
+                            });
+                            setEditResume(newResume);
+                          }}
+                          className="flex-1 py-3 border-2 border-dashed border-blue-500/30 text-blue-500 hover:border-blue-500 hover:bg-blue-500/5 font-bold uppercase rounded-xl text-xs transition-all"
+                        >
+                          + Add Featured Project
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -927,6 +1014,18 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
               </p>
             </div>
             <div className="text-sm text-slate-700 font-sans space-y-1 text-right">
+              {getLocalized(resume.basics, 'location') && (
+                <div className="flex items-center justify-end gap-2">
+                  <i className="fas fa-map-marker-alt opacity-70"></i>{' '}
+                  {renderRichText(getLocalized(resume.basics, 'location'))}
+                </div>
+              )}
+              {getLocalized(resume.basics, 'visaStatus') && (
+                <div className="flex items-center justify-end gap-2 font-medium">
+                  <i className="fas fa-id-card opacity-70"></i>{' '}
+                  {renderRichText(getLocalized(resume.basics, 'visaStatus'))}
+                </div>
+              )}
               {resume.basics.email && (
                 <div className="flex items-center justify-end gap-2">
                   <i className="fas fa-envelope opacity-70"></i> {resume.basics.email}
@@ -940,14 +1039,14 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
               {targetProfile !== 'jenny' && (
                 <div className="flex items-center justify-end gap-2">
                   <i className="fas fa-globe opacity-70"></i>{' '}
-                  <span className="opacity-90">Portfolio:</span>
+                  <span className="opacity-90">Web:</span>
                   <a
-                    href="https://ps6.space"
+                    href="https://www.ps6.space"
                     target="_blank"
                     rel="noreferrer"
                     className="hover:underline font-bold"
                   >
-                    https://ps6.space
+                    ps6.space
                   </a>
                 </div>
               )}
@@ -967,10 +1066,58 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
           {/* Work Experience */}
           <section className="mb-8">
             <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-4 border-b-2 border-slate-900 pb-2">
-              Experience
+              Work Experience
             </h3>
             <div className="space-y-6 border-l-2 border-slate-300 ml-1 pl-8 relative">
-              {getSortedWork().map((job, idx) => (
+              {getSortedWorkExperience().map((job, idx) => (
+                <div key={idx} className="relative break-inside-avoid page-break-inside-avoid">
+                  <span className="absolute -left-[39px] top-1.5 w-5 h-5 rounded-full border-4 border-white bg-slate-900"></span>
+
+                  <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-1">
+                    <h4 className="text-xl font-bold text-black flex items-center gap-2">
+                      {renderRichText(getLocalized(job, 'company'))}
+                    </h4>
+                    <div className="flex items-center gap-2">
+                      {typeof job.weight === 'number' && job.weight > 0 && (
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300 font-bold">
+                          Weight: {job.weight}
+                        </span>
+                      )}
+                      <span className="font-sans text-sm text-slate-700 bg-slate-100 px-2 py-1 rounded font-medium">
+                        {job.startDate} — {job.endDate || 'Present'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="text-slate-800 font-bold text-base mb-3 italic">
+                    {renderRichText(getLocalized(job, 'position'))}
+                  </p>
+
+                  {/* Location Display */}
+                  {(job.location_zh || job.location_en) && (
+                    <p className="text-sm text-slate-600 mb-2 font-sans flex items-center gap-2">
+                      <i className="fas fa-map-marker-alt opacity-70"></i>
+                      {renderRichText(getLocalized(job, 'location'))}
+                    </p>
+                  )}
+
+                  <ul className="list-disc list-outside ml-4 space-y-1.5 text-slate-800 leading-relaxed marker:text-slate-500 text-base text-left">
+                    {getLocalizedArray(job, 'highlights').map((hl: string, i: number) => (
+                      <li key={i}>{renderRichText(hl)}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Featured Projects */}
+          <section className="mb-8">
+            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-4 border-b-2 border-slate-900 pb-2">
+              Featured Projects
+            </h3>
+            <div className="space-y-6 border-l-2 border-slate-300 ml-1 pl-8 relative">
+              {getSortedFeaturedProjects().map((job, idx) => (
                 <div key={idx} className="relative break-inside-avoid page-break-inside-avoid">
                   <span className="absolute -left-[39px] top-1.5 w-5 h-5 rounded-full border-4 border-white bg-slate-900"></span>
 

@@ -13,11 +13,9 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
       proxy: {
         '/api': {
-          target: 'https://bananaboom-api-242273127238.asia-east1.run.app/api',
+          target: 'https://bananaboom-api-242273127238.asia-east1.run.app',
           changeOrigin: true,
           secure: false,
-          // 🔥 关键：把请求路径中的 '/api' 替换为空字符串
-          rewrite: (path) => path.replace(/^\/api/, ''),
           configure: (proxy, options) => {
             proxy.on('proxyReq', (proxyReq, req, res) => {
               // 把 Origin 伪装成你的生产域名 (后端白名单里的域名)
