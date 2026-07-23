@@ -124,9 +124,9 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
     const { language } = useTranslation();
     const [resume, setResume] = useState<ResumeData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-
-    // Resume Profile Switcher
     const [targetProfile, setTargetProfile] = useState<'sam' | 'jenny'>('sam');
+    const [currentSlug, setCurrentSlug] = useState<string>('sam');
+    const [resumeList, setResumeList] = useState<Array<{ slug: string; title: string; user: string }>>([]);
 
     // Admin Editing
     const [isEditing, setIsEditing] = useState(false);
@@ -135,20 +135,101 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
       'BASICS'
     );
 
-    const isVip = currentUser?.vip;
+    const isVip = currentUser?.vip || currentUser?.role === 'super_admin' || currentUser?.role === 'admin';
 
     useEffect(() => {
-      loadResume();
-    }, [targetProfile]);
+      loadResumeAndList();
+    }, [currentSlug]);
 
-    const loadResume = async () => {
+    const loadResumeAndList = async () => {
       setIsLoading(true);
       try {
-        const data = await apiService.getResumeData(targetProfile);
+        const [data, list] = await Promise.all([
+          apiService.getResumeData(currentSlug),
+          apiService.getResumeList(targetProfile)
+        ]);
         setResume(data);
+        setResumeList(list);
       } catch (e) {
-        console.error('Failed to load resume', e);
+        console.error('Failed to load resume or list', e);
         setResume(null);
+        setResumeList([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const handleProfileChange = (profile: 'sam' | 'jenny') => {
+      setTargetProfile(profile);
+      setCurrentSlug(profile);
+    };
+
+    // Dialog States
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [newVersionTitle, setNewVersionTitle] = useState('');
+    const [newVersionSuffix, setNewVersionSuffix] = useState('');
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+    const handleCreateVersion = () => {
+      setNewVersionTitle('');
+      setNewVersionSuffix('');
+      setIsCreateModalOpen(true);
+    };
+
+    const submitCreateVersion = async () => {
+      const title = newVersionTitle.trim();
+      if (!title) {
+        toast.error('Version title is required / 请填写版本名称');
+        return;
+      }
+      
+      const cleanSuffix = newVersionSuffix.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+      if (!cleanSuffix) {
+        toast.error('Valid suffix is required / 请输入有效的英文拼音后缀');
+        return;
+      }
+      
+      const newSlug = `${targetProfile}-${cleanSuffix}`;
+      
+      if (!resume) return;
+      const newResumeData = JSON.parse(JSON.stringify(resume));
+      newResumeData.slug = newSlug;
+      newResumeData.title = title;
+      newResumeData.user = targetProfile;
+      delete newResumeData._id; // Ensure Mongoose generates a new object ID
+      
+      try {
+        setIsLoading(true);
+        setIsCreateModalOpen(false);
+        await apiService.updateResume(newResumeData, newSlug);
+        setCurrentSlug(newSlug);
+        toast.success('Resume version created / 简历版本创建成功');
+      } catch (e) {
+        console.error('Failed to create new version', e);
+        toast.error('Failed to create version / 创建版本失败');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const handleDeleteVersion = () => {
+      if (currentSlug === 'sam' || currentSlug === 'jenny') {
+        toast.error('Cannot delete the main resume version / 无法删除主版本简历');
+        return;
+      }
+      setIsDeleteModalOpen(true);
+    };
+
+    const submitDeleteVersion = async () => {
+      try {
+        setIsLoading(true);
+        setIsDeleteModalOpen(false);
+        await apiService.deleteResume(currentSlug);
+        handleProfileChange(targetProfile);
+        toast.success('Resume version deleted / 简历版本删除成功');
+      } catch (e) {
+        console.error('Failed to delete version', e);
+        toast.error('Failed to delete version / 删除版本失败');
       } finally {
         setIsLoading(false);
       }
@@ -176,9 +257,12 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
     const handleSave = async () => {
       if (!editResume) return;
       try {
-        await apiService.updateResume(editResume, targetProfile);
+        await apiService.updateResume(editResume, currentSlug);
         setResume(editResume);
         setIsEditing(false);
+        // Refresh list
+        const list = await apiService.getResumeList(targetProfile);
+        setResumeList(list);
       } catch (e) {
         console.error(e);
       }
@@ -372,29 +456,101 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
       <div className="relative">
         {/* Admin Controls */}
         {isVip && (
-          <div className="absolute -top-16 right-0 flex gap-4 z-20">
-            {/* Profile Switcher */}
-            <div className="flex bg-slate-800 rounded-lg overflow-hidden border border-slate-700">
-              <button
-                onClick={() => setTargetProfile('sam')}
-                className={`px-4 py-2 text-xs font-bold uppercase transition-colors ${targetProfile === 'sam' ? 'bg-amber-500 text-black' : 'text-slate-400 hover:text-white'}`}
-              >
-                Sam
-              </button>
-              <button
-                onClick={() => setTargetProfile('jenny')}
-                className={`px-4 py-2 text-xs font-bold uppercase transition-colors ${targetProfile === 'jenny' ? 'bg-pink-500 text-white' : 'text-slate-400 hover:text-white'}`}
-              >
-                Jenny
-              </button>
+          <div className="mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-lg transition-all duration-300 print:hidden max-w-4xl mx-auto animate-fade-in">
+            {/* Left Side: Profile & Version Selectors */}
+            <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
+              {/* Profile Switcher */}
+              <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl border border-slate-200/50 dark:border-slate-700/50">
+                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 pl-2 select-none">
+                  {language === 'zh' ? '账号:' : 'Account:'}
+                </span>
+                <div className="flex rounded-lg overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => handleProfileChange('sam')}
+                    className={`px-3 py-1.5 text-xs font-bold uppercase transition-all duration-200 ${
+                      targetProfile === 'sam'
+                        ? 'bg-amber-500 text-black shadow-sm font-black'
+                        : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
+                    }`}
+                  >
+                    Sam
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleProfileChange('jenny')}
+                    className={`px-3 py-1.5 text-xs font-bold uppercase transition-all duration-200 ${
+                      targetProfile === 'jenny'
+                        ? 'bg-pink-500 text-white shadow-sm font-black'
+                        : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
+                    }`}
+                  >
+                    Jenny
+                  </button>
+                </div>
+              </div>
+
+              {/* Resume Version Selector */}
+              <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl border border-slate-200/50 dark:border-slate-700/50">
+                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 pl-2 select-none">
+                  {language === 'zh' ? '版本:' : 'Version:'}
+                </span>
+                <select
+                  value={currentSlug}
+                  onChange={(e) => setCurrentSlug(e.target.value)}
+                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1 text-xs font-bold text-slate-800 dark:text-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500 cursor-pointer max-w-[150px] truncate transition-all duration-200"
+                >
+                  {resumeList.map((item) => (
+                    <option key={item.slug} value={item.slug}>
+                      {item.title || item.slug}
+                    </option>
+                  ))}
+                </select>
+
+                <button
+                  type="button"
+                  onClick={handleCreateVersion}
+                  title={language === 'zh' ? '新建简历版本' : 'Create New Version'}
+                  className="p-1.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg transition-all duration-200 text-xs font-bold flex items-center gap-1 active:scale-95"
+                >
+                  <i className="fas fa-plus text-[10px]"></i>
+                  <span>{language === 'zh' ? '新建' : 'New'}</span>
+                </button>
+              </div>
             </div>
 
-            <button
-              onClick={handleEditOpen}
-              className="px-4 py-2 bg-slate-800 text-white text-xs font-bold uppercase rounded-lg hover:bg-slate-700 transition-colors shadow-lg flex items-center gap-2"
-            >
-              <i className="fas fa-edit"></i> Edit {targetProfile === 'sam' ? 'Sam' : 'Jenny'}
-            </button>
+            {/* Right Side: Action Buttons (Edit, Delete) */}
+            <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+              {/* Delete Button */}
+              <button
+                type="button"
+                onClick={handleDeleteVersion}
+                disabled={currentSlug === 'sam' || currentSlug === 'jenny'}
+                title={
+                  currentSlug === 'sam' || currentSlug === 'jenny'
+                    ? (language === 'zh' ? '默认版本不可删除' : 'Default version cannot be deleted')
+                    : (language === 'zh' ? '删除当前版本' : 'Delete current version')
+                }
+                className={`px-4 py-2 text-xs font-bold uppercase rounded-xl transition-all duration-200 flex items-center gap-2 shadow-md ${
+                  currentSlug === 'sam' || currentSlug === 'jenny'
+                    ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed border border-slate-300/50 dark:border-slate-700/50 shadow-none'
+                    : 'bg-red-50 hover:bg-red-100 text-red-600 border border-red-200/50 dark:bg-red-950/20 dark:hover:bg-red-950/40 dark:text-red-400 dark:border-red-900/30 hover:shadow-lg active:scale-95'
+                }`}
+              >
+                <i className="fas fa-trash text-[10px]"></i>
+                <span>{language === 'zh' ? '删除版本' : 'Delete'}</span>
+              </button>
+
+              {/* Edit Button */}
+              <button
+                type="button"
+                onClick={handleEditOpen}
+                className="px-5 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-amber-500 dark:hover:bg-amber-400 text-white dark:text-black text-xs font-bold uppercase rounded-xl hover:shadow-lg transition-all duration-200 flex items-center gap-2 shadow-md active:scale-95 border border-transparent dark:border-amber-400/20"
+              >
+                <i className="fas fa-edit text-[10px]"></i>
+                <span>{language === 'zh' ? '编辑简历' : 'Edit'}</span>
+              </button>
+            </div>
           </div>
         )}
 
@@ -417,13 +573,31 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
                     ))}
                   </div>
                   <div className="text-xs font-bold uppercase opacity-50 px-4">
-                    Editing: {targetProfile}
+                    Editing: {editResume.title || currentSlug} ({targetProfile})
                   </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
                   {activeTab === 'BASICS' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Resume Version Title */}
+                      <div className="md:col-span-2 bg-amber-500/10 p-3 rounded-lg border border-amber-500/30">
+                        <label className="block text-xs font-bold uppercase text-amber-600 dark:text-amber-400 mb-1">
+                          Resume Version Title / 简历版本名称 (用于多版本管理，例如：全栈工程师简历、兼职简历)
+                        </label>
+                        <input
+                          className={inputClass}
+                          value={editResume.title || ''}
+                          onChange={(e) => {
+                            setEditResume({
+                              ...editResume,
+                              title: e.target.value
+                            });
+                          }}
+                          placeholder="例如：全栈开发简历"
+                        />
+                      </div>
+
                       <div className="space-y-4">
                         <label className="block text-xs font-bold uppercase opacity-60">Name</label>
                         <input
@@ -1110,9 +1284,8 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
               ))}
             </div>
           </section>
-
           {/* Featured Projects */}
-          <section className="mb-8">
+          {getSortedFeaturedProjects().length !== 0 ? (<section className="mb-8">
             <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-4 border-b-2 border-slate-900 pb-2">
               Featured Projects
             </h3>
@@ -1157,7 +1330,9 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
                 </div>
               ))}
             </div>
-          </section>
+          </section>) : null}
+
+
 
           {/* Education */}
           <section className="mb-8">
@@ -1230,6 +1405,112 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
             </div>
           </section>
         </div>
+
+        {/* Custom Modal for Creating Version */}
+        {isCreateModalOpen &&
+          createPortal(
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+              <div className="bg-slate-900 border border-slate-700/50 text-white rounded-2xl w-full max-w-md p-6 shadow-2xl animate-scale-up space-y-4">
+                <div className="flex justify-between items-center pb-2 border-b border-slate-800">
+                  <h3 className="text-lg font-bold text-amber-400">Create New Resume Version / 新建简历版本</h3>
+                  <button
+                    type="button"
+                    onClick={() => setIsCreateModalOpen(false)}
+                    className="text-slate-400 hover:text-white transition-colors"
+                  >
+                    <i className="fas fa-times text-lg"></i>
+                  </button>
+                </div>
+                <div className="space-y-4 py-2">
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-400 mb-1">
+                      Version Title / 简历名称
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full p-2 rounded outline-none border bg-slate-950 border-slate-800 focus:border-amber-500 text-sm text-white"
+                      value={newVersionTitle}
+                      onChange={(e) => setNewVersionTitle(e.target.value)}
+                      placeholder="e.g. 学校兼职简历"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-400 mb-1">
+                      URL Slug Suffix / 链接后缀
+                    </label>
+                    <div className="flex items-center bg-slate-950 border border-slate-800 rounded p-1">
+                      <span className="text-xs text-slate-500 px-2 font-mono">{targetProfile}-</span>
+                      <input
+                        type="text"
+                        className="flex-1 bg-transparent border-none outline-none p-1 text-sm text-white font-mono"
+                        value={newVersionSuffix}
+                        onChange={(e) => setNewVersionSuffix(e.target.value)}
+                        placeholder="parttime"
+                      />
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-1">
+                      只能包含小写字母、数字和连字符。全称：{targetProfile}-{newVersionSuffix || 'suffix'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-3 pt-2 border-t border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => setIsCreateModalOpen(false)}
+                    className="px-4 py-2 rounded-lg text-slate-400 hover:text-white transition-colors text-sm font-bold"
+                  >
+                    Cancel / 取消
+                  </button>
+                  <button
+                    type="button"
+                    onClick={submitCreateVersion}
+                    className="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-black rounded-lg font-bold transition-all text-sm"
+                  >
+                    Create / 确认创建
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body
+          )}
+
+        {/* Custom Modal for Deleting Version */}
+        {isDeleteModalOpen &&
+          createPortal(
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+              <div className="bg-slate-900 border border-slate-700/50 text-white rounded-2xl w-full max-w-sm p-6 shadow-2xl animate-scale-up space-y-4">
+                <div className="flex items-center gap-3 text-red-500 pb-2 border-b border-slate-800">
+                  <i className="fas fa-exclamation-triangle text-xl"></i>
+                  <h3 className="text-lg font-bold">Delete Resume Version / 删除确认</h3>
+                </div>
+                <div className="py-2">
+                  <p className="text-slate-300 text-sm leading-relaxed">
+                    Are you sure you want to delete this resume version / 确定要删除该简历版本吗？该操作不可撤销。
+                  </p>
+                  <p className="text-slate-400 text-xs mt-2 bg-slate-950 p-2 rounded border border-slate-800 font-mono">
+                    {resume?.title || currentSlug} ({currentSlug})
+                  </p>
+                </div>
+                <div className="flex justify-end gap-3 pt-2 border-t border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => setIsDeleteModalOpen(false)}
+                    className="px-4 py-2 rounded-lg text-slate-400 hover:text-white transition-colors text-sm font-bold"
+                  >
+                    Cancel / 取消
+                  </button>
+                  <button
+                    type="button"
+                    onClick={submitDeleteVersion}
+                    className="px-6 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold transition-all text-sm"
+                  >
+                    Delete / 确认删除
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body
+          )}
       </div>
     );
   }

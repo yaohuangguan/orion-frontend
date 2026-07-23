@@ -420,6 +420,14 @@ export const contentService = {
     return await fetchClient<ResumeData>(`/resumes?user=${userSlug}`);
   },
 
+  getResumeList: async (
+    userSlug: string = 'sam'
+  ): Promise<Array<{ slug: string; title: string; user: string; createdAt: string }>> => {
+    return await fetchClient<Array<{ slug: string; title: string; user: string; createdAt: string }>>(
+      `/resumes/list?user=${userSlug}`
+    );
+  },
+
   updateResume: async (
     data: Partial<ResumeData>,
     userSlug: string = 'sam'
@@ -429,6 +437,14 @@ export const contentService = {
       body: JSON.stringify(data)
     });
     toast.success('Resume updated successfully');
+    return res;
+  },
+
+  deleteResume: async (userSlug: string): Promise<{ msg: string }> => {
+    const res = await fetchClient<{ msg: string }>(`/resumes?user=${userSlug}`, {
+      method: 'DELETE'
+    });
+    toast.success('Resume deleted successfully');
     return res;
   }
 };

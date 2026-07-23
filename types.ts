@@ -192,6 +192,9 @@ export interface ResumeItem {
 // New Resume Model
 export interface ResumeData {
   _id: string;
+  slug?: string;
+  user?: string;
+  title?: string;
   basics: {
     name_zh?: string;
     name_en?: string;
