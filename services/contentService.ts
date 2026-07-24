@@ -420,6 +420,10 @@ export const contentService = {
     return await fetchClient<ResumeData>(`/resumes?user=${userSlug}`);
   },
 
+  getResumeUsers: async (): Promise<string[]> => {
+    return await fetchClient<string[]>('/resumes/users');
+  },
+
   getResumeList: async (
     userSlug: string = 'sam'
   ): Promise<Array<{ slug: string; title: string; user: string; createdAt: string }>> => {

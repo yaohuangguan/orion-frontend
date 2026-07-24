@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { apiService } from '../../services/api';
 import { ResumeData, User } from '../../types';
@@ -122,11 +123,21 @@ const FormattingToolbar: React.FC<FormattingToolbarProps> = ({
 export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentProps>(
   ({ currentUser }, ref) => {
     const { language } = useTranslation();
+    const [searchParams] = useSearchParams();
+    const urlUser = searchParams.get('user');
+    const defaultProfile = (
+      urlUser ||
+      currentUser?.displayName?.toLowerCase().replace(/\s+/g, '') ||
+      currentUser?.email?.split('@')[0] ||
+      'sam'
+    ).trim();
+
     const [resume, setResume] = useState<ResumeData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [targetProfile, setTargetProfile] = useState<'sam' | 'jenny'>('sam');
-    const [currentSlug, setCurrentSlug] = useState<string>('sam');
+    const [targetProfile, setTargetProfile] = useState<string>(defaultProfile);
+    const [currentSlug, setCurrentSlug] = useState<string>(defaultProfile);
     const [resumeList, setResumeList] = useState<Array<{ slug: string; title: string; user: string }>>([]);
+    const [availableProfiles, setAvailableProfiles] = useState<string[]>(['sam', 'jenny', defaultProfile]);
 
     // Admin Editing
     const [isEditing, setIsEditing] = useState(false);
@@ -138,18 +149,74 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
     const isVip = currentUser?.vip || currentUser?.role === 'super_admin' || currentUser?.role === 'admin';
 
     useEffect(() => {
+      const loadProfiles = async () => {
+        try {
+          const users = await apiService.getResumeUsers();
+          const rawList = [
+            'sam',
+            'jenny',
+            defaultProfile,
+            ...(currentUser?.displayName ? [currentUser.displayName] : []),
+            ...(Array.isArray(users) ? users : [])
+          ];
+          const normalized = rawList
+            .map((u) => (typeof u === 'string' ? u.trim().toLowerCase() : ''))
+            .filter(Boolean);
+          const uniqueProfiles = Array.from(new Set(normalized));
+          setAvailableProfiles(uniqueProfiles);
+        } catch (e) {
+          console.error('Failed to load resume profiles', e);
+          const fallback = Array.from(
+            new Set(['sam', 'jenny', defaultProfile.toLowerCase().trim()].filter(Boolean))
+          );
+          setAvailableProfiles(fallback);
+        }
+      };
+      loadProfiles();
+    }, [defaultProfile, currentUser]);
+
+    useEffect(() => {
+      setTargetProfile(defaultProfile);
+      setCurrentSlug(defaultProfile);
+    }, [defaultProfile]);
+
+    useEffect(() => {
       loadResumeAndList();
     }, [currentSlug]);
+
+    const processResumeList = (list: any[], profile: string) => {
+      return list.filter(
+        (item) =>
+          item.user === profile ||
+          item.slug === profile ||
+          item.slug?.startsWith(`${profile}-`)
+      );
+    };
 
     const loadResumeAndList = async () => {
       setIsLoading(true);
       try {
-        const [data, list] = await Promise.all([
-          apiService.getResumeData(currentSlug),
-          apiService.getResumeList(targetProfile)
-        ]);
-        setResume(data);
-        setResumeList(list);
+        const list = await apiService.getResumeList(targetProfile);
+        const processed = processResumeList(list, targetProfile);
+        setResumeList(processed);
+
+        if (processed.length > 0) {
+          let activeSlug = currentSlug;
+          if (!activeSlug || !processed.some((item) => item.slug === activeSlug)) {
+            const defaultItem = processed.find((item) => item.slug === targetProfile);
+            activeSlug = defaultItem ? defaultItem.slug : processed[0].slug;
+          }
+
+          if (activeSlug !== currentSlug) {
+            setCurrentSlug(activeSlug);
+            return;
+          }
+
+          const data = await apiService.getResumeData(activeSlug);
+          setResume(data);
+        } else {
+          setResume(null);
+        }
       } catch (e) {
         console.error('Failed to load resume or list', e);
         setResume(null);
@@ -159,9 +226,23 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
       }
     };
 
-    const handleProfileChange = (profile: 'sam' | 'jenny') => {
-      setTargetProfile(profile);
-      setCurrentSlug(profile);
+    const formatProfileName = (name: string) => {
+      if (!name) return '';
+      const lower = name.toLowerCase();
+      if (lower === 'sam') return 'Sam';
+      if (lower === 'jenny') return 'Jenny';
+      return name.charAt(0).toUpperCase() + name.slice(1);
+    };
+
+    const handleProfileChange = (profile: string) => {
+      const cleanProfile = profile.trim().toLowerCase();
+      setTargetProfile(cleanProfile);
+      setCurrentSlug(cleanProfile);
+    };
+
+    const handleExportPdf = () => {
+      const backendUrl = `/api/resumes/export-pdf?user=${currentSlug}&lang=${language}`;
+      window.open(backendUrl, '_blank');
     };
 
     // Dialog States
@@ -182,22 +263,43 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
         toast.error('Version title is required / 请填写版本名称');
         return;
       }
-      
+
       const cleanSuffix = newVersionSuffix.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
-      if (!cleanSuffix) {
-        toast.error('Valid suffix is required / 请输入有效的英文拼音后缀');
-        return;
+      const newSlug = cleanSuffix ? `${targetProfile}-${cleanSuffix}` : targetProfile;
+
+      let newResumeData: Partial<ResumeData>;
+      if (resume) {
+        newResumeData = JSON.parse(JSON.stringify(resume));
+        newResumeData.slug = newSlug;
+        newResumeData.title = title;
+        newResumeData.user = targetProfile;
+        delete newResumeData._id;
+      } else {
+        newResumeData = {
+          slug: newSlug,
+          title: title,
+          user: targetProfile,
+          basics: {
+            name_zh: targetProfile.toUpperCase(),
+            name_en: targetProfile.toUpperCase(),
+            label_zh: '专业岗位',
+            label_en: 'Professional Role',
+            email: currentUser?.email || '',
+            phone: '',
+            location_zh: '',
+            location_en: '',
+            visaStatus_zh: '',
+            visaStatus_en: '',
+            summary_zh: '个人简介...',
+            summary_en: 'Summary...'
+          },
+          education: [],
+          work: [],
+          skills: [],
+          languages: []
+        };
       }
-      
-      const newSlug = `${targetProfile}-${cleanSuffix}`;
-      
-      if (!resume) return;
-      const newResumeData = JSON.parse(JSON.stringify(resume));
-      newResumeData.slug = newSlug;
-      newResumeData.title = title;
-      newResumeData.user = targetProfile;
-      delete newResumeData._id; // Ensure Mongoose generates a new object ID
-      
+
       try {
         setIsLoading(true);
         setIsCreateModalOpen(false);
@@ -213,10 +315,6 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
     };
 
     const handleDeleteVersion = () => {
-      if (currentSlug === 'sam' || currentSlug === 'jenny') {
-        toast.error('Cannot delete the main resume version / 无法删除主版本简历');
-        return;
-      }
       setIsDeleteModalOpen(true);
     };
 
@@ -225,7 +323,7 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
         setIsLoading(true);
         setIsDeleteModalOpen(false);
         await apiService.deleteResume(currentSlug);
-        handleProfileChange(targetProfile);
+        setCurrentSlug('');
         toast.success('Resume version deleted / 简历版本删除成功');
       } catch (e) {
         console.error('Failed to delete version', e);
@@ -262,7 +360,7 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
         setIsEditing(false);
         // Refresh list
         const list = await apiService.getResumeList(targetProfile);
-        setResumeList(list);
+        setResumeList(processResumeList(list, targetProfile));
       } catch (e) {
         console.error(e);
       }
@@ -435,10 +533,6 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
       );
     }
 
-    if (!resume) {
-      return <div className="text-center py-20 text-slate-400">Resume data unavailable.</div>;
-    }
-
     // Modal Styling
     const modalBaseClass =
       'fixed z-[9999] inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4';
@@ -456,100 +550,103 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
       <div className="relative">
         {/* Admin Controls */}
         {isVip && (
-          <div className="mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-lg transition-all duration-300 print:hidden max-w-4xl mx-auto animate-fade-in">
+          <div className="mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xl shadow-slate-200/30 dark:shadow-none transition-all duration-300 print:hidden max-w-4xl mx-auto animate-fade-in">
             {/* Left Side: Profile & Version Selectors */}
-            <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
-              {/* Profile Switcher */}
-              <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl border border-slate-200/50 dark:border-slate-700/50">
-                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 pl-2 select-none">
-                  {language === 'zh' ? '账号:' : 'Account:'}
+            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+              {/* Account Selector */}
+              <div className="relative flex items-center bg-slate-100/80 dark:bg-slate-800/80 hover:bg-slate-200/80 dark:hover:bg-slate-800 transition-all rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-1.5 shadow-inner">
+                <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 pl-2 pr-1 select-none">
+                  <i className="fas fa-user-circle text-amber-500 text-sm"></i>
+                  <span>{language === 'zh' ? '账号' : 'Account'}</span>
                 </span>
-                <div className="flex rounded-lg overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => handleProfileChange('sam')}
-                    className={`px-3 py-1.5 text-xs font-bold uppercase transition-all duration-200 ${
-                      targetProfile === 'sam'
-                        ? 'bg-amber-500 text-black shadow-sm font-black'
-                        : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
-                    }`}
+                <div className="relative flex items-center">
+                  <select
+                    value={targetProfile.toLowerCase()}
+                    onChange={(e) => handleProfileChange(e.target.value)}
+                    className="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg pl-3 pr-7 py-1 text-xs font-bold text-slate-800 dark:text-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-all cursor-pointer shadow-sm min-w-[100px]"
                   >
-                    Sam
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleProfileChange('jenny')}
-                    className={`px-3 py-1.5 text-xs font-bold uppercase transition-all duration-200 ${
-                      targetProfile === 'jenny'
-                        ? 'bg-pink-500 text-white shadow-sm font-black'
-                        : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
-                    }`}
-                  >
-                    Jenny
-                  </button>
+                    {availableProfiles.map((p) => (
+                      <option key={p} value={p} className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200">
+                        {formatProfileName(p)}
+                      </option>
+                    ))}
+                  </select>
+                  <i className="fas fa-chevron-down text-[9px] text-slate-400 dark:text-slate-500 absolute right-2.5 pointer-events-none"></i>
                 </div>
               </div>
 
               {/* Resume Version Selector */}
-              <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl border border-slate-200/50 dark:border-slate-700/50">
-                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 pl-2 select-none">
-                  {language === 'zh' ? '版本:' : 'Version:'}
-                </span>
-                <select
-                  value={currentSlug}
-                  onChange={(e) => setCurrentSlug(e.target.value)}
-                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1 text-xs font-bold text-slate-800 dark:text-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500 cursor-pointer max-w-[150px] truncate transition-all duration-200"
-                >
-                  {resumeList.map((item) => (
-                    <option key={item.slug} value={item.slug}>
-                      {item.title || item.slug}
-                    </option>
-                  ))}
-                </select>
+              {resumeList.length > 0 && (
+                <div className="relative flex items-center bg-slate-100/80 dark:bg-slate-800/80 hover:bg-slate-200/80 dark:hover:bg-slate-800 transition-all rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-1.5 shadow-inner">
+                  <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 pl-2 pr-1 select-none">
+                    <i className="fas fa-layer-group text-sky-500 text-sm"></i>
+                    <span>{language === 'zh' ? '版本' : 'Version'}</span>
+                  </span>
+                  <div className="relative flex items-center">
+                    <select
+                      value={currentSlug}
+                      onChange={(e) => setCurrentSlug(e.target.value)}
+                      className="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg pl-3 pr-7 py-1 text-xs font-bold text-slate-800 dark:text-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 cursor-pointer max-w-[160px] truncate transition-all shadow-sm"
+                    >
+                      {resumeList.map((item) => (
+                        <option key={item.slug} value={item.slug} className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200">
+                          {item.title || item.slug}
+                        </option>
+                      ))}
+                    </select>
+                    <i className="fas fa-chevron-down text-[9px] text-slate-400 dark:text-slate-500 absolute right-2.5 pointer-events-none"></i>
+                  </div>
+                </div>
+              )}
 
-                <button
-                  type="button"
-                  onClick={handleCreateVersion}
-                  title={language === 'zh' ? '新建简历版本' : 'Create New Version'}
-                  className="p-1.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg transition-all duration-200 text-xs font-bold flex items-center gap-1 active:scale-95"
-                >
-                  <i className="fas fa-plus text-[10px]"></i>
-                  <span>{language === 'zh' ? '新建' : 'New'}</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handleCreateVersion}
+                title={language === 'zh' ? '新建简历版本' : 'Create New Version'}
+                className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 rounded-xl transition-all duration-200 text-xs font-extrabold flex items-center gap-1.5 shadow-md hover:shadow-lg active:scale-95 border border-amber-400/30"
+              >
+                <i className="fas fa-plus text-[10px]"></i>
+                <span>{language === 'zh' ? '新建' : 'New'}</span>
+              </button>
             </div>
 
             {/* Right Side: Action Buttons (Edit, Delete) */}
             <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-              {/* Delete Button */}
-              <button
-                type="button"
-                onClick={handleDeleteVersion}
-                disabled={currentSlug === 'sam' || currentSlug === 'jenny'}
-                title={
-                  currentSlug === 'sam' || currentSlug === 'jenny'
-                    ? (language === 'zh' ? '默认版本不可删除' : 'Default version cannot be deleted')
-                    : (language === 'zh' ? '删除当前版本' : 'Delete current version')
-                }
-                className={`px-4 py-2 text-xs font-bold uppercase rounded-xl transition-all duration-200 flex items-center gap-2 shadow-md ${
-                  currentSlug === 'sam' || currentSlug === 'jenny'
-                    ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed border border-slate-300/50 dark:border-slate-700/50 shadow-none'
-                    : 'bg-red-50 hover:bg-red-100 text-red-600 border border-red-200/50 dark:bg-red-950/20 dark:hover:bg-red-950/40 dark:text-red-400 dark:border-red-900/30 hover:shadow-lg active:scale-95'
-                }`}
-              >
-                <i className="fas fa-trash text-[10px]"></i>
-                <span>{language === 'zh' ? '删除版本' : 'Delete'}</span>
-              </button>
+              {resume && (
+                <>
+                  {/* Delete Button */}
+                  <button
+                    type="button"
+                    onClick={handleDeleteVersion}
+                    title={language === 'zh' ? '删除当前版本' : 'Delete current version'}
+                    className="px-4 py-2 text-xs font-bold uppercase rounded-xl transition-all duration-200 flex items-center gap-2 shadow-md bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/50 dark:bg-rose-950/30 dark:hover:bg-rose-950/50 dark:text-rose-400 dark:border-rose-900/30 hover:shadow-lg active:scale-95"
+                  >
+                    <i className="fas fa-trash text-[10px]"></i>
+                    <span>{language === 'zh' ? '删除版本' : 'Delete'}</span>
+                  </button>
 
-              {/* Edit Button */}
-              <button
-                type="button"
-                onClick={handleEditOpen}
-                className="px-5 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-amber-500 dark:hover:bg-amber-400 text-white dark:text-black text-xs font-bold uppercase rounded-xl hover:shadow-lg transition-all duration-200 flex items-center gap-2 shadow-md active:scale-95 border border-transparent dark:border-amber-400/20"
-              >
-                <i className="fas fa-edit text-[10px]"></i>
-                <span>{language === 'zh' ? '编辑简历' : 'Edit'}</span>
-              </button>
+                  {/* Edit Button */}
+                  <button
+                    type="button"
+                    onClick={handleEditOpen}
+                    className="px-5 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-amber-500 dark:hover:bg-amber-400 text-white dark:text-black text-xs font-bold uppercase rounded-xl hover:shadow-lg transition-all duration-200 flex items-center gap-2 shadow-md active:scale-95 border border-transparent dark:border-amber-400/20 font-extrabold"
+                  >
+                    <i className="fas fa-edit text-[10px]"></i>
+                    <span>{language === 'zh' ? '编辑简历' : 'Edit'}</span>
+                  </button>
+
+                  {/* Export ATS PDF Button */}
+                  <button
+                    type="button"
+                    onClick={handleExportPdf}
+                    title={language === 'zh' ? '导出 ATS 可选文本 PDF' : 'Export ATS Text PDF'}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase rounded-xl hover:shadow-lg transition-all duration-200 flex items-center gap-2 shadow-md active:scale-95 border border-emerald-500/30 font-extrabold"
+                  >
+                    <i aria-hidden="true" className="fas fa-file-pdf text-[11px]"></i>
+                    <span>{language === 'zh' ? '导出 PDF' : 'Export PDF'}</span>
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -644,6 +741,12 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
                           value={editResume.basics.phone || ''}
                           onChange={(e) => updateField('basics', 'phone', e.target.value)}
                           placeholder="Phone"
+                        />
+                        <input
+                          className={inputClass}
+                          value={editResume.basics.website || ''}
+                          onChange={(e) => updateField('basics', 'website', e.target.value)}
+                          placeholder="Website (e.g. ps6.space)"
                         />
 
                         <label className="block text-xs font-bold uppercase opacity-60 mt-4">
@@ -1172,239 +1275,266 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
             document.body
           )}
 
-        {/* --- Resume Document Content --- */}
-        <div
-          ref={ref}
-          className="bg-white rounded-[2rem] shadow-xl border border-slate-200 p-8 md:p-16 max-w-4xl mx-auto print:shadow-none print:border-none print:m-0 print:p-8 print:max-w-none print:rounded-none font-serif text-slate-900"
-        >
-          {/* Header / Basics */}
-          <div className="pb-2 mb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-black mb-1.5">
-                {renderRichText(getLocalized(resume.basics, 'name'))}
-              </h1>
-              <p className="text-lg text-slate-800 font-medium">
-                {renderRichText(getLocalized(resume.basics, 'label'))}
+        {/* Resume Content / Placeholder */}
+        {!resume ? (
+          <div className="bg-white rounded-[2rem] shadow-xl border border-slate-200 p-16 max-w-4xl mx-auto text-center font-sans text-slate-800 dark:bg-[#0b1120] dark:border-slate-800 dark:text-slate-300">
+            <div className="max-w-md mx-auto space-y-6">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 mb-2">
+                <i className="fas fa-file-invoice text-3xl"></i>
+              </div>
+              <h2 className="text-2xl font-bold tracking-tight text-slate-950 dark:text-white">
+                {language === 'zh' ? '暂无简历内容' : 'No Resume Found'}
+              </h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                {language === 'zh'
+                  ? '该用户尚未创建任何简历版本。如果您有编辑权限，可以点击上方的“新建”按钮来初始化您的第一份简历。'
+                  : 'No resume versions are currently available for this user. If you have editing privileges, click the "New" button to initialize your first resume.'}
               </p>
-            </div>
-            <div className="text-sm text-slate-700 font-sans space-y-1 text-right">
-              {getLocalized(resume.basics, 'location') && (
-                <div className="flex items-center justify-end gap-2">
-                  <i className="fas fa-map-marker-alt opacity-70"></i>{' '}
-                  {renderRichText(getLocalized(resume.basics, 'location'))}
-                </div>
-              )}
-              {getLocalized(resume.basics, 'visaStatus') && (
-                <div className="flex items-center justify-end gap-2 font-medium">
-                  <i className="fas fa-id-card opacity-70"></i>{' '}
-                  {renderRichText(getLocalized(resume.basics, 'visaStatus'))}
-                </div>
-              )}
-              {resume.basics.email && (
-                <div className="flex items-center justify-end gap-2">
-                  <i className="fas fa-envelope opacity-70"></i> {resume.basics.email}
-                </div>
-              )}
-              {resume.basics.phone && (
-                <div className="flex items-center justify-end gap-2">
-                  <i className="fas fa-phone opacity-70"></i> {resume.basics.phone}
-                </div>
-              )}
-              {targetProfile !== 'jenny' && (
-                <div className="flex items-center justify-end gap-2">
-                  <i className="fas fa-globe opacity-70"></i>{' '}
-                  <span className="opacity-90">Web:</span>
-                  <a
-                    href="https://www.ps6.space"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="hover:underline font-bold"
-                  >
-                    ps6.space
-                  </a>
-                </div>
+              {isVip && (
+                <button
+                  type="button"
+                  onClick={handleCreateVersion}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 hover:bg-amber-400 text-black text-sm font-bold uppercase rounded-xl shadow-lg transition-all duration-200 hover:shadow-xl active:scale-95"
+                >
+                  <i className="fas fa-plus"></i>
+                  <span>{language === 'zh' ? '新建第一份简历' : 'Create First Resume'}</span>
+                </button>
               )}
             </div>
           </div>
-
-          {/* Summary / Profile */}
-          <section className="mb-8">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-3 border-b-2 border-slate-900 pb-2">
-              Profile
-            </h3>
-            <div className="text-slate-800 leading-relaxed text-base md:text-lg text-left whitespace-pre-line">
-              {renderRichText(getLocalized(resume.basics, 'summary'))}
-            </div>
-          </section>
-
-          {/* Work Experience */}
-          <section className="mb-8">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-4 border-b-2 border-slate-900 pb-2">
-              Work Experience
-            </h3>
-            <div className="space-y-6 border-l-2 border-slate-300 ml-1 pl-8 relative">
-              {getSortedWorkExperience().map((job, idx) => (
-                <div key={idx} className="relative break-inside-avoid page-break-inside-avoid">
-                  <span className="absolute -left-[39px] top-1.5 w-5 h-5 rounded-full border-4 border-white bg-slate-900"></span>
-
-                  <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-1">
-                    <h4 className="text-xl font-bold text-black flex items-center gap-2">
-                      {renderRichText(getLocalized(job, 'company'))}
-                    </h4>
-                    <div className="flex items-center gap-2">
-                      {typeof job.weight === 'number' && job.weight > 0 && (
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300 font-bold">
-                          Weight: {job.weight}
-                        </span>
-                      )}
-                      <span className="font-sans text-sm text-slate-700 bg-slate-100 px-2 py-1 rounded font-medium">
-                        {job.startDate} — {job.endDate || 'Present'}
-                      </span>
-                    </div>
+        ) : (
+          <div
+            ref={ref}
+            id="resume-paper-sheet"
+            className="resume-paper-sheet bg-white rounded-[2rem] shadow-xl border border-slate-200 p-8 md:p-16 max-w-4xl mx-auto print:shadow-none print:border-none print:m-0 print:p-8 print:max-w-none print:rounded-none font-serif text-slate-900"
+          >
+            {/* Header / Basics */}
+            <div className="pb-2 mb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold text-black mb-1.5">
+                  {renderRichText(getLocalized(resume.basics, 'name'))}
+                </h1>
+                <p className="text-lg text-slate-800 font-medium">
+                  {renderRichText(getLocalized(resume.basics, 'label'))}
+                </p>
+              </div>
+              <div className="text-sm text-slate-700 font-sans space-y-1 text-right">
+                {getLocalized(resume.basics, 'location') && (
+                  <div className="flex items-center justify-end gap-2">
+                    <i aria-hidden="true" className="fas fa-map-marker-alt opacity-70"></i>{' '}
+                    <span>{renderRichText(getLocalized(resume.basics, 'location'))}</span>
                   </div>
-
-                  <p className="text-slate-800 font-bold text-base mb-3 italic">
-                    {renderRichText(getLocalized(job, 'position'))}
-                  </p>
-
-                  {/* Location Display */}
-                  {(job.location_zh || job.location_en) && (
-                    <p className="text-sm text-slate-600 mb-2 font-sans flex items-center gap-2">
-                      <i className="fas fa-map-marker-alt opacity-70"></i>
-                      {renderRichText(getLocalized(job, 'location'))}
-                    </p>
-                  )}
-
-                  <ul className="list-disc list-outside ml-4 space-y-1.5 text-slate-800 leading-relaxed marker:text-slate-500 text-base text-left">
-                    {getLocalizedArray(job, 'highlights').map((hl: string, i: number) => (
-                      <li key={i}>{renderRichText(hl)}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </section>
-          {/* Featured Projects */}
-          {getSortedFeaturedProjects().length !== 0 ? (<section className="mb-8">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-4 border-b-2 border-slate-900 pb-2">
-              Featured Projects
-            </h3>
-            <div className="space-y-6 border-l-2 border-slate-300 ml-1 pl-8 relative">
-              {getSortedFeaturedProjects().map((job, idx) => (
-                <div key={idx} className="relative break-inside-avoid page-break-inside-avoid">
-                  <span className="absolute -left-[39px] top-1.5 w-5 h-5 rounded-full border-4 border-white bg-slate-900"></span>
-
-                  <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-1">
-                    <h4 className="text-xl font-bold text-black flex items-center gap-2">
-                      {renderRichText(getLocalized(job, 'company'))}
-                    </h4>
-                    <div className="flex items-center gap-2">
-                      {typeof job.weight === 'number' && job.weight > 0 && (
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300 font-bold">
-                          Weight: {job.weight}
-                        </span>
-                      )}
-                      <span className="font-sans text-sm text-slate-700 bg-slate-100 px-2 py-1 rounded font-medium">
-                        {job.startDate} — {job.endDate || 'Present'}
-                      </span>
-                    </div>
+                )}
+                {getLocalized(resume.basics, 'visaStatus') && (
+                  <div className="flex items-center justify-end gap-2 font-medium">
+                    <i aria-hidden="true" className="fas fa-id-card opacity-70"></i>{' '}
+                    <span>{renderRichText(getLocalized(resume.basics, 'visaStatus'))}</span>
                   </div>
-
-                  <p className="text-slate-800 font-bold text-base mb-3 italic">
-                    {renderRichText(getLocalized(job, 'position'))}
-                  </p>
-
-                  {/* Location Display */}
-                  {(job.location_zh || job.location_en) && (
-                    <p className="text-sm text-slate-600 mb-2 font-sans flex items-center gap-2">
-                      <i className="fas fa-map-marker-alt opacity-70"></i>
-                      {renderRichText(getLocalized(job, 'location'))}
-                    </p>
-                  )}
-
-                  <ul className="list-disc list-outside ml-4 space-y-1.5 text-slate-800 leading-relaxed marker:text-slate-500 text-base text-left">
-                    {getLocalizedArray(job, 'highlights').map((hl: string, i: number) => (
-                      <li key={i}>{renderRichText(hl)}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </section>) : null}
-
-
-
-          {/* Education */}
-          <section className="mb-8">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-4 border-b-2 border-slate-900 pb-2">
-              Education
-            </h3>
-
-            <div className="grid grid-cols-1 gap-4">
-              {resume.education.map((edu, idx) => (
-                <div
-                  key={idx}
-                  className="bg-transparent p-0 rounded-none border-none break-inside-avoid page-break-inside-avoid"
-                >
-                  <div className="flex justify-between items-start mb-1">
-                    <h4 className="text-lg font-bold text-black">
-                      {renderRichText(edu.institution)}
-                    </h4>
-                    <span className="text-sm font-sans text-slate-700 font-medium">
-                      {edu.startDate} — {edu.endDate}
-                    </span>
+                )}
+                {resume.basics.email && (
+                  <div className="flex items-center justify-end gap-2">
+                    <i aria-hidden="true" className="fas fa-envelope opacity-70"></i>{' '}
+                    <span>{resume.basics.email}</span>
                   </div>
-                  {edu.location && (
-                    <p className="text-sm text-slate-600 mb-2 font-sans flex items-center gap-2">
-                      <i className="fas fa-map-marker-alt opacity-70"></i>
-                      {renderRichText(edu.location)}
-                    </p>
-                  )}
-                  <p className="text-slate-800 font-medium text-base">
-                    {renderRichText(getLocalized(edu, 'studyType'))} in{' '}
-                    {renderRichText(getLocalized(edu, 'area'))}
-                  </p>
-                  {edu.score_en && (
-                    <p className="text-slate-700 text-sm mt-1 italic">
-                      {renderRichText(getLocalized(edu, 'score'))}
-                    </p>
-                  )}
-                </div>
-              ))}
+                )}
+                {resume.basics.phone && (
+                  <div className="flex items-center justify-end gap-2">
+                    <i aria-hidden="true" className="fas fa-phone opacity-70"></i>{' '}
+                    <span>{resume.basics.phone}</span>
+                  </div>
+                )}
+                {resume.basics.website && (
+                  <div className="flex items-center justify-end gap-2">
+                    <i aria-hidden="true" className="fas fa-globe opacity-70"></i>{' '}
+                    <span className="opacity-90">Web:</span>
+                    <a
+                      href={resume.basics.website.startsWith('http') ? resume.basics.website : `https://${resume.basics.website}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hover:underline font-bold"
+                    >
+                      {resume.basics.website.replace(/^https?:\/\//, '')}
+                    </a>
+                  </div>
+                )}
+              </div>
             </div>
-          </section>
 
-          {/* Unified Skills Section (Frontend, Backend, Devops, Language) */}
-          <section className="mb-8">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-4 border-b-2 border-slate-900 pb-2">
-              Skills
-            </h3>
-            <div className="space-y-3 font-sans text-sm md:text-base text-slate-800">
-              {getCombinedSkills().map((skillGroup, idx) => (
-                <div
-                  key={idx}
-                  className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2 leading-relaxed break-inside-avoid"
-                >
-                  <span className="font-bold text-black sm:min-w-[100px] shrink-0">
-                    {renderRichText(getLocalized(skillGroup, 'name'))}:
-                  </span>
-                  <span className="font-normal text-slate-800">
-                    {skillGroup.keywords.map((kw, i) => (
-                      <React.Fragment key={i}>
-                        {i > 0 && (
-                          <span className="mr-1.5 font-bold text-slate-400">
-                            ,
+            {/* Summary / Profile */}
+            <section className="mb-8">
+              <h2 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-3 border-b-2 border-slate-900 pb-2">
+                Profile
+              </h2>
+              <div className="text-slate-800 leading-relaxed text-base md:text-lg text-left whitespace-pre-line">
+                {renderRichText(getLocalized(resume.basics, 'summary'))}
+              </div>
+            </section>
+
+            {/* Work Experience */}
+            <section className="mb-8">
+              <h2 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-4 border-b-2 border-slate-900 pb-2">
+                Work Experience
+              </h2>
+              <div className="space-y-6">
+                {getSortedWorkExperience().map((job, idx) => (
+                  <div key={idx} className="break-inside-avoid page-break-inside-avoid">
+                    <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-1">
+                      <h3 className="text-xl font-bold text-black flex items-center gap-2">
+                        {renderRichText(getLocalized(job, 'company'))}
+                      </h3>
+                      <div className="flex items-center gap-2">
+                        {typeof job.weight === 'number' && job.weight > 0 && (
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300 font-bold">
+                            Weight: {job.weight}
                           </span>
                         )}
-                        {renderRichText(kw)}
-                      </React.Fragment>
-                    ))}
-                  </span>
+                        <span className="font-sans text-sm text-slate-700 bg-slate-100 px-2 py-1 rounded font-medium">
+                          {job.startDate} — {job.endDate || 'Present'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="text-slate-800 font-bold text-base mb-3 italic">
+                      {renderRichText(getLocalized(job, 'position'))}
+                    </p>
+
+                    {/* Location Display */}
+                    {(job.location_zh || job.location_en) && (
+                      <p className="text-sm text-slate-600 mb-2 font-sans flex items-center gap-2">
+                        <i aria-hidden="true" className="fas fa-map-marker-alt opacity-70"></i>
+                        <span>{renderRichText(getLocalized(job, 'location'))}</span>
+                      </p>
+                    )}
+
+                    <ul className="list-disc list-outside ml-4 space-y-1.5 text-slate-800 leading-relaxed marker:text-slate-500 text-base text-left">
+                      {getLocalizedArray(job, 'highlights').map((hl: string, i: number) => (
+                        <li key={i}>{renderRichText(hl)}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </section>
+            {/* Featured Projects */}
+            {getSortedFeaturedProjects().length !== 0 ? (
+              <section className="mb-8">
+                <h2 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-4 border-b-2 border-slate-900 pb-2">
+                  Featured Projects
+                </h2>
+                <div className="space-y-6">
+                  {getSortedFeaturedProjects().map((job, idx) => (
+                    <div key={idx} className="break-inside-avoid page-break-inside-avoid">
+                      <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-1">
+                        <h3 className="text-xl font-bold text-black flex items-center gap-2">
+                          {renderRichText(getLocalized(job, 'company'))}
+                        </h3>
+                        <div className="flex items-center gap-2">
+                          {typeof job.weight === 'number' && job.weight > 0 && (
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300 font-bold">
+                              Weight: {job.weight}
+                            </span>
+                          )}
+                          <span className="font-sans text-sm text-slate-700 bg-slate-100 px-2 py-1 rounded font-medium">
+                            {job.startDate} — {job.endDate || 'Present'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <p className="text-slate-800 font-bold text-base mb-3 italic">
+                        {renderRichText(getLocalized(job, 'position'))}
+                      </p>
+
+                      {/* Location Display */}
+                      {(job.location_zh || job.location_en) && (
+                        <p className="text-sm text-slate-600 mb-2 font-sans flex items-center gap-2">
+                          <i aria-hidden="true" className="fas fa-map-marker-alt opacity-70"></i>
+                          <span>{renderRichText(getLocalized(job, 'location'))}</span>
+                        </p>
+                      )}
+
+                      <ul className="list-disc list-outside ml-4 space-y-1.5 text-slate-800 leading-relaxed marker:text-slate-500 text-base text-left">
+                        {getLocalizedArray(job, 'highlights').map((hl: string, i: number) => (
+                          <li key={i}>{renderRichText(hl)}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </section>
-        </div>
+              </section>
+            ) : null}
+
+            {/* Education */}
+            <section className="mb-8">
+              <h2 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-4 border-b-2 border-slate-900 pb-2">
+                Education
+              </h2>
+
+              <div className="grid grid-cols-1 gap-4">
+                {resume.education.map((edu, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-transparent p-0 rounded-none border-none break-inside-avoid page-break-inside-avoid"
+                  >
+                    <div className="flex justify-between items-start mb-1">
+                      <h3 className="text-lg font-bold text-black">
+                        {renderRichText(edu.institution)}
+                      </h3>
+                      <span className="text-sm font-sans text-slate-700 font-medium">
+                        {edu.startDate} — {edu.endDate}
+                      </span>
+                    </div>
+                    {edu.location && (
+                      <p className="text-sm text-slate-600 mb-2 font-sans flex items-center gap-2">
+                        <i aria-hidden="true" className="fas fa-map-marker-alt opacity-70"></i>
+                        <span>{renderRichText(edu.location)}</span>
+                      </p>
+                    )}
+                    <p className="text-slate-800 font-medium text-base">
+                      {renderRichText(getLocalized(edu, 'studyType'))} in{' '}
+                      {renderRichText(getLocalized(edu, 'area'))}
+                    </p>
+                    {edu.score_en && (
+                      <p className="text-slate-700 text-sm mt-1 italic">
+                        {renderRichText(getLocalized(edu, 'score'))}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Unified Skills Section (Frontend, Backend, Devops, Language) */}
+            <section className="mb-8">
+              <h2 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-4 border-b-2 border-slate-900 pb-2">
+                Skills
+              </h2>
+              <div className="space-y-3 font-sans text-sm md:text-base text-slate-800">
+                {getCombinedSkills().map((skillGroup, idx) => (
+                  <div
+                    key={idx}
+                    className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2 leading-relaxed break-inside-avoid"
+                  >
+                    <span className="font-bold text-black sm:min-w-[100px] shrink-0">
+                      {renderRichText(getLocalized(skillGroup, 'name'))}:
+                    </span>
+                    <span className="font-normal text-slate-800">
+                      {skillGroup.keywords.map((kw, i) => (
+                        <React.Fragment key={i}>
+                          {i > 0 && (
+                            <span className="mr-1.5 font-bold text-slate-400">
+                              ,
+                            </span>
+                          )}
+                          {renderRichText(kw)}
+                        </React.Fragment>
+                      ))}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+        )}
 
         {/* Custom Modal for Creating Version */}
         {isCreateModalOpen &&

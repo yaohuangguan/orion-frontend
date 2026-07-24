@@ -208,6 +208,7 @@ export interface ResumeData {
     visaStatus_en?: string;
     summary_zh?: string;
     summary_en?: string;
+    website?: string;
   };
   education: Array<{
     institution?: string;
