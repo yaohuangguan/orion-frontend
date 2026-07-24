@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { apiService } from '../../services/api';
+import { API_BASE_URL } from '../../services/core';
 import { ResumeData, User } from '../../types';
 import { useTranslation } from '../../i18n/LanguageContext';
 import { toast } from '../Toast';
@@ -241,7 +242,7 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
     };
 
     const handleExportPdf = () => {
-      const backendUrl = `/api/resumes/export-pdf?user=${currentSlug}&lang=${language}`;
+      const backendUrl = `${API_BASE_URL}/resumes/export-pdf?user=${currentSlug}&lang=${language}`;
       window.open(backendUrl, '_blank');
     };
 
