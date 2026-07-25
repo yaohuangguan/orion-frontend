@@ -407,6 +407,13 @@ export const contentService = {
     return await fetchClient<{ likes: number }>(`/homepage/likes/${id}/add`, { method: 'POST' });
   },
 
+  addHomeLikesBatch: async (id: string, count: number): Promise<{ likes: number }> => {
+    return await fetchClient<{ likes: number }>(`/homepage/likes/${id}/batch-add`, {
+      method: 'POST',
+      body: JSON.stringify({ count })
+    });
+  },
+
   removeHomeLike: async (id: string): Promise<{ likes: number }> => {
     return await fetchClient<{ likes: number }>(`/homepage/likes/${id}/remove`, { method: 'POST' });
   },

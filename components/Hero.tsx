@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from '../i18n/LanguageContext';
 import { apiService } from '../services/api';
 
@@ -12,15 +12,13 @@ export const Hero: React.FC<HeroProps> = ({ onCtaClick, onSecondaryCtaClick }) =
   const { t } = useTranslation();
   const [likes, setLikes] = useState<number>(0);
   const [homeId, setHomeId] = useState<string | null>(null);
+  const [hearts, setHearts] = useState<Array<{ id: number; left: number; sway: string; rotate: string; emoji: string }>>([]);
   const [showThanks, setShowThanks] = useState(false);
-  const [hasLiked, setHasLiked] = useState(false);
+
+  const pendingLikesRef = useRef<number>(0);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Check local storage for liked state on mount
-    if (localStorage.getItem('home_liked') === 'true') {
-      setHasLiked(true);
-    }
-
     const fetchLikes = async () => {
       try {
         const data = await apiService.getHomeLikes();
@@ -33,42 +31,65 @@ export const Hero: React.FC<HeroProps> = ({ onCtaClick, onSecondaryCtaClick }) =
       }
     };
     fetchLikes();
+
+    // Cleanup timer on unmount
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
   }, []);
 
-  const handleLike = async () => {
+  const handleLike = () => {
     if (!homeId) return;
-    
-    // Determine action based on current state (Toggle)
-    const isCurrentlyLiked = hasLiked;
 
     try {
-        if (isCurrentlyLiked) {
-            // Action: UNLIKE
-            await apiService.removeHomeLike(homeId);
-            
-            // Success -> Update State
-            setLikes(prev => Math.max(0, prev - 1));
-            setHasLiked(false);
-            localStorage.removeItem('home_liked');
-            setShowThanks(false);
-        } else {
-            // Action: LIKE
-            await apiService.addHomeLike(homeId);
-            
-            // Success -> Update State
-            setLikes(prev => prev + 1);
-            setHasLiked(true);
-            localStorage.setItem('home_liked', 'true');
-            
-            setShowThanks(true);
-            setTimeout(() => {
-              setShowThanks(false);
-            }, 2000);
+      // 1. Instant frontend increment
+      setLikes((prev) => prev + 1);
+
+      // 2. Launch floating heart/emoji effect
+      const emojis = [
+        '❤️', '🧡', '💛', '💚', '💙', '💜', '💖', '💝', // Different hearts
+        '😀', '😍', '😎', '🥳', '🥰', '😂', // Smiley and react faces
+        '🔥', '✨', '🎉', '👍', '🌟', '🚀'  // Hype effects
+      ];
+      const newHeart = {
+        id: Date.now() + Math.random(),
+        left: Math.random() * 60 - 30, // Random X offset
+        sway: `${Math.random() * 50 - 25}px`, // Sway displacement
+        rotate: `${Math.random() * 80 - 40}deg`, // Rotate angle
+        emoji: emojis[Math.floor(Math.random() * emojis.length)]
+      };
+      setHearts((prev) => [...prev, newHeart]);
+
+      setShowThanks(true);
+
+      // 3. Accumulate pending likes
+      pendingLikesRef.current += 1;
+
+      // 4. Debounce API call (Wait 1.2s of inactivity, then send batch request)
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+
+      debounceTimerRef.current = setTimeout(async () => {
+        const countToSend = pendingLikesRef.current;
+        pendingLikesRef.current = 0; // Reset pool
+        try {
+          await apiService.addHomeLikesBatch(homeId, countToSend);
+        } catch (err) {
+          console.error("Failed to send batch likes", err);
         }
+        setShowThanks(false);
+      }, 1200);
+
     } catch (e) {
-        console.error("Like/Unlike failed", e);
-        // Do not update UI on failure
+      console.error("Like failed", e);
     }
+  };
+
+  const removeHeart = (id: number) => {
+    setHearts((prev) => prev.filter((h) => h.id !== id));
   };
 
   return (
@@ -90,20 +111,37 @@ export const Hero: React.FC<HeroProps> = ({ onCtaClick, onSecondaryCtaClick }) =
               </span>
             </div>
 
-            {/* Like Button (Toggle) */}
+            {/* Like Button (No limit, Douyin Livestream effect) */}
             {homeId && (
-              <button 
-                onClick={handleLike}
-                className={`group flex items-center gap-2 px-5 py-2 rounded-full border border-pink-500/30 transition-all duration-300 hover:scale-105 active:scale-95 animate-fade-in ${
-                  hasLiked 
-                    ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/30' 
-                    : 'bg-pink-500/10 text-pink-500 hover:bg-pink-500 hover:text-white'
-                }`}
-                title={hasLiked ? "Unlike" : "Send Love"}
-              >
-                <i className={`fas fa-heart text-sm transition-transform duration-300 ${hasLiked ? 'scale-110' : 'group-hover:scale-110'}`}></i>
-                <span className="text-xs font-mono font-bold">{likes}</span>
-              </button>
+              <div className="relative">
+                {/* Floating Hearts Area */}
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 w-48 h-72 pointer-events-none overflow-hidden z-50 flex items-end justify-center pb-2">
+                  {hearts.map((heart) => (
+                    <span
+                      key={heart.id}
+                      className="absolute animate-heart-float text-3xl select-none"
+                      style={{
+                        left: `calc(50% + ${heart.left}px)`,
+                        '--sway-x': heart.sway,
+                        '--rotate-deg': heart.rotate,
+                        textShadow: '0 2px 12px rgba(0,0,0,0.15)'
+                      } as React.CSSProperties}
+                      onAnimationEnd={() => removeHeart(heart.id)}
+                    >
+                      {heart.emoji}
+                    </span>
+                  ))}
+                </div>
+
+                <button 
+                  onClick={handleLike}
+                  className="group flex items-center gap-2 px-5 py-2.5 rounded-full border border-pink-500/30 bg-pink-500/10 text-pink-500 hover:bg-pink-500 hover:text-white transition-all duration-300 hover:scale-105 active:scale-95 animate-fade-in shadow-sm hover:shadow-lg hover:shadow-pink-500/25"
+                  title="Send Love"
+                >
+                  <i className="fas fa-heart text-sm transition-transform duration-300 group-hover:scale-110"></i>
+                  <span className="text-xs font-mono font-bold">{likes}</span>
+                </button>
+              </div>
             )}
           </div>
 
@@ -112,6 +150,23 @@ export const Hero: React.FC<HeroProps> = ({ onCtaClick, onSecondaryCtaClick }) =
              Thank you! ❤
           </div>
         </div>
+
+        {/* Global Keyframes styling for Douyin Live floating heart effect */}
+        <style>{`
+          @keyframes heartFloat {
+            0% {
+              transform: translateY(0) scale(0.6) rotate(0deg);
+              opacity: 1;
+            }
+            100% {
+              transform: translateY(-260px) translateX(var(--sway-x)) scale(1.4) rotate(var(--rotate-deg));
+              opacity: 0;
+            }
+          }
+          .animate-heart-float {
+            animation: heartFloat 1.2s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
+          }
+        `}</style>
 
         {/* Main Title - Adapts Gradient */}
         <h1 className="font-display font-bold text-6xl md:text-8xl lg:text-9xl tracking-tighter text-slate-900 dark:text-white mb-10 leading-[0.9] animate-slide-up drop-shadow-2xl">
