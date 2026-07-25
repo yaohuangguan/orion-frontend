@@ -1307,10 +1307,10 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
           <div
             ref={ref}
             id="resume-paper-sheet"
-            className="resume-paper-sheet bg-white rounded-[2rem] shadow-xl border border-slate-200 p-8 md:p-16 max-w-4xl mx-auto print:shadow-none print:border-none print:m-0 print:p-8 print:max-w-none print:rounded-none font-serif text-slate-900"
+            className="resume-paper-sheet bg-white rounded-[2rem] shadow-xl border border-slate-200 p-8 md:p-12 max-w-4xl mx-auto print:shadow-none print:border-none print:m-0 print:p-8 print:max-w-none print:w-full font-serif text-slate-900"
           >
             {/* Header / Basics */}
-            <div className="pb-2 mb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="pb-2 mb-4 flex justify-between items-start gap-6">
               <div>
                 <h1 className="text-3xl md:text-4xl font-bold text-black mb-1.5">
                   {renderRichText(getLocalized(resume.basics, 'name'))}
