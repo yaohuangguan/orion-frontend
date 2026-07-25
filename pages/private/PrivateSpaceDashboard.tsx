@@ -142,8 +142,7 @@ export const PrivateSpaceDashboard: React.FC<PrivateSpaceDashboardProps> = ({ us
   return (
     <div
       className={`
-      min-h-screen pt-24 pb-6 px-4 md:px-6 relative flex flex-col gap-6 transition-colors duration-1000
-      ${isFixedLayout ? 'lg:h-screen lg:overflow-hidden overflow-y-auto' : 'overflow-y-auto'}
+      min-h-screen pt-24 pb-6 px-4 md:px-6 relative flex flex-col gap-6 transition-colors duration-1000 overflow-y-auto
       ${getBackgroundClass()}
     `}
     >
@@ -207,7 +206,7 @@ export const PrivateSpaceDashboard: React.FC<PrivateSpaceDashboardProps> = ({ us
           />
         ) : (
           // Render actual content if permissions pass
-          <div className="h-full animate-fade-in lg:overflow-hidden w-full">
+          <div className="animate-fade-in w-full">
             <Outlet context={{ user }} />
           </div>
         )}

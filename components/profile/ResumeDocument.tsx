@@ -126,12 +126,7 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
     const { language } = useTranslation();
     const [searchParams] = useSearchParams();
     const urlUser = searchParams.get('user');
-    const defaultProfile = (
-      urlUser ||
-      currentUser?.displayName?.toLowerCase().replace(/\s+/g, '') ||
-      currentUser?.email?.split('@')[0] ||
-      'sam'
-    ).trim();
+    const defaultProfile = (urlUser || 'sam').trim().toLowerCase();
 
     const [resume, setResume] = useState<ResumeData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -1307,10 +1302,10 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
           <div
             ref={ref}
             id="resume-paper-sheet"
-            className="resume-paper-sheet bg-white rounded-[2rem] shadow-xl border border-slate-200 p-8 md:p-12 max-w-4xl mx-auto print:shadow-none print:border-none print:m-0 print:p-8 print:max-w-none print:w-full font-serif text-slate-900"
+            className="resume-paper-sheet bg-white rounded-[2rem] shadow-xl border border-slate-200 p-8 md:p-16 max-w-4xl mx-auto print:shadow-none print:border-none print:m-0 print:p-8 print:max-w-none print:rounded-none font-serif text-slate-900"
           >
             {/* Header / Basics */}
-            <div className="pb-2 mb-4 flex justify-between items-start gap-6">
+            <div className="pb-2 mb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
               <div>
                 <h1 className="text-3xl md:text-4xl font-bold text-black mb-1.5">
                   {renderRichText(getLocalized(resume.basics, 'name'))}
@@ -1362,7 +1357,7 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
             </div>
 
             {/* Summary / Profile */}
-            <section className="mb-8">
+            <section className="mb-6 print:mb-4">
               <h2 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-3 border-b-2 border-slate-900 pb-2">
                 Profile
               </h2>
@@ -1372,11 +1367,11 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
             </section>
 
             {/* Work Experience */}
-            <section className="mb-8">
-              <h2 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-4 border-b-2 border-slate-900 pb-2">
+            <section className="mb-6 print:mb-4">
+              <h2 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-3.5 border-b-2 border-slate-900 pb-2">
                 Work Experience
               </h2>
-              <div className="space-y-6">
+              <div className="space-y-5 print:space-y-3.5">
                 {getSortedWorkExperience().map((job, idx) => (
                   <div key={idx} className="break-inside-avoid page-break-inside-avoid">
                     <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-1">
@@ -1418,11 +1413,11 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
             </section>
             {/* Featured Projects */}
             {getSortedFeaturedProjects().length !== 0 ? (
-              <section className="mb-8">
-                <h2 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-4 border-b-2 border-slate-900 pb-2">
+              <section className="mb-6 print:mb-4">
+                <h2 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-3.5 border-b-2 border-slate-900 pb-2">
                   Featured Projects
                 </h2>
-                <div className="space-y-6">
+                <div className="space-y-5 print:space-y-3.5">
                   {getSortedFeaturedProjects().map((job, idx) => (
                     <div key={idx} className="break-inside-avoid page-break-inside-avoid">
                       <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-1">
@@ -1465,12 +1460,12 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
             ) : null}
 
             {/* Education */}
-            <section className="mb-8">
-              <h2 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-4 border-b-2 border-slate-900 pb-2">
+            <section className="mb-6 print:mb-4">
+              <h2 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-3.5 border-b-2 border-slate-900 pb-2">
                 Education
               </h2>
 
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 gap-3">
                 {resume.education.map((edu, idx) => (
                   <div
                     key={idx}
@@ -1505,8 +1500,8 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
             </section>
 
             {/* Unified Skills Section (Frontend, Backend, Devops, Language) */}
-            <section className="mb-8">
-              <h2 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-4 border-b-2 border-slate-900 pb-2">
+            <section className="mb-6 print:mb-4">
+              <h2 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-3.5 border-b-2 border-slate-900 pb-2">
                 Skills
               </h2>
               <div className="space-y-3 font-sans text-sm md:text-base text-slate-800">

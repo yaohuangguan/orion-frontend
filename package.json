@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:local": "cross-env VITE_API_URL=http://localhost:5000/api vite",
+    "dev:local": "cross-env VITE_API_URL=http://localhost:3000/api vite",
     "build": "node scripts/generate-sitemap.js && vite build",
     "preview": "vite preview",
     "prepare": "husky",

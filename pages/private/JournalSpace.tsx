@@ -57,7 +57,7 @@ export const JournalSpace: React.FC = () => {
     if (savedLikes) {
       try {
         setLikedPosts(new Set(JSON.parse(savedLikes)));
-      } catch (e) {}
+      } catch (e) { }
     }
   }, []);
 
@@ -261,7 +261,7 @@ export const JournalSpace: React.FC = () => {
 
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-10 lg:pb-0 h-full min-h-0 relative">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-10 lg:pb-0 lg:h-[88vh] lg:min-h-[850px] min-h-0 relative">
         <DeleteModal
           isOpen={!!postToDelete}
           onClose={() => setPostToDelete(null)}
@@ -275,7 +275,7 @@ export const JournalSpace: React.FC = () => {
         />
 
         {/* Left Column Container */}
-        <div className="h-[60vh] lg:h-full flex flex-col min-h-0 bg-white/60 rounded-3xl border border-white/80 shadow-lg backdrop-blur-md overflow-hidden ring-1 ring-white/50 order-2 lg:order-1 private-feed-top transition-all duration-300 relative">
+        <div className="h-[65vh] lg:h-full flex flex-col min-h-0 bg-white/60 rounded-3xl border border-white/80 shadow-lg backdrop-blur-md overflow-hidden ring-1 ring-white/50 order-2 lg:order-1 private-feed-top transition-all duration-300 relative">
           {/* Detail View */}
           {selectedEntry && (
             <div className="absolute inset-0 z-20 flex flex-col bg-white animate-slide-up overflow-hidden">
@@ -335,7 +335,7 @@ export const JournalSpace: React.FC = () => {
                     <CommentsSection
                       postId={selectedEntry._id}
                       currentUser={user}
-                      onLoginRequest={() => {}}
+                      onLoginRequest={() => { }}
                       forceLight={true}
                     />
                   </div>
@@ -490,7 +490,7 @@ export const JournalSpace: React.FC = () => {
 
           <div
             id="private-editor"
-            className="lg:flex-1 lg:min-h-0 h-[75vh] shadow-xl rounded-[2rem] bg-white"
+            className="lg:flex-1 lg:min-h-0 h-[80vh] shadow-xl rounded-[2rem] bg-white overflow-hidden flex flex-col"
           >
             <SimpleEditor
               key={editingPost ? editingPost._id : 'new-post'}
