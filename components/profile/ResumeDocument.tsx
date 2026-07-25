@@ -419,82 +419,11 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
       setEditResume(newResume);
     };
 
-    // Initialize/Reset skills to 4 standard categories (Frontend, Backend, Devops, Language)
-    const initStandardSkills = () => {
-      if (!editResume) return;
-      const standardCategories = [
-        {
-          name_zh: '前端 (Frontend)',
-          name_en: 'Frontend',
-          keywords: [
-            'React',
-            'TypeScript',
-            'Vue.js',
-            'Next.js',
-            'Tailwind CSS',
-            'Vite',
-            'HTML5/CSS3'
-          ]
-        },
-        {
-          name_zh: '后端 (Backend)',
-          name_en: 'Backend',
-          keywords: [
-            'Node.js',
-            'Express',
-            'Python',
-            'Java',
-            'MySQL',
-            'MongoDB',
-            'Redis',
-            'Kafka'
-          ]
-        },
-        {
-          name_zh: 'DevOps',
-          name_en: 'DevOps',
-          keywords: ['Docker', 'Kubernetes', 'CI/CD', 'GitHub Actions', 'AWS', 'Nginx', 'Vercel']
-        },
-        {
-          name_zh: '语言能力 (Language)',
-          name_en: 'Language',
-          keywords: ['Chinese (Native)', 'English (Professional)']
-        }
-      ];
-
-      setEditResume({
-        ...editResume,
-        skills: standardCategories
-      });
-      toast.success('已预设 4 大品类 (Frontend, Backend, DevOps, Language)');
-    };
 
     // Combine skills and legacy languages for unified display
     const getCombinedSkills = () => {
       if (!resume) return [];
       const skillsList = [...(resume.skills || [])];
-
-      // Merge languages if legacy languages array exists and is not yet present in skills
-      if (resume.languages && resume.languages.length > 0) {
-        const hasLangGroup = skillsList.some(
-          (s) =>
-            s.name_en?.toLowerCase() === 'language' ||
-            s.name_zh === '语言' ||
-            s.name_zh === '语言能力' ||
-            s.name_zh?.includes('Language')
-        );
-        if (!hasLangGroup) {
-          skillsList.push({
-            name_zh: '语言能力',
-            name_en: 'Language',
-            keywords: resume.languages.map(
-              (l) =>
-                `${getLocalized(l, 'language')}${l.fluency_zh || l.fluency_en ? ` (${getLocalized(l, 'fluency')})` : ''}`
-            )
-          });
-        }
-      }
-
       return skillsList;
     };
 
@@ -1170,19 +1099,6 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
 
                   {activeTab === 'SKILLS' && (
                     <div className="space-y-6">
-                      <div className="flex justify-between items-center p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl">
-                        <div className="text-xs font-bold text-amber-700 dark:text-amber-300">
-                          <i className="fas fa-layer-group mr-1.5"></i>
-                          包含 Frontend, Backend, Devops, Language 4大品类 (单行紧凑文本展示)
-                        </div>
-                        <button
-                          type="button"
-                          onClick={initStandardSkills}
-                          className="px-3 py-1.5 bg-amber-500 text-black font-bold text-xs rounded-lg hover:bg-amber-400 transition-colors shadow"
-                        >
-                          预设4大品类 (Frontend, Backend, DevOps, Language)
-                        </button>
-                      </div>
 
                       {editResume.skills.map((skill, idx) => (
                         <div
