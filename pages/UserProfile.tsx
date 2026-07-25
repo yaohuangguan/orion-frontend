@@ -24,6 +24,7 @@ const TIMEZONES = [
   'Europe/Paris',
   'Europe/Berlin',
   'Australia/Sydney',
+  'Pacific/Auckland',
   'UTC'
 ];
 

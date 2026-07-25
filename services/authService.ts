@@ -95,6 +95,56 @@ export const authService = {
     });
   },
 
+  sendOtp: async (identifier: string): Promise<any> => {
+    return await fetchClient('/auth/send-otp', {
+      method: 'POST',
+      body: JSON.stringify({ identifier })
+    });
+  },
+
+  verifyOtp: async (identifier: string, code: string): Promise<{ token: string; user?: User; isProfileCompleted: boolean }> => {
+    try {
+      const response = await fetchClient<{ token: string; user?: User; isProfileCompleted: boolean }>('/auth/verify-otp', {
+        method: 'POST',
+        body: JSON.stringify({ identifier, code })
+      });
+      if (response.token) {
+        localStorage.setItem('auth_token', response.token);
+      }
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  completeProfile: async (displayName: string, email?: string, phone?: string): Promise<{ user: User }> => {
+    try {
+      const response = await fetchClient<{ user: User }>('/users/complete-profile', {
+        method: 'PUT',
+        body: JSON.stringify({ displayName, email, phone })
+      });
+      toast.success('Profile completed successfully!');
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  verifyFirebaseToken: async (idToken: string): Promise<{ token: string; user?: User; isProfileCompleted: boolean }> => {
+    try {
+      const response = await fetchClient<{ token: string; user?: User; isProfileCompleted: boolean }>('/auth/firebase-verify', {
+        method: 'POST',
+        body: JSON.stringify({ idToken })
+      });
+      if (response.token) {
+        localStorage.setItem('auth_token', response.token);
+      }
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   grantVip: async (email: string): Promise<any> => {
     return await fetchClient('/users/grant-vip', {
       method: 'PUT',
