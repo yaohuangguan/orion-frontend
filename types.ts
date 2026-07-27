@@ -195,6 +195,7 @@ export interface ResumeData {
   slug?: string;
   user?: string;
   title?: string;
+  sectionOrder?: string[];
   basics: {
     name_zh?: string;
     name_en?: string;
@@ -221,6 +222,7 @@ export interface ResumeData {
     endDate?: string;
     score_zh?: string;
     score_en?: string;
+    pageBreakBefore?: boolean;
   }>;
   work: Array<{
     company_zh?: string;
@@ -235,11 +237,13 @@ export interface ResumeData {
     isProject?: boolean;
     highlights_zh?: string[];
     highlights_en?: string[];
+    pageBreakBefore?: boolean;
   }>;
   skills: Array<{
     name_zh?: string;
     name_en?: string;
     keywords: string[];
+    pageBreakBefore?: boolean;
   }>;
   languages: Array<{
     language_zh?: string;
@@ -247,6 +251,36 @@ export interface ResumeData {
     fluency_zh?: string;
     fluency_en?: string;
   }>;
+  styleSettings?: {
+    fontSize?: 'small' | 'normal' | 'large';
+    lineHeight?: 'compact' | 'normal' | 'relaxed';
+    themeColor?: 'amber' | 'emerald' | 'sky' | 'crimson' | 'slate';
+    margin?: 'small' | 'normal' | 'large';
+    sectionGap?: 'compact' | 'normal' | 'relaxed';
+    pdfMode?: 'single-page' | 'multi-page';
+    paperSize?: 'a4' | 'a3' | 'a5';
+    customStyles?: Record<
+      string,
+      {
+        fontSize?: string;
+        fontWeight?: string;
+        color?: string;
+      }
+    >;
+  };
+  pageLimit?: number;
+  sectionTitles?: {
+    profile_zh?: string;
+    profile_en?: string;
+    work_zh?: string;
+    work_en?: string;
+    projects_zh?: string;
+    projects_en?: string;
+    education_zh?: string;
+    education_en?: string;
+    skills_zh?: string;
+    skills_en?: string;
+  };
 }
 
 export interface Log {

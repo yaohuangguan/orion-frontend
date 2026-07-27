@@ -6,120 +6,14 @@ import { API_BASE_URL } from '../../services/core';
 import { ResumeData, User } from '../../types';
 import { useTranslation } from '../../i18n/LanguageContext';
 import { toast } from '../Toast';
+import { ResumeEditModal } from './ResumeEditModal';
+import { ResumeLayoutSidebar } from './ResumeLayoutSidebar';
+import { ResumePaper } from './ResumePaper';
+import { safeKey } from './utils';
 
 interface ResumeDocumentProps {
   currentUser?: User | null;
 }
-
-// --- Rich Text Renderer Helper ---
-const renderRichText = (text: string | undefined | null): React.ReactNode => {
-  if (!text) return null;
-
-  // Pre-normalize HTML tags to markdown tokens for unified parsing
-  let processed = text
-    .replace(/<b>(.*?)<\/b>/gi, '**$1**')
-    .replace(/<strong>(.*?)<\/strong>/gi, '**$1**')
-    .replace(/<i>(.*?)<\/i>/gi, '*$1*')
-    .replace(/<em>(.*?)<\/em>/gi, '*$1*');
-
-  // Regex tokenizer for ***bold-italic***, **bold**, *italic*, and <u>underline</u>
-  const regex = /(\*\*\*[\s\S]*?\*\*\*|\*\*[\s\S]*?\*\*|\*[\s\S]*?\*|<u>[\s\S]*?<\/u>)/g;
-  const parts = processed.split(regex);
-
-  return parts.map((part, index) => {
-    if (part.startsWith('***') && part.endsWith('***') && part.length > 6) {
-      return (
-        <strong key={index}>
-          <em>{part.slice(3, -3)}</em>
-        </strong>
-      );
-    }
-    if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
-      return <strong key={index}>{part.slice(2, -2)}</strong>;
-    }
-    if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
-      return <em key={index}>{part.slice(1, -1)}</em>;
-    }
-    if (part.startsWith('<u>') && part.endsWith('</u>') && part.length > 7) {
-      return (
-        <u key={index} className="underline decoration-amber-500/60 underline-offset-2">
-          {part.slice(3, -4)}
-        </u>
-      );
-    }
-    return part;
-  });
-};
-
-// --- Formatting Toolbar Helper Component ---
-interface FormattingToolbarProps {
-  label?: string;
-  targetId: string;
-  value: string;
-  onChange: (newValue: string) => void;
-}
-
-const FormattingToolbar: React.FC<FormattingToolbarProps> = ({
-  label,
-  targetId,
-  value,
-  onChange
-}) => {
-  const applyFormat = (prefix: string, suffix: string) => {
-    const el = document.getElementById(targetId) as HTMLInputElement | HTMLTextAreaElement | null;
-    if (!el) {
-      onChange(value ? `${value} ${prefix}text${suffix}` : `${prefix}text${suffix}`);
-      return;
-    }
-    const start = el.selectionStart ?? 0;
-    const end = el.selectionEnd ?? 0;
-    const selected = value.substring(start, end);
-    const textToInsert = selected ? `${prefix}${selected}${suffix}` : `${prefix}text${suffix}`;
-    const newValue = value.substring(0, start) + textToInsert + value.substring(end);
-    onChange(newValue);
-    setTimeout(() => {
-      el.focus();
-      const newCursorPos = start + prefix.length + (selected ? selected.length : 4);
-      el.setSelectionRange(
-        start + prefix.length,
-        selected ? newCursorPos : start + prefix.length + 4
-      );
-    }, 50);
-  };
-
-  return (
-    <div className="flex items-center justify-between gap-2 mb-1">
-      {label && <span className="text-xs font-bold uppercase opacity-60">{label}</span>}
-      <div className="flex items-center gap-1 bg-slate-200/70 dark:bg-slate-800 p-1 rounded-md text-xs border border-slate-300/50 dark:border-slate-700">
-        <span className="text-[10px] opacity-50 px-1 font-mono">格式:</span>
-        <button
-          type="button"
-          onClick={() => applyFormat('**', '**')}
-          className="px-2 py-0.5 font-bold hover:bg-white dark:hover:bg-slate-700 rounded transition-colors"
-          title="加粗 (Bold) **text**"
-        >
-          <b>B</b>
-        </button>
-        <button
-          type="button"
-          onClick={() => applyFormat('*', '*')}
-          className="px-2 py-0.5 italic hover:bg-white dark:hover:bg-slate-700 rounded transition-colors"
-          title="斜体 (Italic) *text*"
-        >
-          <i>I</i>
-        </button>
-        <button
-          type="button"
-          onClick={() => applyFormat('<u>', '</u>')}
-          className="px-2 py-0.5 underline hover:bg-white dark:hover:bg-slate-700 rounded transition-colors"
-          title="下划线 (Underline) <u>text</u>"
-        >
-          <u>U</u>
-        </button>
-      </div>
-    </div>
-  );
-};
 
 export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentProps>(
   ({ currentUser }, ref) => {
@@ -135,14 +29,46 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
     const [resumeList, setResumeList] = useState<Array<{ slug: string; title: string; user: string }>>([]);
     const [availableProfiles, setAvailableProfiles] = useState<string[]>(['sam', 'jenny', defaultProfile]);
 
+    // Layout and print settings
+    const urlPdfMode = searchParams.get('pdfMode') || 'single-page';
+    const urlPaperSize = searchParams.get('paperSize') || 'a4';
+    const isPrint = searchParams.get('print') === 'true';
+    const urlPageLimit = parseInt(searchParams.get('pageLimit') || '0', 10) || 0;
+
+    const [pdfMode, setPdfMode] = useState<'single-page' | 'multi-page'>(
+      urlPdfMode === 'multi-page' ? 'multi-page' : 'single-page'
+    );
+    const [paperSize, setPaperSize] = useState<'a4' | 'a3' | 'a5'>(
+      urlPaperSize === 'a3' || urlPaperSize === 'a5' ? urlPaperSize : 'a4'
+    );
+
+    const currentPdfMode = isPrint ? urlPdfMode : pdfMode;
+    const currentPaperSize = isPrint ? urlPaperSize : paperSize;
+    const currentPageLimit = isPrint ? urlPageLimit : (resume?.pageLimit || 0);
+
     // Admin Editing
     const [isEditing, setIsEditing] = useState(false);
     const [editResume, setEditResume] = useState<ResumeData | null>(null);
-    const [activeTab, setActiveTab] = useState<'BASICS' | 'WORK' | 'EDUCATION' | 'SKILLS'>(
-      'BASICS'
-    );
+    const [activeTab, setActiveTab] = useState<'BASICS' | 'WORK' | 'EDUCATION' | 'SKILLS'>('BASICS');
 
     const isVip = currentUser?.vip || currentUser?.role === 'super_admin' || currentUser?.role === 'admin';
+
+    // Inline visual editing states
+    const [activeInlineEdit, setActiveInlineEdit] = useState<{
+      path: string;
+      label: string;
+      value: string;
+      isTextArea?: boolean;
+      listIndex?: number;
+      listField?: string;
+    } | null>(null);
+    const [inlineEditAnchor, setInlineEditAnchor] = useState<HTMLElement | null>(null);
+    const [tempTextValue, setTempTextValue] = useState('');
+    const [tempStyles, setTempStyles] = useState<{
+      fontSize?: string;
+      fontWeight?: string;
+      color?: string;
+    }>({});
 
     useEffect(() => {
       const loadProfiles = async () => {
@@ -210,6 +136,14 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
 
           const data = await apiService.getResumeData(activeSlug);
           setResume(data);
+          if (data?.styleSettings) {
+            if (data.styleSettings.pdfMode) {
+              setPdfMode(data.styleSettings.pdfMode as any);
+            }
+            if (data.styleSettings.paperSize) {
+              setPaperSize(data.styleSettings.paperSize as any);
+            }
+          }
         } else {
           setResume(null);
         }
@@ -237,7 +171,12 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
     };
 
     const handleExportPdf = () => {
-      const backendUrl = `${API_BASE_URL}/resumes/export-pdf?user=${currentSlug}&lang=${language}`;
+      let host = API_BASE_URL;
+      if (host.startsWith('/')) {
+        host = import.meta.env.DEV ? 'http://localhost:5000/api' : `${window.location.origin}${host}`;
+      }
+      const limit = resume?.pageLimit || 0;
+      const backendUrl = `${host}/resumes/export-pdf?user=${currentSlug}&lang=${language}&pdfMode=${pdfMode}&paperSize=${paperSize}${limit ? `&pageLimit=${limit}` : ''}`;
       window.open(backendUrl, '_blank');
     };
 
@@ -261,7 +200,17 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
       }
 
       const cleanSuffix = newVersionSuffix.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+      if (newVersionSuffix.trim() && cleanSuffix !== newVersionSuffix.trim().toLowerCase()) {
+        toast.error('Suffix can only contain letters, numbers, and hyphens / 后缀只能包含英文字母、数字和连字符');
+        return;
+      }
+
       const newSlug = cleanSuffix ? `${targetProfile}-${cleanSuffix}` : targetProfile;
+
+      if (resumeList.some((item) => item.slug === newSlug)) {
+        toast.error('Version slug already exists. Please choose a different suffix. / 该版本的链接已存在，请换个后缀');
+        return;
+      }
 
       let newResumeData: Partial<ResumeData>;
       if (resume) {
@@ -329,22 +278,20 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
       }
     };
 
-    const getLocalized = (obj: any, field: string) => {
-      if (!obj) return '';
-      return language === 'zh'
-        ? obj[`${field}_zh`] || obj[`${field}_en`] || ''
-        : obj[`${field}_en`] || obj[`${field}_zh`] || '';
-    };
-
-    const getLocalizedArray = (obj: any, field: string) => {
-      if (!obj) return [];
-      return language === 'zh'
-        ? obj[`${field}_zh`] || obj[`${field}_en`] || []
-        : obj[`${field}_en`] || obj[`${field}_zh`] || [];
-    };
-
     const handleEditOpen = () => {
-      setEditResume(JSON.parse(JSON.stringify(resume))); // Deep copy
+      if (!resume) return;
+      const copy = JSON.parse(JSON.stringify(resume)); // Deep copy
+      if (!copy.sectionOrder || copy.sectionOrder.length === 0) {
+        copy.sectionOrder = ['profile', 'work', 'projects', 'education', 'skills'];
+      }
+      if (!copy.styleSettings) {
+        copy.styleSettings = { fontSize: 'normal', lineHeight: 'normal', themeColor: 'slate' };
+      }
+      if (copy.pageLimit === undefined) {
+        copy.pageLimit = 0;
+      }
+      setEditResume(copy);
+      setActiveTab('BASICS');
       setIsEditing(true);
     };
 
@@ -419,37 +366,104 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
       setEditResume(newResume);
     };
 
+    // --- Inline Visual Editor Engine Hooks & Helper Functions ---
+    useEffect(() => {
+      if (activeInlineEdit) {
+        setTempTextValue(activeInlineEdit.value);
+        const customStyle = resume?.styleSettings?.customStyles?.[safeKey(activeInlineEdit.path)] || {};
+        setTempStyles({
+          fontSize: customStyle.fontSize || 'inherit',
+          fontWeight: customStyle.fontWeight || 'inherit',
+          color: customStyle.color || 'inherit'
+        });
+      } else {
+        setTempTextValue('');
+        setTempStyles({});
+      }
+    }, [activeInlineEdit, resume]);
 
-    // Combine skills and legacy languages for unified display
-    const getCombinedSkills = () => {
-      if (!resume) return [];
-      const skillsList = [...(resume.skills || [])];
-      return skillsList;
-    };
+    const [popoverCoords, setPopoverCoords] = useState<{ top: number; left: number } | null>(null);
 
-    // Sort work experience: higher weight ranks first; if weight equal/missing, sort chronologically by startDate
-    const getSortedWork = () => {
-      if (!resume || !resume.work) return [];
-      return [...resume.work].sort((a, b) => {
-        const weightA = typeof a.weight === 'number' ? a.weight : 0;
-        const weightB = typeof b.weight === 'number' ? b.weight : 0;
-        if (weightA !== weightB) {
-          return weightB - weightA; // Higher weight comes first
+    useEffect(() => {
+      if (!inlineEditAnchor || !activeInlineEdit) {
+        setPopoverCoords(null);
+        return;
+      }
+
+      const updatePosition = () => {
+        const rect = inlineEditAnchor.getBoundingClientRect();
+        const scrollY = window.scrollY;
+        const scrollX = window.scrollX;
+
+        let top = rect.bottom + scrollY + 8;
+        let left = rect.left + scrollX;
+
+        const popoverWidth = 320;
+        if (left + popoverWidth > window.innerWidth) {
+          left = window.innerWidth - popoverWidth - 16;
         }
-        return (b.startDate || '').localeCompare(a.startDate || '');
-      });
+        if (left < 16) {
+          left = 16;
+        }
+
+        setPopoverCoords({ top, left });
+      };
+
+      updatePosition();
+      window.addEventListener('resize', updatePosition);
+      window.addEventListener('scroll', updatePosition);
+      return () => {
+        window.removeEventListener('resize', updatePosition);
+        window.removeEventListener('scroll', updatePosition);
+      };
+    }, [inlineEditAnchor, activeInlineEdit]);
+
+    const setNestedValue = (obj: any, path: string, val: any) => {
+      const parts = path.split('.');
+      let current = obj;
+      for (let i = 0; i < parts.length - 1; i++) {
+        const part = parts[i];
+        if (Array.isArray(current[part]) || (!isNaN(Number(parts[i + 1])) && !current[part])) {
+          if (!current[part]) current[part] = [];
+        } else if (!current[part]) {
+          current[part] = {};
+        }
+        current = current[part];
+      }
+      current[parts[parts.length - 1]] = val;
     };
 
-    const isProject = (job: any) => {
-      return !!job.isProject;
-    };
+    const handleSaveInlineEdit = async () => {
+      if (!resume || !activeInlineEdit) return;
 
-    const getSortedWorkExperience = () => {
-      return getSortedWork().filter((job) => !isProject(job));
-    };
+      const copy = JSON.parse(JSON.stringify(resume));
+      setNestedValue(copy, activeInlineEdit.path, tempTextValue);
 
-    const getSortedFeaturedProjects = () => {
-      return getSortedWork().filter((job) => isProject(job));
+      if (!copy.styleSettings) copy.styleSettings = {};
+      if (!copy.styleSettings.customStyles) copy.styleSettings.customStyles = {};
+
+      if (tempStyles.fontSize === 'inherit' && tempStyles.fontWeight === 'inherit' && tempStyles.color === 'inherit') {
+        if (copy.styleSettings.customStyles) {
+          delete copy.styleSettings.customStyles[safeKey(activeInlineEdit.path)];
+        }
+      } else {
+        copy.styleSettings.customStyles[safeKey(activeInlineEdit.path)] = {
+          fontSize: tempStyles.fontSize === 'inherit' ? undefined : tempStyles.fontSize,
+          fontWeight: tempStyles.fontWeight === 'inherit' ? undefined : tempStyles.fontWeight,
+          color: tempStyles.color === 'inherit' ? undefined : tempStyles.color
+        };
+      }
+
+      try {
+        setResume(copy);
+        await apiService.updateResume(copy, currentSlug);
+        toast.success(language === 'zh' ? '保存成功 / Saved successfully' : 'Saved successfully');
+      } catch (e) {
+        toast.error('Failed to save inline modifications');
+      }
+
+      setActiveInlineEdit(null);
+      setInlineEditAnchor(null);
     };
 
     if (isLoading) {
@@ -458,18 +472,12 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
       );
     }
 
-    // Modal Styling
-    const modalBaseClass =
-      'fixed z-[9999] inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4';
-    const editorClass =
-      'w-full max-w-5xl h-[90vh] flex flex-col shadow-2xl overflow-hidden rounded-2xl border bg-white text-slate-900 border-slate-200 dark:bg-[#020617] dark:text-slate-100 dark:border-slate-700 animate-slide-up';
-    const inputClass =
-      'w-full p-2 rounded outline-none border bg-slate-50 border-slate-200 dark:bg-[#1e293b] dark:border-slate-700 focus:border-amber-500 text-sm';
-    const tabClassBase =
-      'px-6 py-4 text-xs font-bold uppercase tracking-wider transition-colors whitespace-nowrap';
-    const activeTabClass =
-      'text-primary-600 border-b-2 border-primary-600 bg-slate-50 dark:bg-[#0B1120] dark:text-amber-400 dark:border-amber-400';
-    const inactiveTabClass = 'opacity-60 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5';
+    const fontSizeClass = resume?.styleSettings?.fontSize ? `resume-style-font-${resume.styleSettings.fontSize}` : 'resume-style-font-normal';
+    const lineHeightClass = resume?.styleSettings?.lineHeight ? `resume-style-line-${resume.styleSettings.lineHeight}` : 'resume-style-line-normal';
+    const themeColorClass = resume?.styleSettings?.themeColor ? `resume-style-theme-${resume.styleSettings.themeColor}` : 'resume-style-theme-slate';
+    const marginClass = resume?.styleSettings?.margin ? `resume-style-margin-${resume.styleSettings.margin}` : 'resume-style-margin-normal';
+    const sectionGapClass = resume?.styleSettings?.sectionGap ? `resume-style-gap-${resume.styleSettings.sectionGap}` : 'resume-style-gap-normal';
+    const pageHeight = currentPaperSize === 'a4' ? 1123 : currentPaperSize === 'a3' ? 1587 : 794;
 
     return (
       <div className="relative">
@@ -518,6 +526,47 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
                           {item.title || item.slug}
                         </option>
                       ))}
+                    </select>
+                    <i className="fas fa-chevron-down text-[9px] text-slate-400 dark:text-slate-500 absolute right-2.5 pointer-events-none"></i>
+                  </div>
+                </div>
+              )}
+
+              {/* Layout Mode Selector */}
+              <div className="relative flex items-center bg-slate-100/80 dark:bg-slate-800/80 hover:bg-slate-200/80 dark:hover:bg-slate-800 transition-all rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-1.5 shadow-inner">
+                <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 pl-2 pr-1 select-none">
+                  <i className="fas fa-file-alt text-purple-500 text-sm"></i>
+                  <span>{language === 'zh' ? '版式' : 'Layout'}</span>
+                </span>
+                <div className="relative flex items-center">
+                  <select
+                    value={pdfMode}
+                    onChange={(e) => setPdfMode(e.target.value as any)}
+                    className="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg pl-3 pr-7 py-1 text-xs font-bold text-slate-800 dark:text-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 cursor-pointer transition-all shadow-sm"
+                  >
+                    <option value="single-page">{language === 'zh' ? '连续长页' : 'Continuous'}</option>
+                    <option value="multi-page">{language === 'zh' ? '分页打印' : 'Paginated'}</option>
+                  </select>
+                  <i className="fas fa-chevron-down text-[9px] text-slate-400 dark:text-slate-500 absolute right-2.5 pointer-events-none"></i>
+                </div>
+              </div>
+
+              {/* Paper Size Selector (Only in Paginated Mode) */}
+              {pdfMode === 'multi-page' && (
+                <div className="relative flex items-center bg-slate-100/80 dark:bg-slate-800/80 hover:bg-slate-200/80 dark:hover:bg-slate-800 transition-all rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-1.5 shadow-inner">
+                  <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 pl-2 pr-1 select-none">
+                    <i className="fas fa-ruler-combined text-indigo-500 text-sm"></i>
+                    <span>{language === 'zh' ? '尺寸' : 'Size'}</span>
+                  </span>
+                  <div className="relative flex items-center">
+                    <select
+                      value={paperSize}
+                      onChange={(e) => setPaperSize(e.target.value as any)}
+                      className="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg pl-3 pr-7 py-1 text-xs font-bold text-slate-800 dark:text-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 cursor-pointer transition-all shadow-sm"
+                    >
+                      <option value="a4">A4</option>
+                      <option value="a3">A3</option>
+                      <option value="a5">A5</option>
                     </select>
                     <i className="fas fa-chevron-down text-[9px] text-slate-400 dark:text-slate-500 absolute right-2.5 pointer-events-none"></i>
                   </div>
@@ -576,616 +625,22 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
           </div>
         )}
 
-        {/* Edit Modal - Portal to Body */}
-        {isEditing &&
-          editResume &&
-          createPortal(
-            <div className={modalBaseClass}>
-              <div className={editorClass}>
-                <div className="flex justify-between items-center border-b border-current bg-black/5 dark:bg-black/20 pr-4">
-                  <div className="flex overflow-x-auto">
-                    {(['BASICS', 'WORK', 'EDUCATION', 'SKILLS'] as const).map((tab) => (
-                      <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={`${tabClassBase} ${activeTab === tab ? activeTabClass : inactiveTabClass}`}
-                      >
-                        {tab === 'SKILLS' ? 'SKILLS (含语言及4品类)' : tab}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="text-xs font-bold uppercase opacity-50 px-4">
-                    Editing: {editResume.title || currentSlug} ({targetProfile})
-                  </div>
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-                  {activeTab === 'BASICS' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Resume Version Title */}
-                      <div className="md:col-span-2 bg-amber-500/10 p-3 rounded-lg border border-amber-500/30">
-                        <label className="block text-xs font-bold uppercase text-amber-600 dark:text-amber-400 mb-1">
-                          Resume Version Title / 简历版本名称 (用于多版本管理，例如：全栈工程师简历、兼职简历)
-                        </label>
-                        <input
-                          className={inputClass}
-                          value={editResume.title || ''}
-                          onChange={(e) => {
-                            setEditResume({
-                              ...editResume,
-                              title: e.target.value
-                            });
-                          }}
-                          placeholder="例如：全栈开发简历"
-                        />
-                      </div>
-
-                      <div className="space-y-4">
-                        <label className="block text-xs font-bold uppercase opacity-60">Name</label>
-                        <input
-                          className={inputClass}
-                          value={editResume.basics.name_zh || ''}
-                          onChange={(e) => updateField('basics', 'name_zh', e.target.value)}
-                          placeholder="Name (ZH)"
-                        />
-                        <input
-                          className={inputClass}
-                          value={editResume.basics.name_en || ''}
-                          onChange={(e) => updateField('basics', 'name_en', e.target.value)}
-                          placeholder="Name (EN)"
-                        />
-
-                        <label className="block text-xs font-bold uppercase opacity-60 mt-4">
-                          Label / Role
-                        </label>
-                        <input
-                          className={inputClass}
-                          value={editResume.basics.label_zh || ''}
-                          onChange={(e) => updateField('basics', 'label_zh', e.target.value)}
-                          placeholder="Label (ZH)"
-                        />
-                        <input
-                          className={inputClass}
-                          value={editResume.basics.label_en || ''}
-                          onChange={(e) => updateField('basics', 'label_en', e.target.value)}
-                          placeholder="Label (EN)"
-                        />
-                      </div>
-                      <div className="space-y-4">
-                        <label className="block text-xs font-bold uppercase opacity-60">
-                          Contact
-                        </label>
-                        <input
-                          className={inputClass}
-                          value={editResume.basics.email || ''}
-                          onChange={(e) => updateField('basics', 'email', e.target.value)}
-                          placeholder="Email"
-                        />
-                        <input
-                          className={inputClass}
-                          value={editResume.basics.phone || ''}
-                          onChange={(e) => updateField('basics', 'phone', e.target.value)}
-                          placeholder="Phone"
-                        />
-                        <input
-                          className={inputClass}
-                          value={editResume.basics.website || ''}
-                          onChange={(e) => updateField('basics', 'website', e.target.value)}
-                          placeholder="Website (e.g. ps6.space)"
-                        />
-
-                        <label className="block text-xs font-bold uppercase opacity-60 mt-4">
-                          Location
-                        </label>
-                        <input
-                          className={inputClass}
-                          value={editResume.basics.location_zh || ''}
-                          onChange={(e) => updateField('basics', 'location_zh', e.target.value)}
-                          placeholder="Location (ZH)"
-                        />
-                        <input
-                          className={inputClass}
-                          value={editResume.basics.location_en || ''}
-                          onChange={(e) => updateField('basics', 'location_en', e.target.value)}
-                          placeholder="Location (EN)"
-                        />
-
-                        <label className="block text-xs font-bold uppercase opacity-60 mt-4">
-                          Work Authorization / Visa Status
-                        </label>
-                        <input
-                          className={inputClass}
-                          value={editResume.basics.visaStatus_zh || ''}
-                          onChange={(e) => updateField('basics', 'visaStatus_zh', e.target.value)}
-                          placeholder="Visa Status (ZH) e.g., 工作签证 / 学生签证"
-                        />
-                        <input
-                          className={inputClass}
-                          value={editResume.basics.visaStatus_en || ''}
-                          onChange={(e) => updateField('basics', 'visaStatus_en', e.target.value)}
-                          placeholder="Visa Status (EN) e.g., Student Visa (20 hrs/week)"
-                        />
-                      </div>
-                      <div className="md:col-span-2 space-y-4">
-                        <FormattingToolbar
-                          label="Summary ZH (支持 **加粗**, *斜体*, <u>下划线</u>)"
-                          targetId="basics-summary-zh"
-                          value={editResume.basics.summary_zh || ''}
-                          onChange={(val) => updateField('basics', 'summary_zh', val)}
-                        />
-                        <textarea
-                          id="basics-summary-zh"
-                          className={`${inputClass} h-24`}
-                          value={editResume.basics.summary_zh || ''}
-                          onChange={(e) => updateField('basics', 'summary_zh', e.target.value)}
-                          placeholder="Summary (ZH)"
-                        />
-
-                        <FormattingToolbar
-                          label="Summary EN (Supports **bold**, *italic*, <u>underline</u>)"
-                          targetId="basics-summary-en"
-                          value={editResume.basics.summary_en || ''}
-                          onChange={(val) => updateField('basics', 'summary_en', val)}
-                        />
-                        <textarea
-                          id="basics-summary-en"
-                          className={`${inputClass} h-24`}
-                          value={editResume.basics.summary_en || ''}
-                          onChange={(e) => updateField('basics', 'summary_en', e.target.value)}
-                          placeholder="Summary (EN)"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {activeTab === 'WORK' && (
-                    <div className="space-y-8">
-                      {editResume.work.map((job, idx) => (
-                        <div
-                          key={idx}
-                          className="p-5 border border-current/20 rounded-xl relative bg-black/5 dark:bg-white/5 space-y-4"
-                        >
-                          <button
-                            onClick={() => removeItem('work', idx)}
-                            className="absolute top-3 right-3 text-red-500 hover:text-red-700 font-bold text-xs flex items-center gap-1"
-                          >
-                            <i className="fas fa-trash"></i> 删除经历
-                          </button>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-xs font-bold uppercase opacity-60 mb-1">
-                                Company (ZH)
-                              </label>
-                              <input
-                                className={inputClass}
-                                value={job.company_zh || ''}
-                                onChange={(e) =>
-                                  updateField('work', '', e.target.value, idx, 'company_zh')
-                                }
-                                placeholder="Company (ZH)"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-bold uppercase opacity-60 mb-1">
-                                Company (EN)
-                              </label>
-                              <input
-                                className={inputClass}
-                                value={job.company_en || ''}
-                                onChange={(e) =>
-                                  updateField('work', '', e.target.value, idx, 'company_en')
-                                }
-                                placeholder="Company (EN)"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-bold uppercase opacity-60 mb-1">
-                                Position (ZH)
-                              </label>
-                              <input
-                                className={inputClass}
-                                value={job.position_zh || ''}
-                                onChange={(e) =>
-                                  updateField('work', '', e.target.value, idx, 'position_zh')
-                                }
-                                placeholder="Position (ZH)"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-bold uppercase opacity-60 mb-1">
-                                Position (EN)
-                              </label>
-                              <input
-                                className={inputClass}
-                                value={job.position_en || ''}
-                                onChange={(e) =>
-                                  updateField('work', '', e.target.value, idx, 'position_en')
-                                }
-                                placeholder="Position (EN)"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-bold uppercase opacity-60 mb-1">
-                                Location (ZH)
-                              </label>
-                              <input
-                                className={inputClass}
-                                value={job.location_zh || ''}
-                                onChange={(e) =>
-                                  updateField('work', '', e.target.value, idx, 'location_zh')
-                                }
-                                placeholder="Location (ZH)"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-bold uppercase opacity-60 mb-1">
-                                Location (EN)
-                              </label>
-                              <input
-                                className={inputClass}
-                                value={job.location_en || ''}
-                                onChange={(e) =>
-                                  updateField('work', '', e.target.value, idx, 'location_en')
-                                }
-                                placeholder="Location (EN)"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-bold uppercase opacity-60 mb-1">
-                                Start Date
-                              </label>
-                              <input
-                                className={inputClass}
-                                value={job.startDate || ''}
-                                onChange={(e) =>
-                                  updateField('work', '', e.target.value, idx, 'startDate')
-                                }
-                                placeholder="e.g. 2022.03"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-bold uppercase opacity-60 mb-1">
-                                End Date
-                              </label>
-                              <input
-                                className={inputClass}
-                                value={job.endDate || ''}
-                                onChange={(e) =>
-                                  updateField('work', '', e.target.value, idx, 'endDate')
-                                }
-                                placeholder="e.g. Present"
-                              />
-                            </div>
-
-                            {/* Weight Field */}
-                            <div className="md:col-span-2 bg-amber-500/10 p-3 rounded-lg border border-amber-500/30">
-                              <label className="block text-xs font-bold uppercase text-amber-600 dark:text-amber-400 mb-1">
-                                <i className="fas fa-sort-numeric-down mr-1"></i>
-                                Weight / 比重权重 (数值越高越靠前排列；无比重时默认按时间从近到远)
-                              </label>
-                              <input
-                                type="number"
-                                className={`${inputClass} max-w-xs`}
-                                value={job.weight ?? ''}
-                                onChange={(e) =>
-                                  updateField(
-                                    'work',
-                                    '',
-                                    e.target.value === '' ? undefined : Number(e.target.value),
-                                    idx,
-                                    'weight'
-                                  )
-                                }
-                                placeholder="0 (例如: 10, 100)"
-                              />
-                            </div>
-
-                            {/* Project Toggle */}
-                            <div className="md:col-span-2 flex items-center gap-2 p-3 bg-blue-500/10 rounded-lg border border-blue-500/30">
-                              <input
-                                type="checkbox"
-                                id={`work-isproject-${idx}`}
-                                checked={!!job.isProject}
-                                onChange={(e) =>
-                                  updateField('work', '', e.target.checked, idx, 'isProject')
-                                }
-                                className="w-4 h-4 rounded border-blue-300 text-blue-600 focus:ring-blue-500 focus:ring-opacity-25"
-                              />
-                              <label
-                                htmlFor={`work-isproject-${idx}`}
-                                className="text-xs font-bold uppercase text-blue-600 dark:text-blue-400 cursor-pointer select-none"
-                              >
-                                Is Project / 是否为作品项目 (勾选后会在此简历的 Featured Projects 栏目展示；不勾选则在 Work Experience 展示)
-                              </label>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                            <div>
-                              <FormattingToolbar
-                                label="Highlights ZH (One per line)"
-                                targetId={`work-hl-zh-${idx}`}
-                                value={job.highlights_zh?.join('\n') || ''}
-                                onChange={(val) =>
-                                  updateField('work', '', val, idx, 'highlights_zh')
-                                }
-                              />
-                              <textarea
-                                id={`work-hl-zh-${idx}`}
-                                className={`${inputClass} h-36 text-xs font-mono`}
-                                value={job.highlights_zh?.join('\n') || ''}
-                                onChange={(e) =>
-                                  updateField('work', '', e.target.value, idx, 'highlights_zh')
-                                }
-                                placeholder="Highlights ZH (One per line, supports **bold**, *italic*, <u>underline</u>)"
-                              />
-                            </div>
-                            <div>
-                              <FormattingToolbar
-                                label="Highlights EN (One per line)"
-                                targetId={`work-hl-en-${idx}`}
-                                value={job.highlights_en?.join('\n') || ''}
-                                onChange={(val) =>
-                                  updateField('work', '', val, idx, 'highlights_en')
-                                }
-                              />
-                              <textarea
-                                id={`work-hl-en-${idx}`}
-                                className={`${inputClass} h-36 text-xs font-mono`}
-                                value={job.highlights_en?.join('\n') || ''}
-                                onChange={(e) =>
-                                  updateField('work', '', e.target.value, idx, 'highlights_en')
-                                }
-                                placeholder="Highlights EN (One per line, supports **bold**, *italic*, <u>underline</u>)"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                      <div className="flex flex-col sm:flex-row gap-4">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (!editResume) return;
-                            const newResume = { ...editResume };
-                            const arr = newResume.work || [];
-                            arr.push({
-                              company_zh: '新公司 / New Company',
-                              company_en: 'New Company',
-                              position_zh: '岗位 / Position',
-                              position_en: 'Position',
-                              highlights_zh: [],
-                              highlights_en: [],
-                              weight: 0,
-                              isProject: false
-                            });
-                            setEditResume(newResume);
-                          }}
-                          className="flex-1 py-3 border-2 border-dashed border-current/30 text-current/60 font-bold uppercase rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-xs transition-colors"
-                        >
-                          + Add Work Experience
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (!editResume) return;
-                            const newResume = { ...editResume };
-                            const arr = newResume.work || [];
-                            arr.push({
-                              company_zh: '新项目 / New Project',
-                              company_en: 'New Project',
-                              position_zh: '项目角色 / Project Role',
-                              position_en: 'Project Role',
-                              highlights_zh: [],
-                              highlights_en: [],
-                              weight: 0,
-                              isProject: true
-                            });
-                            setEditResume(newResume);
-                          }}
-                          className="flex-1 py-3 border-2 border-dashed border-blue-500/30 text-blue-500 hover:border-blue-500 hover:bg-blue-500/5 font-bold uppercase rounded-xl text-xs transition-all"
-                        >
-                          + Add Featured Project
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {activeTab === 'EDUCATION' && (
-                    <div className="space-y-6">
-                      {editResume.education.map((edu, idx) => (
-                        <div
-                          key={idx}
-                          className="p-4 border border-current/20 rounded-xl relative bg-black/5 dark:bg-white/5 space-y-4"
-                        >
-                          <button
-                            onClick={() => removeItem('education', idx)}
-                            className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xs font-bold"
-                          >
-                            <i className="fas fa-trash"></i>
-                          </button>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <input
-                              className={inputClass}
-                              value={edu.institution || ''}
-                              onChange={(e) =>
-                                updateField('education', '', e.target.value, idx, 'institution')
-                              }
-                              placeholder="Institution"
-                            />
-                            <input
-                              className={inputClass}
-                              value={edu.location || ''}
-                              onChange={(e) =>
-                                updateField('education', '', e.target.value, idx, 'location')
-                              }
-                              placeholder="Location"
-                            />
-                            <input
-                              className={inputClass}
-                              value={edu.area_zh || ''}
-                              onChange={(e) =>
-                                updateField('education', '', e.target.value, idx, 'area_zh')
-                              }
-                              placeholder="Area (ZH)"
-                            />
-                            <input
-                              className={inputClass}
-                              value={edu.area_en || ''}
-                              onChange={(e) =>
-                                updateField('education', '', e.target.value, idx, 'area_en')
-                              }
-                              placeholder="Area (EN)"
-                            />
-                            <input
-                              className={inputClass}
-                              value={edu.studyType_zh || ''}
-                              onChange={(e) =>
-                                updateField('education', '', e.target.value, idx, 'studyType_zh')
-                              }
-                              placeholder="Degree (ZH)"
-                            />
-                            <input
-                              className={inputClass}
-                              value={edu.studyType_en || ''}
-                              onChange={(e) =>
-                                updateField('education', '', e.target.value, idx, 'studyType_en')
-                              }
-                              placeholder="Degree (EN)"
-                            />
-                            <input
-                              className={inputClass}
-                              value={edu.startDate || ''}
-                              onChange={(e) =>
-                                updateField('education', '', e.target.value, idx, 'startDate')
-                              }
-                              placeholder="Start Date"
-                            />
-                            <input
-                              className={inputClass}
-                              value={edu.endDate || ''}
-                              onChange={(e) =>
-                                updateField('education', '', e.target.value, idx, 'endDate')
-                              }
-                              placeholder="End Date"
-                            />
-                            <input
-                              className={inputClass}
-                              value={edu.score_zh || ''}
-                              onChange={(e) =>
-                                updateField('education', '', e.target.value, idx, 'score_zh')
-                              }
-                              placeholder="Score/Honors (ZH)"
-                            />
-                            <input
-                              className={inputClass}
-                              value={edu.score_en || ''}
-                              onChange={(e) =>
-                                updateField('education', '', e.target.value, idx, 'score_en')
-                              }
-                              placeholder="Score/Honors (EN)"
-                            />
-                          </div>
-                        </div>
-                      ))}
-                      <button
-                        onClick={() => addItem('education')}
-                        className="w-full py-3 border-2 border-dashed border-current/30 text-current/60 font-bold uppercase rounded-xl hover:bg-black/5 dark:hover:bg-white/5"
-                      >
-                        + Add Education
-                      </button>
-                    </div>
-                  )}
-
-                  {activeTab === 'SKILLS' && (
-                    <div className="space-y-6">
-
-                      {editResume.skills.map((skill, idx) => (
-                        <div
-                          key={idx}
-                          className="p-4 border border-current/20 rounded-xl relative bg-black/5 dark:bg-white/5 space-y-4"
-                        >
-                          <button
-                            onClick={() => removeItem('skills', idx)}
-                            className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xs font-bold"
-                          >
-                            <i className="fas fa-trash"></i>
-                          </button>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-xs font-bold uppercase opacity-60 mb-1">
-                                Category Name (ZH)
-                              </label>
-                              <input
-                                className={inputClass}
-                                value={skill.name_zh || ''}
-                                onChange={(e) =>
-                                  updateField('skills', '', e.target.value, idx, 'name_zh')
-                                }
-                                placeholder="例如: 前端 / Frontend"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-bold uppercase opacity-60 mb-1">
-                                Category Name (EN)
-                              </label>
-                              <input
-                                className={inputClass}
-                                value={skill.name_en || ''}
-                                onChange={(e) =>
-                                  updateField('skills', '', e.target.value, idx, 'name_en')
-                                }
-                                placeholder="e.g. Frontend"
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <FormattingToolbar
-                              label="Skill Items / Keywords (One per line, supports **bold**, *italic*, <u>underline</u>)"
-                              targetId={`skills-kw-${idx}`}
-                              value={skill.keywords?.join('\n') || ''}
-                              onChange={(val) => updateField('skills', '', val, idx, 'keywords')}
-                            />
-                            <textarea
-                              id={`skills-kw-${idx}`}
-                              className={`${inputClass} h-28 text-xs font-mono`}
-                              value={skill.keywords?.join('\n') || ''}
-                              onChange={(e) =>
-                                updateField('skills', '', e.target.value, idx, 'keywords')
-                              }
-                              placeholder="React&#10;TypeScript&#10;Vue.js&#10;Next.js"
-                            />
-                          </div>
-                        </div>
-                      ))}
-                      <button
-                        onClick={() => addItem('skills')}
-                        className="w-full py-3 border-2 border-dashed border-current/30 text-current/60 font-bold uppercase rounded-xl hover:bg-black/5 dark:hover:bg-white/5"
-                      >
-                        + Add Skill Group
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-4 border-t border-current/20 bg-black/5 dark:bg-white/5 flex justify-end gap-3">
-                  <button
-                    onClick={() => setIsEditing(false)}
-                    className="px-6 py-2 rounded-lg font-bold hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-sm"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSave}
-                    className="px-8 py-2 bg-primary-500 hover:bg-primary-600 text-white dark:bg-amber-500 dark:hover:bg-amber-400 dark:text-black rounded-lg font-bold shadow-lg shadow-primary-500/20 dark:shadow-amber-500/20 transition-all text-sm"
-                  >
-                    Save Changes
-                  </button>
-                </div>
-              </div>
-            </div>,
-            document.body
-          )}
+        {/* Edit Modal Component */}
+        <ResumeEditModal
+          isEditing={isEditing}
+          setIsEditing={setIsEditing}
+          editResume={editResume}
+          setEditResume={setEditResume}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          language={language}
+          targetProfile={targetProfile}
+          currentSlug={currentSlug}
+          updateField={updateField}
+          removeItem={removeItem}
+          addItem={addItem}
+          handleSave={handleSave}
+        />
 
         {/* Resume Content / Placeholder */}
         {!resume ? (
@@ -1215,236 +670,41 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
             </div>
           </div>
         ) : (
-          <div
-            ref={ref}
-            id="resume-paper-sheet"
-            className="resume-paper-sheet bg-white rounded-[2rem] shadow-xl border border-slate-200 p-8 md:p-16 max-w-4xl mx-auto print:shadow-none print:border-none print:m-0 print:p-8 print:max-w-none print:rounded-none font-serif text-slate-900"
-          >
-            {/* Header / Basics */}
-            <div className="pb-2 mb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-              <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-black mb-1.5">
-                  {renderRichText(getLocalized(resume.basics, 'name'))}
-                </h1>
-                <p className="text-lg text-slate-800 font-medium">
-                  {renderRichText(getLocalized(resume.basics, 'label'))}
-                </p>
-              </div>
-              <div className="text-sm text-slate-700 font-sans space-y-1 text-right">
-                {getLocalized(resume.basics, 'location') && (
-                  <div className="flex items-center justify-end gap-2">
-                    <i aria-hidden="true" className="fas fa-map-marker-alt opacity-70"></i>{' '}
-                    <span>{renderRichText(getLocalized(resume.basics, 'location'))}</span>
-                  </div>
-                )}
-                {getLocalized(resume.basics, 'visaStatus') && (
-                  <div className="flex items-center justify-end gap-2 font-medium">
-                    <i aria-hidden="true" className="fas fa-id-card opacity-70"></i>{' '}
-                    <span>{renderRichText(getLocalized(resume.basics, 'visaStatus'))}</span>
-                  </div>
-                )}
-                {resume.basics.email && (
-                  <div className="flex items-center justify-end gap-2">
-                    <i aria-hidden="true" className="fas fa-envelope opacity-70"></i>{' '}
-                    <span>{resume.basics.email}</span>
-                  </div>
-                )}
-                {resume.basics.phone && (
-                  <div className="flex items-center justify-end gap-2">
-                    <i aria-hidden="true" className="fas fa-phone opacity-70"></i>{' '}
-                    <span>{resume.basics.phone}</span>
-                  </div>
-                )}
-                {resume.basics.website && (
-                  <div className="flex items-center justify-end gap-2">
-                    <i aria-hidden="true" className="fas fa-globe opacity-70"></i>{' '}
-                    <span className="opacity-90">Web:</span>
-                    <a
-                      href={resume.basics.website.startsWith('http') ? resume.basics.website : `https://${resume.basics.website}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="hover:underline font-bold"
-                    >
-                      {resume.basics.website.replace(/^https?:\/\//, '')}
-                    </a>
-                  </div>
-                )}
-              </div>
+          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 items-start justify-center px-4 w-full">
+            {/* Left: The Resume Paper Sheet */}
+            <div className="flex-1 w-full max-w-4xl">
+              <ResumePaper
+                ref={ref}
+                resume={resume}
+                isPrint={isPrint}
+                isVip={isVip}
+                language={language}
+                currentPdfMode={currentPdfMode as any}
+                currentPaperSize={currentPaperSize as any}
+                currentPageLimit={currentPageLimit}
+                fontSizeClass={fontSizeClass}
+                lineHeightClass={lineHeightClass}
+                themeColorClass={themeColorClass}
+                marginClass={marginClass}
+                sectionGapClass={sectionGapClass}
+                pageHeight={pageHeight}
+                setActiveInlineEdit={setActiveInlineEdit}
+                setInlineEditAnchor={setInlineEditAnchor}
+              />
             </div>
 
-            {/* Summary / Profile */}
-            <section className="mb-6 print:mb-4">
-              <h2 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-3 border-b-2 border-slate-900 pb-2">
-                Profile
-              </h2>
-              <div className="text-slate-800 leading-relaxed text-base md:text-lg text-left whitespace-pre-line">
-                {renderRichText(getLocalized(resume.basics, 'summary'))}
-              </div>
-            </section>
-
-            {/* Work Experience */}
-            <section className="mb-6 print:mb-4">
-              <h2 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-3.5 border-b-2 border-slate-900 pb-2">
-                Work Experience
-              </h2>
-              <div className="space-y-5 print:space-y-3.5">
-                {getSortedWorkExperience().map((job, idx) => (
-                  <div key={idx} className="break-inside-avoid page-break-inside-avoid">
-                    <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-1">
-                      <h3 className="text-xl font-bold text-black flex items-center gap-2">
-                        {renderRichText(getLocalized(job, 'company'))}
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        {typeof job.weight === 'number' && job.weight > 0 && (
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300 font-bold">
-                            Weight: {job.weight}
-                          </span>
-                        )}
-                        <span className="font-sans text-sm text-slate-700 bg-slate-100 px-2 py-1 rounded font-medium">
-                          {job.startDate} — {job.endDate || 'Present'}
-                        </span>
-                      </div>
-                    </div>
-
-                    <p className="text-slate-800 font-bold text-base mb-3 italic">
-                      {renderRichText(getLocalized(job, 'position'))}
-                    </p>
-
-                    {/* Location Display */}
-                    {(job.location_zh || job.location_en) && (
-                      <p className="text-sm text-slate-600 mb-2 font-sans flex items-center gap-2">
-                        <i aria-hidden="true" className="fas fa-map-marker-alt opacity-70"></i>
-                        <span>{renderRichText(getLocalized(job, 'location'))}</span>
-                      </p>
-                    )}
-
-                    <ul className="list-disc list-outside ml-4 space-y-1.5 text-slate-800 leading-relaxed marker:text-slate-500 text-base text-left">
-                      {getLocalizedArray(job, 'highlights').map((hl: string, i: number) => (
-                        <li key={i}>{renderRichText(hl)}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            </section>
-            {/* Featured Projects */}
-            {getSortedFeaturedProjects().length !== 0 ? (
-              <section className="mb-6 print:mb-4">
-                <h2 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-3.5 border-b-2 border-slate-900 pb-2">
-                  Featured Projects
-                </h2>
-                <div className="space-y-5 print:space-y-3.5">
-                  {getSortedFeaturedProjects().map((job, idx) => (
-                    <div key={idx} className="break-inside-avoid page-break-inside-avoid">
-                      <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-1">
-                        <h3 className="text-xl font-bold text-black flex items-center gap-2">
-                          {renderRichText(getLocalized(job, 'company'))}
-                        </h3>
-                        <div className="flex items-center gap-2">
-                          {typeof job.weight === 'number' && job.weight > 0 && (
-                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300 font-bold">
-                              Weight: {job.weight}
-                            </span>
-                          )}
-                          <span className="font-sans text-sm text-slate-700 bg-slate-100 px-2 py-1 rounded font-medium">
-                            {job.startDate} — {job.endDate || 'Present'}
-                          </span>
-                        </div>
-                      </div>
-
-                      <p className="text-slate-800 font-bold text-base mb-3 italic">
-                        {renderRichText(getLocalized(job, 'position'))}
-                      </p>
-
-                      {/* Location Display */}
-                      {(job.location_zh || job.location_en) && (
-                        <p className="text-sm text-slate-600 mb-2 font-sans flex items-center gap-2">
-                          <i aria-hidden="true" className="fas fa-map-marker-alt opacity-70"></i>
-                          <span>{renderRichText(getLocalized(job, 'location'))}</span>
-                        </p>
-                      )}
-
-                      <ul className="list-disc list-outside ml-4 space-y-1.5 text-slate-800 leading-relaxed marker:text-slate-500 text-base text-left">
-                        {getLocalizedArray(job, 'highlights').map((hl: string, i: number) => (
-                          <li key={i}>{renderRichText(hl)}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            ) : null}
-
-            {/* Education */}
-            <section className="mb-6 print:mb-4">
-              <h2 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-3.5 border-b-2 border-slate-900 pb-2">
-                Education
-              </h2>
-
-              <div className="grid grid-cols-1 gap-3">
-                {resume.education.map((edu, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-transparent p-0 rounded-none border-none break-inside-avoid page-break-inside-avoid"
-                  >
-                    <div className="flex justify-between items-start mb-1">
-                      <h3 className="text-lg font-bold text-black">
-                        {renderRichText(edu.institution)}
-                      </h3>
-                      <span className="text-sm font-sans text-slate-700 font-medium">
-                        {edu.startDate} — {edu.endDate}
-                      </span>
-                    </div>
-                    {edu.location && (
-                      <p className="text-sm text-slate-600 mb-2 font-sans flex items-center gap-2">
-                        <i aria-hidden="true" className="fas fa-map-marker-alt opacity-70"></i>
-                        <span>{renderRichText(edu.location)}</span>
-                      </p>
-                    )}
-                    <p className="text-slate-800 font-medium text-base">
-                      {renderRichText(getLocalized(edu, 'studyType'))} in{' '}
-                      {renderRichText(getLocalized(edu, 'area'))}
-                    </p>
-                    {edu.score_en && (
-                      <p className="text-slate-700 text-sm mt-1 italic">
-                        {renderRichText(getLocalized(edu, 'score'))}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Unified Skills Section (Frontend, Backend, Devops, Language) */}
-            <section className="mb-6 print:mb-4">
-              <h2 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-3.5 border-b-2 border-slate-900 pb-2">
-                Skills
-              </h2>
-              <div className="space-y-3 font-sans text-sm md:text-base text-slate-800">
-                {getCombinedSkills().map((skillGroup, idx) => (
-                  <div
-                    key={idx}
-                    className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2 leading-relaxed break-inside-avoid"
-                  >
-                    <span className="font-bold text-black sm:min-w-[100px] shrink-0">
-                      {renderRichText(getLocalized(skillGroup, 'name'))}:
-                    </span>
-                    <span className="font-normal text-slate-800">
-                      {skillGroup.keywords.map((kw, i) => (
-                        <React.Fragment key={i}>
-                          {i > 0 && (
-                            <span className="mr-1.5 font-bold text-slate-400">
-                              ,
-                            </span>
-                          )}
-                          {renderRichText(kw)}
-                        </React.Fragment>
-                      ))}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </section>
+            {/* Right: The Layout Control Panel Sidebar */}
+            <ResumeLayoutSidebar
+              resume={resume}
+              isVip={isVip}
+              language={language}
+              pdfMode={pdfMode}
+              setPdfMode={setPdfMode}
+              paperSize={paperSize}
+              setPaperSize={setPaperSize}
+              currentSlug={currentSlug}
+              setResume={setResume}
+            />
           </div>
         )}
 
@@ -1553,6 +813,169 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
             </div>,
             document.body
           )}
+
+        {/* Floating Formatting & Inline Text Editor Popover */}
+        {activeInlineEdit && popoverCoords && (
+          createPortal(
+            <div
+              className="absolute z-[99999] w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-4 space-y-4 animate-scale-up"
+              style={{
+                top: `${popoverCoords.top}px`,
+                left: `${popoverCoords.left}px`,
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Popover Header */}
+              <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">
+                  {language === 'zh' ? '所见即所得编辑' : 'Visual Formatting'}
+                </span>
+                <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-mono">
+                  {activeInlineEdit.label}
+                </span>
+              </div>
+
+              {/* Text Input Content */}
+              <div className="space-y-1">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase">
+                  {language === 'zh' ? '文本内容 Text' : 'Text Content'}
+                </label>
+                {activeInlineEdit.isTextArea ? (
+                  <textarea
+                    rows={4}
+                    value={tempTextValue}
+                    onChange={(e) => setTempTextValue(e.target.value)}
+                    className="w-full p-2 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-1 focus:ring-amber-500 text-slate-800 dark:text-slate-200 font-sans"
+                  />
+                ) : (
+                  <input
+                    type="text"
+                    value={tempTextValue}
+                    onChange={(e) => setTempTextValue(e.target.value)}
+                    className="w-full p-2 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-1 focus:ring-amber-500 text-slate-800 dark:text-slate-200 font-sans"
+                  />
+                )}
+              </div>
+
+              {/* Style controls (Size, Weight, Color) */}
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                {/* Custom Font Size */}
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">
+                    {language === 'zh' ? '字号 Size' : 'Font Size'}
+                  </label>
+                  <select
+                    value={tempStyles.fontSize || 'inherit'}
+                    onChange={(e) => setTempStyles({ ...tempStyles, fontSize: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-855 border border-slate-200 dark:border-slate-700 rounded-lg p-1 text-xs outline-none text-slate-800 dark:text-slate-200"
+                  >
+                    <option value="inherit">{language === 'zh' ? '默认 (Inherit)' : 'Inherit'}</option>
+                    <option value="11px">11px</option>
+                    <option value="12px">12px</option>
+                    <option value="13px">13px</option>
+                    <option value="14px">14px</option>
+                    <option value="15px">15px</option>
+                    <option value="16px">16px</option>
+                    <option value="18px">18px</option>
+                    <option value="20px">20px</option>
+                    <option value="22px">22px</option>
+                    <option value="24px">24px</option>
+                    <option value="28px">28px</option>
+                    <option value="32px">32px</option>
+                    <option value="36px">36px</option>
+                    <option value="40px">40px</option>
+                    <option value="48px">48px</option>
+                  </select>
+                </div>
+
+                {/* Custom Font Weight */}
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">
+                    {language === 'zh' ? '粗细 Weight' : 'Font Weight'}
+                  </label>
+                  <select
+                    value={tempStyles.fontWeight || 'inherit'}
+                    onChange={(e) => setTempStyles({ ...tempStyles, fontWeight: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-855 border border-slate-200 dark:border-slate-700 rounded-lg p-1 text-xs outline-none text-slate-800 dark:text-slate-200"
+                  >
+                    <option value="inherit">{language === 'zh' ? '默认 (Inherit)' : 'Inherit'}</option>
+                    <option value="normal">{language === 'zh' ? '常规 (400)' : 'Normal (400)'}</option>
+                    <option value="medium">{language === 'zh' ? '中等 (500)' : 'Medium (500)'}</option>
+                    <option value="semibold">{language === 'zh' ? '半粗 (600)' : 'Semibold (600)'}</option>
+                    <option value="bold">{language === 'zh' ? '加粗 (700)' : 'Bold (700)'}</option>
+                    <option value="900">{language === 'zh' ? '特粗 (900)' : 'Black (900)'}</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Custom Color Selector */}
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">
+                  {language === 'zh' ? '文字颜色 Color' : 'Font Color'}
+                </label>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={['inherit', '#000000', '#d97706', '#059669', '#0284c7', '#e11d48'].includes(tempStyles.color || 'inherit') ? tempStyles.color || 'inherit' : 'custom'}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setTempStyles({ ...tempStyles, color: val === 'custom' ? '#2563eb' : val });
+                    }}
+                    className="flex-1 bg-slate-50 dark:bg-slate-855 border border-slate-200 dark:border-slate-700 rounded-lg p-1 text-xs outline-none text-slate-800 dark:text-slate-200"
+                  >
+                    <option value="inherit">{language === 'zh' ? '默认颜色 (Inherit)' : 'Inherit'}</option>
+                    <option value="#000000">{language === 'zh' ? '深黑色 (Black)' : 'Black'}</option>
+                    <option value="#d97706">{language === 'zh' ? '琥珀橘 (Amber)' : 'Amber'}</option>
+                    <option value="#059669">{language === 'zh' ? '翡翠绿 (Emerald)' : 'Emerald'}</option>
+                    <option value="#0284c7">{language === 'zh' ? '天空蓝 (Sky)' : 'Sky'}</option>
+                    <option value="#e11d48">{language === 'zh' ? '玫瑰红 (Crimson)' : 'Crimson'}</option>
+                    <option value="custom">{language === 'zh' ? '自定义 (Custom)' : 'Custom Hex'}</option>
+                  </select>
+
+                  {/* Hex Color Input (only if custom or selected hex) */}
+                  {tempStyles.color && tempStyles.color !== 'inherit' && (
+                    <input
+                      type="color"
+                      value={tempStyles.color.startsWith('#') ? tempStyles.color : '#000000'}
+                      onChange={(e) => setTempStyles({ ...tempStyles, color: e.target.value })}
+                      className="w-8 h-7 p-0 border border-slate-200 dark:border-slate-700 rounded cursor-pointer bg-transparent"
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2 justify-end pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTempStyles({ fontSize: 'inherit', fontWeight: 'inherit', color: 'inherit' });
+                  }}
+                  className="px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 rounded-lg hover:bg-slate-50 font-bold transition-all"
+                >
+                  {language === 'zh' ? '重置样式' : 'Reset'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveInlineEdit(null);
+                    setInlineEditAnchor(null);
+                  }}
+                  className="px-3 py-1.5 text-slate-500 hover:text-slate-700 font-bold"
+                >
+                  {language === 'zh' ? '取消' : 'Cancel'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveInlineEdit}
+                  className="px-4 py-1.5 bg-amber-500 hover:bg-amber-600 dark:bg-amber-500 dark:hover:bg-amber-400 text-slate-950 rounded-lg font-bold shadow-md transition-all"
+                >
+                  {language === 'zh' ? '完成' : 'Done'}
+                </button>
+              </div>
+            </div>,
+            document.body
+          )
+        )}
       </div>
     );
   }

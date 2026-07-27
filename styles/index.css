@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @config "../tailwind.config.js";
+
 /* COLOR VARIABLES 
   从 HTML 搬运过来的
 */
@@ -48,6 +49,7 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -59,11 +61,13 @@ body {
   height: 1px;
   background: transparent;
 }
+
 .stars-md {
   width: 2px;
   height: 2px;
   background: transparent;
 }
+
 .stars-lg {
   width: 3px;
   height: 3px;
@@ -79,23 +83,28 @@ body {
   background-color: #f8fafc !important;
   font-family: 'Inter', sans-serif !important;
 }
+
 .dark .react-tel-input .form-control {
   background-color: #0a0f1e !important;
   border-color: #1e293b !important;
   color: white !important;
 }
+
 .react-tel-input .flag-dropdown {
   border-color: #e2e8f0 !important;
   background-color: transparent !important;
 }
+
 .dark .react-tel-input .flag-dropdown {
   border-color: #1e293b !important;
 }
+
 .react-tel-input .country-list {
   background-color: white !important;
   color: #334155 !important;
   border: 1px solid #e2e8f0 !important;
 }
+
 .dark .react-tel-input .country-list {
   background-color: #0f172a !important;
   color: #e2e8f0 !important;
@@ -128,4 +137,323 @@ body {
 .hljs {
   background: transparent !important;
   padding: 0 !important;
+}
+
+/* ==========================================
+   RESUME PRINT & PAGINATION PREVIEW SYSTEM
+   ========================================== */
+
+/* Page Break Utility */
+.page-break {
+  page-break-before: always !important;
+  break-before: page !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  clear: both !important;
+}
+
+/* Page Break-Inside Control */
+.break-inside-avoid {
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+}
+
+/* A4 Layout Mode Preview (210mm x 297mm per page) */
+.layout-mode-a4 {
+  width: 210mm !important;
+  max-width: 210mm !important;
+  min-height: 297mm !important;
+  font-size: 13.5px !important;
+  line-height: 1.45 !important;
+  padding: 12mm 15mm !important;
+  box-sizing: border-box !important;
+}
+
+.layout-mode-a4 h1 {
+  font-size: 1.75rem;
+  /* 28px */
+  margin-bottom: 0.25rem !important;
+}
+
+.layout-mode-a4 h2 {
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem !important;
+  padding-bottom: 0.25rem !important;
+}
+
+.layout-mode-a4 h3 {
+  font-size: 1.1rem;
+}
+
+.layout-mode-a4 p,
+.layout-mode-a4 span,
+.layout-mode-a4 li {
+  font-size: 13.5px;
+}
+
+.layout-mode-a4 section {
+  margin-bottom: 1rem !important;
+}
+
+.layout-mode-a4 ul {
+  margin-top: 0.25rem !important;
+}
+
+/* A3 Layout Mode Preview (297mm x 420mm per page) */
+.layout-mode-a3 {
+  width: 297mm !important;
+  max-width: 297mm !important;
+  min-height: 420mm !important;
+  font-size: 15px !important;
+  line-height: 1.55 !important;
+  padding: 18mm 22mm !important;
+  box-sizing: border-box !important;
+}
+
+.layout-mode-a3 h1 {
+  font-size: 2.25rem;
+  margin-bottom: 0.5rem !important;
+}
+
+.layout-mode-a3 h2 {
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem !important;
+  padding-bottom: 0.35rem !important;
+}
+
+.layout-mode-a3 h3 {
+  font-size: 1.3rem;
+}
+
+.layout-mode-a3 p,
+.layout-mode-a3 span,
+.layout-mode-a3 li {
+  font-size: 15px;
+}
+
+/* A5 Layout Mode Preview (148mm x 210mm per page) */
+.layout-mode-a5 {
+  width: 148mm !important;
+  max-width: 148mm !important;
+  min-height: 210mm !important;
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+  padding: 8mm 10mm !important;
+  box-sizing: border-box !important;
+}
+
+.layout-mode-a5 h1 {
+  font-size: 1.3rem;
+  margin-bottom: 0.15rem !important;
+}
+
+.layout-mode-a5 h2 {
+  font-size: 0.75rem;
+  margin-bottom: 0.3rem !important;
+  padding-bottom: 0.15rem !important;
+}
+
+.layout-mode-a5 h3 {
+  font-size: 0.9rem;
+}
+
+.layout-mode-a5 p,
+.layout-mode-a5 span,
+.layout-mode-a5 li {
+  font-size: 11px;
+}
+
+.layout-mode-a5 section {
+  margin-bottom: 0.6rem !important;
+}
+
+.layout-mode-a5 .space-y-5 {
+  margin-top: 0.25rem !important;
+}
+
+/* Screen Print Guidelines Specific */
+@media screen {
+
+  /* For standard print views on screen, align background & margins nicely */
+  .pdf-mode-multi-page {
+    border-radius: 0.5rem !important;
+    position: relative !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  }
+}
+
+/* Print Specific Rules */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .pdf-mode-multi-page {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    padding: 0 !important;
+    /* Reset padding to let @page margin handle spacing */
+    background: transparent !important;
+  }
+}
+
+/* ==================================================================================
+   🎨 Premium Theme Colors for Resume headings
+   ================================================================================== */
+.resume-paper-sheet.resume-style-theme-amber h2 {
+  color: #d97706 !important;
+  /* amber-600 */
+  border-color: #f59e0b !important;
+  /* amber-500 */
+}
+
+.resume-paper-sheet.resume-style-theme-emerald h2 {
+  color: #059669 !important;
+  /* emerald-600 */
+  border-color: #10b981 !important;
+  /* emerald-500 */
+}
+
+.resume-paper-sheet.resume-style-theme-sky h2 {
+  color: #0284c7 !important;
+  /* sky-600 */
+  border-color: #0ea5e9 !important;
+  /* sky-500 */
+}
+
+.resume-paper-sheet.resume-style-theme-crimson h2 {
+  color: #e11d48 !important;
+  /* rose-600 */
+  border-color: #f43f5e !important;
+  /* rose-500 */
+}
+
+.resume-paper-sheet.resume-style-theme-slate h2 {
+  color: #0f172a !important;
+  /* slate-900 */
+  border-color: #0f172a !important;
+  /* slate-900 */
+}
+
+/* ==================================================================================
+   🔍 Typography Font Sizes
+   ================================================================================== */
+.resume-paper-sheet.resume-style-font-small h1 {
+  font-size: 1.875rem !important;
+  /* 30px */
+}
+
+.resume-paper-sheet.resume-style-font-small p,
+.resume-paper-sheet.resume-style-font-small li,
+.resume-paper-sheet.resume-style-font-small span,
+.resume-paper-sheet.resume-style-font-small div:not(.print-limit-tag) {
+  font-size: 0.8125rem !important;
+  /* 13px */
+}
+
+.resume-paper-sheet.resume-style-font-small .space-y-4>*+* {
+  margin-top: 0.75rem !important;
+}
+
+.resume-paper-sheet.resume-style-font-large h1 {
+  font-size: 2.5rem !important;
+  /* 40px */
+}
+
+.resume-paper-sheet.resume-style-font-large p,
+.resume-paper-sheet.resume-style-font-large li,
+.resume-paper-sheet.resume-style-font-large span,
+.resume-paper-sheet.resume-style-font-large div:not(.print-limit-tag) {
+  font-size: 1.0625rem !important;
+  /* 17px */
+}
+
+.resume-paper-sheet.resume-style-font-large .space-y-4>*+* {
+  margin-top: 1.25rem !important;
+}
+
+/* ==================================================================================
+   📏 Line Heights & Density
+   ================================================================================== */
+.resume-paper-sheet.resume-style-line-compact {
+  line-height: 1.35 !important;
+}
+
+.resume-paper-sheet.resume-style-line-compact p,
+.resume-paper-sheet.resume-style-line-compact li {
+  margin-bottom: 0.25rem !important;
+}
+
+.resume-paper-sheet.resume-style-line-relaxed {
+  line-height: 1.75 !important;
+}
+
+/* ==================================================================================
+   🚫 Page Limit Mask & Guidelines
+   ================================================================================== */
+.page-limit-mask {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(255, 241, 242, 0.4) 0%, rgba(255, 241, 242, 0.85) 50px, rgba(255, 241, 242, 0.95) 100%) !important;
+  backdrop-filter: blur(1.5px);
+  z-index: 40;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 2rem;
+  border-top: 4px solid #e11d48;
+}
+
+/* ==================================================================================
+   📐 Dynamic Page Margins Padding Overrides (Strict WYSIWYG)
+   ================================================================================== */
+.resume-paper-sheet.resume-style-margin-small {
+  padding: 8mm 10mm !important;
+}
+
+.resume-paper-sheet.resume-style-margin-normal {
+  padding: 12mm 15mm !important;
+}
+
+.resume-paper-sheet.resume-style-margin-large {
+  padding: 18mm 22mm !important;
+}
+
+/* ==================================================================================
+   📏 Section Spacing Gaps
+   ================================================================================== */
+.resume-paper-sheet.resume-style-gap-compact section {
+  margin-bottom: 0.75rem !important;
+}
+
+.resume-paper-sheet.resume-style-gap-normal section {
+  margin-bottom: 1.5rem !important;
+}
+
+.resume-paper-sheet.resume-style-gap-relaxed section {
+  margin-bottom: 2.25rem !important;
+}
+
+@media print {
+  .resume-paper-sheet.resume-style-gap-compact section {
+    margin-bottom: 3mm !important;
+  }
+
+  .resume-paper-sheet.resume-style-gap-normal section {
+    margin-bottom: 6mm !important;
+  }
+
+  .resume-paper-sheet.resume-style-gap-relaxed section {
+    margin-bottom: 9mm !important;
+  }
 }
