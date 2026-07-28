@@ -62,6 +62,8 @@ export const getDefaultSectionTitle = (sectionId: string, language: Language) =>
   if (sectionId === 'work') return language === 'zh' ? '工作经历 / Experience' : 'Work Experience';
   if (sectionId === 'projects') return language === 'zh' ? '作品项目 / Projects' : 'Featured Projects';
   if (sectionId === 'education') return language === 'zh' ? '教育经历 / Education' : 'Education';
+  if (sectionId === 'volunteer') return language === 'zh' ? '志愿活动 / Volunteer' : 'Volunteer Experience';
+  if (sectionId === 'interest') return language === 'zh' ? '兴趣爱好 / Interests' : 'Interests';
   if (sectionId === 'skills') return language === 'zh' ? '专业技能 / Skills' : 'Skills & Languages';
   return sectionId;
 };
@@ -89,3 +91,20 @@ export const getSortedFeaturedProjects = (work: any[]) => {
 export const getCombinedSkills = (skills: any[]) => {
   return skills || [];
 };
+
+export const getNormalizedSectionOrder = (order?: string[]) => {
+  const canonicalSections = ['profile', 'work', 'projects', 'education', 'volunteer', 'interest', 'skills'];
+  if (!order || order.length === 0) return canonicalSections;
+  const result = [...order];
+  canonicalSections.forEach((sec) => {
+    if (!result.includes(sec)) {
+      const skillsIdx = result.indexOf('skills');
+      if (skillsIdx !== -1) {
+        result.splice(skillsIdx, 0, sec);
+      } else {
+        result.push(sec);
+      }
+    }
+  });
+  return result;
+};;

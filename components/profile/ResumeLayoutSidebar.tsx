@@ -1,6 +1,7 @@
 import React from 'react';
 import { ResumeData, Language } from '../../types';
 import { apiService } from '../../services/api';
+import { getNormalizedSectionOrder } from './utils';
 
 interface ResumeLayoutSidebarProps {
   resume: ResumeData | null;
@@ -261,18 +262,20 @@ export const ResumeLayoutSidebar: React.FC<ResumeLayoutSidebarProps> = ({
           {language === 'zh' ? '版块显示顺序' : 'Section Order'}
         </label>
         <div className="space-y-1.5">
-          {(resume.sectionOrder || ['profile', 'work', 'projects', 'education', 'skills']).map((sectionId, idx, arr) => {
+          {getNormalizedSectionOrder(resume.sectionOrder).map((sectionId, idx, arr) => {
             const getSectionName = (sid: string) => {
               if (sid === 'profile') return language === 'zh' ? '个人简介 (Profile)' : 'Profile';
               if (sid === 'work') return language === 'zh' ? '工作经历 (Work)' : 'Work';
               if (sid === 'projects') return language === 'zh' ? '作品项目 (Projects)' : 'Projects';
               if (sid === 'education') return language === 'zh' ? '教育经历 (Education)' : 'Education';
+              if (sid === 'volunteer') return language === 'zh' ? '志愿活动 (Volunteer)' : 'Volunteer';
+              if (sid === 'interest') return language === 'zh' ? '兴趣爱好 (Interests)' : 'Interests';
               if (sid === 'skills') return language === 'zh' ? '专业技能 (Skills)' : 'Skills';
               return sid;
             };
 
             const handleMove = async (dir: 'up' | 'down') => {
-              const order = [...(resume.sectionOrder || ['profile', 'work', 'projects', 'education', 'skills'])];
+              const order = [...getNormalizedSectionOrder(resume.sectionOrder)];
               const targetIdx = dir === 'up' ? idx - 1 : idx + 1;
               const temp = order[idx];
               order[idx] = order[targetIdx];

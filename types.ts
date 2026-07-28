@@ -210,6 +210,7 @@ export interface ResumeData {
     summary_zh?: string;
     summary_en?: string;
     website?: string;
+    linkedin?: string;
   };
   education: Array<{
     institution?: string;
@@ -237,6 +238,23 @@ export interface ResumeData {
     isProject?: boolean;
     highlights_zh?: string[];
     highlights_en?: string[];
+    pageBreakBefore?: boolean;
+  }>;
+  volunteer?: Array<{
+    organization_zh?: string;
+    organization_en?: string;
+    position_zh?: string;
+    position_en?: string;
+    startDate?: string;
+    endDate?: string;
+    highlights_zh?: string[];
+    highlights_en?: string[];
+    pageBreakBefore?: boolean;
+  }>;
+  interest?: Array<{
+    name_zh?: string;
+    name_en?: string;
+    keywords?: string[];
     pageBreakBefore?: boolean;
   }>;
   skills: Array<{
@@ -280,6 +298,10 @@ export interface ResumeData {
     education_en?: string;
     skills_zh?: string;
     skills_en?: string;
+    volunteer_zh?: string;
+    volunteer_en?: string;
+    interest_zh?: string;
+    interest_en?: string;
   };
 }
 

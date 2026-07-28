@@ -49,7 +49,7 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
     // Admin Editing
     const [isEditing, setIsEditing] = useState(false);
     const [editResume, setEditResume] = useState<ResumeData | null>(null);
-    const [activeTab, setActiveTab] = useState<'BASICS' | 'WORK' | 'EDUCATION' | 'SKILLS'>('BASICS');
+    const [activeTab, setActiveTab] = useState<'BASICS' | 'WORK' | 'EDUCATION' | 'SKILLS' | 'VOLUNTEER' | 'INTEREST'>('BASICS');
 
     const isVip = currentUser?.vip || currentUser?.role === 'super_admin' || currentUser?.role === 'admin';
 
@@ -241,7 +241,9 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
           education: [],
           work: [],
           skills: [],
-          languages: []
+          languages: [],
+          volunteer: [],
+          interest: []
         };
       }
 
@@ -342,7 +344,7 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
       setEditResume(newResume);
     };
 
-    const addItem = (section: 'work' | 'education' | 'skills') => {
+    const addItem = (section: 'work' | 'education' | 'skills' | 'volunteer' | 'interest') => {
       if (!editResume) return;
       const newResume = { ...editResume };
       const arr = (newResume[section] as any[]) || [];
@@ -353,13 +355,17 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
       if (section === 'education') newItem = { institution: 'New School' };
       if (section === 'skills')
         newItem = { name_en: 'New Category', name_zh: '新品类', keywords: [] };
+      if (section === 'volunteer')
+        newItem = { organization_en: 'New Organization', highlights_en: [], highlights_zh: [] };
+      if (section === 'interest')
+        newItem = { name_en: 'New Category', name_zh: '新品类', keywords: [] };
 
       arr.push(newItem);
       (newResume as any)[section] = arr;
       setEditResume(newResume);
     };
 
-    const removeItem = (section: 'work' | 'education' | 'skills', index: number) => {
+    const removeItem = (section: 'work' | 'education' | 'skills' | 'volunteer' | 'interest', index: number) => {
       if (!editResume) return;
       const newResume = { ...editResume };
       (newResume[section] as any[]).splice(index, 1);

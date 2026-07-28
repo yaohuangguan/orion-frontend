@@ -76,8 +76,8 @@ interface ResumeEditModalProps {
   setIsEditing: (editing: boolean) => void;
   editResume: ResumeData | null;
   setEditResume: React.Dispatch<React.SetStateAction<ResumeData | null>>;
-  activeTab: 'BASICS' | 'WORK' | 'EDUCATION' | 'SKILLS';
-  setActiveTab: (tab: 'BASICS' | 'WORK' | 'EDUCATION' | 'SKILLS') => void;
+  activeTab: 'BASICS' | 'WORK' | 'EDUCATION' | 'SKILLS' | 'VOLUNTEER' | 'INTEREST';
+  setActiveTab: (tab: 'BASICS' | 'WORK' | 'EDUCATION' | 'SKILLS' | 'VOLUNTEER' | 'INTEREST') => void;
   language: Language;
   targetProfile: string;
   currentSlug: string;
@@ -88,8 +88,8 @@ interface ResumeEditModalProps {
     index?: number,
     nestedField?: string
   ) => void;
-  removeItem: (section: 'work' | 'education' | 'skills', index: number) => void;
-  addItem: (section: 'work' | 'education' | 'skills') => void;
+  removeItem: (section: 'work' | 'education' | 'skills' | 'volunteer' | 'interest', index: number) => void;
+  addItem: (section: 'work' | 'education' | 'skills' | 'volunteer' | 'interest') => void;
   handleSave: () => Promise<void>;
 }
 
@@ -127,13 +127,13 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
       <div className={editorClass}>
         <div className="flex justify-between items-center border-b border-current bg-black/5 dark:bg-black/20 pr-4">
           <div className="flex overflow-x-auto">
-            {(['BASICS', 'WORK', 'EDUCATION', 'SKILLS'] as const).map((tab) => (
+            {(['BASICS', 'WORK', 'EDUCATION', 'SKILLS', 'VOLUNTEER', 'INTEREST'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`${tabClassBase} ${activeTab === tab ? activeTabClass : inactiveTabClass}`}
               >
-                {tab === 'SKILLS' ? 'SKILLS (含语言及4品类)' : tab}
+                {tab === 'SKILLS' ? 'SKILLS (含语言及4品类)' : tab === 'VOLUNTEER' ? 'VOLUNTEER (志愿活动)' : tab === 'INTEREST' ? 'INTEREST (兴趣爱好)' : tab}
               </button>
             ))}
           </div>
@@ -215,6 +215,12 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                   value={editResume.basics.website || ''}
                   onChange={(e) => updateField('basics', 'website', e.target.value)}
                   placeholder="Website (e.g. ps6.space)"
+                />
+                <input
+                  className={inputClass}
+                  value={editResume.basics.linkedin || ''}
+                  onChange={(e) => updateField('basics', 'linkedin', e.target.value)}
+                  placeholder="LinkedIn Profile URL / ID"
                 />
 
                 <label className="block text-xs font-bold uppercase opacity-60 mt-4">
@@ -571,7 +577,7 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                       onChange={(e) =>
                         updateField('education', '', e.target.value, idx, 'institution')
                       }
-                      placeholder="Institution"
+                      placeholder="Institution / 学校名称"
                     />
                     <input
                       className={inputClass}
@@ -579,23 +585,7 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                       onChange={(e) =>
                         updateField('education', '', e.target.value, idx, 'location')
                       }
-                      placeholder="Location"
-                    />
-                    <input
-                      className={inputClass}
-                      value={edu.area_zh || ''}
-                      onChange={(e) =>
-                        updateField('education', '', e.target.value, idx, 'area_zh')
-                      }
-                      placeholder="Area (ZH)"
-                    />
-                    <input
-                      className={inputClass}
-                      value={edu.area_en || ''}
-                      onChange={(e) =>
-                        updateField('education', '', e.target.value, idx, 'area_en')
-                      }
-                      placeholder="Area (EN)"
+                      placeholder="Location / 学校地点"
                     />
                     <input
                       className={inputClass}
@@ -603,7 +593,7 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                       onChange={(e) =>
                         updateField('education', '', e.target.value, idx, 'studyType_zh')
                       }
-                      placeholder="Degree (ZH)"
+                      placeholder="Major & Degree (ZH) / 专业与学位 (中) e.g. 计算机科学硕士"
                     />
                     <input
                       className={inputClass}
@@ -611,7 +601,7 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                       onChange={(e) =>
                         updateField('education', '', e.target.value, idx, 'studyType_en')
                       }
-                      placeholder="Degree (EN)"
+                      placeholder="Major & Degree (EN) / 专业与学位 (英) e.g. Master of Computer Science"
                     />
                     <input
                       className={inputClass}
@@ -660,13 +650,14 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                         htmlFor={`edu-pagebreak-${idx}`}
                         className="text-xs font-bold uppercase text-rose-600 dark:text-rose-400 cursor-pointer select-none"
                       >
-                        {language === 'zh' ? '在此教育经历前强制分页 / Force page break before this education entry' : 'Force page break before this education entry'}
+                        {language === 'zh' ? '在此 education 经历前强制分页 / Force page break before this education entry' : 'Force page break before this education entry'}
                       </label>
                     </div>
                   </div>
                 </div>
               ))}
               <button
+                type="button"
                 onClick={() => addItem('education')}
                 className="w-full py-3 border-2 border-dashed border-current/30 text-current/60 font-bold uppercase rounded-xl hover:bg-black/5 dark:hover:bg-white/5"
               >
@@ -754,10 +745,232 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                 </div>
               ))}
               <button
+                type="button"
                 onClick={() => addItem('skills')}
                 className="w-full py-3 border-2 border-dashed border-current/30 text-current/60 font-bold uppercase rounded-xl hover:bg-black/5 dark:hover:bg-white/5"
               >
                 + Add Skill Group
+              </button>
+            </div>
+          )}
+
+          {activeTab === 'VOLUNTEER' && (
+            <div className="space-y-6">
+              {(editResume.volunteer || []).map((vol, idx) => (
+                <div
+                  key={idx}
+                  className="p-4 border border-current/20 rounded-xl relative bg-black/5 dark:bg-white/5 space-y-4"
+                >
+                  <button
+                    onClick={() => removeItem('volunteer', idx)}
+                    className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xs font-bold"
+                  >
+                    <i className="fas fa-trash"></i>
+                  </button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input
+                      className={inputClass}
+                      value={vol.organization_zh || ''}
+                      onChange={(e) =>
+                        updateField('volunteer', '', e.target.value, idx, 'organization_zh')
+                      }
+                      placeholder="Organization (ZH) / 组织机构 (中)"
+                    />
+                    <input
+                      className={inputClass}
+                      value={vol.organization_en || ''}
+                      onChange={(e) =>
+                        updateField('volunteer', '', e.target.value, idx, 'organization_en')
+                      }
+                      placeholder="Organization (EN) / 组织机构 (英)"
+                    />
+                    <input
+                      className={inputClass}
+                      value={vol.position_zh || ''}
+                      onChange={(e) =>
+                        updateField('volunteer', '', e.target.value, idx, 'position_zh')
+                      }
+                      placeholder="Position (ZH) / 担任角色 (中)"
+                    />
+                    <input
+                      className={inputClass}
+                      value={vol.position_en || ''}
+                      onChange={(e) =>
+                        updateField('volunteer', '', e.target.value, idx, 'position_en')
+                      }
+                      placeholder="Position (EN) / 担任角色 (英)"
+                    />
+                    <input
+                      className={inputClass}
+                      value={vol.startDate || ''}
+                      onChange={(e) =>
+                        updateField('volunteer', '', e.target.value, idx, 'startDate')
+                      }
+                      placeholder="Start Date / 开始日期 (e.g. 2021.09)"
+                    />
+                    <input
+                      className={inputClass}
+                      value={vol.endDate || ''}
+                      onChange={(e) =>
+                        updateField('volunteer', '', e.target.value, idx, 'endDate')
+                      }
+                      placeholder="End Date / 结束日期 (e.g. 2022.06)"
+                    />
+                    {/* Page Break Toggle */}
+                    <div className="md:col-span-2 flex items-center gap-2 p-3 bg-rose-500/10 rounded-lg border border-rose-500/30">
+                      <input
+                        type="checkbox"
+                        id={`vol-pagebreak-${idx}`}
+                        checked={!!vol.pageBreakBefore}
+                        onChange={(e) =>
+                          updateField('volunteer', '', e.target.checked, idx, 'pageBreakBefore')
+                        }
+                        className="w-4 h-4 rounded border-rose-300 text-rose-600 focus:ring-rose-500 focus:ring-opacity-25"
+                      />
+                      <label
+                        htmlFor={`vol-pagebreak-${idx}`}
+                        className="text-xs font-bold uppercase text-rose-600 dark:text-rose-400 cursor-pointer select-none"
+                      >
+                        {language === 'zh' ? '在此经历前强制分页 / Force page break before this volunteer entry' : 'Force page break before this volunteer entry'}
+                      </label>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <div>
+                      <FormattingToolbar
+                        label="Highlights ZH (One per line)"
+                        targetId={`vol-hl-zh-${idx}`}
+                        value={vol.highlights_zh?.join('\n') || ''}
+                        onChange={(val) =>
+                          updateField('volunteer', '', val, idx, 'highlights_zh')
+                        }
+                      />
+                      <textarea
+                        id={`vol-hl-zh-${idx}`}
+                        className={`${inputClass} h-36 text-xs font-mono`}
+                        value={vol.highlights_zh?.join('\n') || ''}
+                        onChange={(e) =>
+                          updateField('volunteer', '', e.target.value, idx, 'highlights_zh')
+                        }
+                        placeholder="Highlights ZH (One per line, supports **bold**, *italic*, <u>underline</u>)"
+                      />
+                    </div>
+                    <div>
+                      <FormattingToolbar
+                        label="Highlights EN (One per line)"
+                        targetId={`vol-hl-en-${idx}`}
+                        value={vol.highlights_en?.join('\n') || ''}
+                        onChange={(val) =>
+                          updateField('volunteer', '', val, idx, 'highlights_en')
+                        }
+                      />
+                      <textarea
+                        id={`vol-hl-en-${idx}`}
+                        className={`${inputClass} h-36 text-xs font-mono`}
+                        value={vol.highlights_en?.join('\n') || ''}
+                        onChange={(e) =>
+                          updateField('volunteer', '', e.target.value, idx, 'highlights_en')
+                        }
+                        placeholder="Highlights EN (One per line, supports **bold**, *italic*, <u>underline</u>)"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => addItem('volunteer')}
+                className="w-full py-3 border-2 border-dashed border-current/30 text-current/60 font-bold uppercase rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-xs transition-colors"
+              >
+                + Add Volunteer Activity / 添加志愿经历
+              </button>
+            </div>
+          )}
+
+          {activeTab === 'INTEREST' && (
+            <div className="space-y-6">
+              {(editResume.interest || []).map((interest, idx) => (
+                <div
+                  key={idx}
+                  className="p-4 border border-current/20 rounded-xl relative bg-black/5 dark:bg-white/5 space-y-4"
+                >
+                  <button
+                    onClick={() => removeItem('interest', idx)}
+                    className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xs font-bold"
+                  >
+                    <i className="fas fa-trash"></i>
+                  </button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold uppercase opacity-60 mb-1">
+                        Interest Category Name (ZH) / 兴趣分类名称 (中)
+                      </label>
+                      <input
+                        className={inputClass}
+                        value={interest.name_zh || ''}
+                        onChange={(e) =>
+                          updateField('interest', '', e.target.value, idx, 'name_zh')
+                        }
+                        placeholder="例如: 运动 / Sports"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase opacity-60 mb-1">
+                        Interest Category Name (EN) / 兴趣分类名称 (英)
+                      </label>
+                      <input
+                        className={inputClass}
+                        value={interest.name_en || ''}
+                        onChange={(e) =>
+                          updateField('interest', '', e.target.value, idx, 'name_en')
+                        }
+                        placeholder="e.g. Sports"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <FormattingToolbar
+                      label="Interest Items / Keywords (One per line, supports **bold**, *italic*, <u>underline</u>)"
+                      targetId={`interest-kw-${idx}`}
+                      value={interest.keywords?.join('\n') || ''}
+                      onChange={(val) => updateField('interest', '', val, idx, 'keywords')}
+                    />
+                    <textarea
+                      id={`interest-kw-${idx}`}
+                      className={`${inputClass} h-28 text-xs font-mono`}
+                      value={interest.keywords?.join('\n') || ''}
+                      onChange={(e) =>
+                        updateField('interest', '', e.target.value, idx, 'keywords')
+                      }
+                      placeholder="篮球 / Basketball&#10;游泳 / Swimming"
+                    />
+                    {/* Page Break Toggle */}
+                    <div className="flex items-center gap-2 p-3 mt-3 bg-rose-500/10 rounded-lg border border-rose-500/30">
+                      <input
+                        type="checkbox"
+                        id={`interest-pagebreak-${idx}`}
+                        checked={!!interest.pageBreakBefore}
+                        onChange={(e) =>
+                          updateField('interest', '', e.target.checked, idx, 'pageBreakBefore')
+                        }
+                        className="w-4 h-4 rounded border-rose-300 text-rose-600 focus:ring-rose-500 focus:ring-opacity-25"
+                      />
+                      <label
+                        htmlFor={`interest-pagebreak-${idx}`}
+                        className="text-xs font-bold uppercase text-rose-600 dark:text-rose-400 cursor-pointer select-none"
+                      >
+                        {language === 'zh' ? '在此兴趣组前强制分页 / Force page break before this interest group' : 'Force page break before this interest group'}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => addItem('interest')}
+                className="w-full py-3 border-2 border-dashed border-current/30 text-current/60 font-bold uppercase rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-xs transition-colors"
+              >
+                + Add Interest / 添加兴趣
               </button>
             </div>
           )}
