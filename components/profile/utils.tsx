@@ -68,6 +68,40 @@ export const getDefaultSectionTitle = (sectionId: string, language: Language) =>
   return sectionId;
 };
 
+const parseDateString = (str: string): number => {
+  if (!str) return 0;
+  const clean = str.trim().toLowerCase();
+  if (clean === 'present' || clean === '至今') {
+    return Date.now();
+  }
+  if (/^\d{4}$/.test(clean)) {
+    return new Date(parseInt(clean, 10), 0, 1).getTime();
+  }
+  const formatted = clean.replace(/\./g, '-');
+  const timestamp = Date.parse(formatted);
+  if (!isNaN(timestamp)) {
+    return timestamp;
+  }
+  const yearMatch = clean.match(/\b(19|20)\d{2}\b/);
+  if (yearMatch) {
+    const year = parseInt(yearMatch[0], 10);
+    const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    let monthIdx = 0;
+    for (let i = 0; i < months.length; i++) {
+      if (clean.includes(months[i])) {
+        monthIdx = i;
+        break;
+      }
+    }
+    const monthMatch = clean.match(/\b(0?[1-9]|1[0-2])\b/);
+    if (monthMatch && monthMatch[0] !== yearMatch[0]) {
+      monthIdx = parseInt(monthMatch[0], 10) - 1;
+    }
+    return new Date(year, monthIdx, 1).getTime();
+  }
+  return 0;
+};
+
 export const getSortedWork = (work: any[]) => {
   if (!work) return [];
   return [...work].sort((a, b) => {
@@ -76,7 +110,7 @@ export const getSortedWork = (work: any[]) => {
     if (weightA !== weightB) {
       return weightB - weightA;
     }
-    return (b.startDate || '').localeCompare(a.startDate || '');
+    return parseDateString(b.startDate || '') - parseDateString(a.startDate || '');
   });
 };
 

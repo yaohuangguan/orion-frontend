@@ -457,5 +457,16 @@ export const contentService = {
     });
     toast.success('Resume deleted successfully');
     return res;
+  },
+
+  setDefaultResume: async (
+    slug: string
+  ): Promise<{ msg: string; defaultSlug: string; swappedSlug: string }> => {
+    const res = await fetchClient<{ msg: string; defaultSlug: string; swappedSlug: string }>('/resumes/set-default', {
+      method: 'POST',
+      body: JSON.stringify({ slug })
+    });
+    toast.success('Set as default homepage resume successfully');
+    return res;
   }
 };

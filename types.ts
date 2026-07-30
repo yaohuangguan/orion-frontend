@@ -195,6 +195,7 @@ export interface ResumeData {
   slug?: string;
   user?: string;
   title?: string;
+  isHomepage?: boolean;
   sectionOrder?: string[];
   basics: {
     name_zh?: string;

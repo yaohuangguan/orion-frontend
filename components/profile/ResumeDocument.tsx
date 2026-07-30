@@ -311,6 +311,30 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
       }
     };
 
+    const handleSetDefault = async () => {
+      if (!resume || resume.isHomepage) return;
+      if (!window.confirm(language === 'zh' ? '确定要将当前简历版本设为首页默认展示吗？' : 'Are you sure you want to set this resume version as the homepage default?')) {
+        return;
+      }
+      try {
+        setIsLoading(true);
+        await apiService.setDefaultResume(currentSlug);
+        
+        // Refresh the loaded resume data (to get isHomepage: true)
+        const data = await apiService.getResumeData(currentSlug);
+        setResume(data);
+
+        // Refresh the list of resumes
+        const list = await apiService.getResumeList(targetProfile);
+        setResumeList(processResumeList(list, targetProfile));
+      } catch (e) {
+        console.error(e);
+        toast.error(language === 'zh' ? '设置失败' : 'Failed to set default resume');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     // Generic Field Updater
     const updateField = (
       section: keyof ResumeData,
@@ -594,6 +618,26 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
             <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
               {resume && (
                 <>
+                  {/* Set Default Homepage Button / Badge */}
+                  {isVip && (
+                    resume.isHomepage ? (
+                      <span className="px-3 py-2 text-xs font-bold uppercase rounded-xl flex items-center gap-1.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 select-none">
+                        <i className="fas fa-home text-[10px]"></i>
+                        <span>{language === 'zh' ? '已设为首页默认' : 'Default Homepage'}</span>
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleSetDefault}
+                        title={language === 'zh' ? '设为未登录用户的首页默认展示简历' : 'Set as default homepage resume'}
+                        className="px-3.5 py-2 text-xs font-bold uppercase rounded-xl transition-all duration-200 flex items-center gap-2 shadow-md bg-sky-50 hover:bg-sky-100 text-sky-600 border border-sky-200/50 dark:bg-sky-950/30 dark:hover:bg-sky-950/50 dark:text-sky-400 dark:border-sky-900/30 hover:shadow-lg active:scale-95"
+                      >
+                        <i className="fas fa-home text-[10px]"></i>
+                        <span>{language === 'zh' ? '设为首页默认' : 'Set default'}</span>
+                      </button>
+                    )
+                  )}
+
                   {/* Delete Button */}
                   <button
                     type="button"

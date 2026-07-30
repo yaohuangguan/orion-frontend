@@ -836,7 +836,7 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                   setActiveInlineEdit={setActiveInlineEdit}
                   setInlineEditAnchor={setInlineEditAnchor}
                 />
-                <div className="space-y-3.5 font-sans text-left">
+                <div className="space-y-4 font-sans text-left">
                   {interestList.map((interestGroup, idx) => (
                     <React.Fragment key={idx}>
                       {currentPdfMode === 'multi-page' && interestGroup.pageBreakBefore && (
@@ -846,39 +846,64 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                           </span>
                         </div>
                       )}
-                      <div className="break-inside-avoid page-break-inside-avoid flex flex-col md:flex-row md:items-baseline gap-x-2 mb-2 leading-relaxed">
-                        <h3 className="text-base font-bold text-slate-900 min-w-[80px] max-w-[200px] shrink-0 text-left">
-                          <EditableText
-                            path={`interest.${idx}.name_${language}`}
-                            label={language === 'zh' ? '兴趣分类 / Category' : 'Interest Category'}
-                            value={getLocalized(interestGroup, 'name', language)}
-                            as="span"
-                            isVip={isVip}
-                            isPrint={isPrint}
-                            resume={resume}
-                            setActiveInlineEdit={setActiveInlineEdit}
-                            setInlineEditAnchor={setInlineEditAnchor}
-                          />
-                        </h3>
-                        <div className="text-slate-800 text-sm md:text-base flex-1 text-left">
+                      <div className="break-inside-avoid page-break-inside-avoid mb-2.5 last:mb-0">
+                        {getLocalized(interestGroup, 'name', language) ? (
+                          <h3 className="text-base font-bold text-slate-900 mb-1.5 text-left">
+                            <EditableText
+                              path={`interest.${idx}.name_${language}`}
+                              label={language === 'zh' ? '分类名称 / Category' : 'Category Name'}
+                              value={getLocalized(interestGroup, 'name', language)}
+                              as="span"
+                              isVip={isVip}
+                              isPrint={isPrint}
+                              resume={resume}
+                              setActiveInlineEdit={setActiveInlineEdit}
+                              setInlineEditAnchor={setInlineEditAnchor}
+                            />
+                          </h3>
+                        ) : (
+                          !isPrint && isVip && (
+                            <div className="mb-2">
+                              <EditableText
+                                path={`interest.${idx}.name_${language}`}
+                                label={language === 'zh' ? '分类名称 / Category Name' : 'Category Name'}
+                                value=""
+                                as="span"
+                                className="text-xs text-slate-400 border border-dashed border-slate-300 px-2 py-0.5 rounded cursor-pointer hover:bg-slate-50"
+                                isVip={isVip}
+                                isPrint={isPrint}
+                                resume={resume}
+                                setActiveInlineEdit={setActiveInlineEdit}
+                                setInlineEditAnchor={setInlineEditAnchor}
+                              />
+                            </div>
+                          )
+                        )}
+                        
+                        <div className="text-slate-800 text-sm">
                           <EditableText
                             path={`interest.${idx}.keywords`}
-                            label={language === 'zh' ? '兴趣细节' : 'Keywords'}
+                            label={language === 'zh' ? '项目细节 / Keywords' : 'Keywords'}
                             value={interestGroup.keywords?.join('\n') || ''}
                             isTextArea={true}
-                            as="span"
+                            as="div"
+                            className="w-full !block"
                             isVip={isVip}
                             isPrint={isPrint}
                             resume={resume}
                             setActiveInlineEdit={setActiveInlineEdit}
                             setInlineEditAnchor={setInlineEditAnchor}
                           >
-                            {interestGroup.keywords?.map((kw, i) => (
-                              <React.Fragment key={i}>
-                                {i > 0 && <span className="mr-1.5 font-bold text-slate-400">, </span>}
-                                {renderRichText(kw)}
-                              </React.Fragment>
-                            ))}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1.5 text-left">
+                              {interestGroup.keywords?.map((kw, i) => (
+                                <div key={i} className="flex items-start gap-2 leading-relaxed">
+                                  <span className="text-slate-400 select-none pt-1 shrink-0 text-[10px]">•</span>
+                                  <span className="text-slate-800 font-sans text-sm md:text-[14px] leading-relaxed">
+                                    {renderRichText(kw)}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
                           </EditableText>
                         </div>
                       </div>
