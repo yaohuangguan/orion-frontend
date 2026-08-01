@@ -13,16 +13,16 @@
 }
 
 :root {
-  --color-primary-50: 253 251 247;
-  --color-primary-100: 247 244 237;
-  --color-primary-200: 232 226 210;
-  --color-primary-300: 210 199 176;
-  --color-primary-400: 180 160 130;
-  --color-primary-500: 168 121 84;
-  --color-primary-600: 140 98 65;
-  --color-primary-700: 115 78 50;
-  --color-primary-800: 94 62 40;
-  --color-primary-900: 70 45 30;
+  --color-primary-50: 245 243 255;
+  --color-primary-100: 237 233 254;
+  --color-primary-200: 221 214 254;
+  --color-primary-300: 199 189 253;
+  --color-primary-400: 165 180 252;
+  --color-primary-500: 79 70 229;
+  --color-primary-600: 67 56 202;
+  --color-primary-700: 55 48 163;
+  --color-primary-800: 49 46 129;
+  --color-primary-900: 30 27 75;
 }
 
 html.dark {

@@ -7,7 +7,17 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         display: ['Sen', 'system-ui', 'sans-serif'],
-        serif: ['Georgia', 'Cambria', '"Times New Roman"', 'Times', 'serif'],
+        serif: [
+          '"Playfair Display"',
+          '"Noto Serif SC"',
+          'STKaiti',
+          'KaiTi',
+          'Georgia',
+          'Cambria',
+          '"Times New Roman"',
+          'Times',
+          'serif'
+        ],
         mono: [
           'Fira Code',
           'ui-monospace',
@@ -26,10 +36,10 @@ export default {
           950: '#020617'
         },
         milky: {
-          50: '#fdfbf7',
-          100: '#f7f4ed',
-          200: '#e8e2d2',
-          900: '#1c1917'
+          50: '#f8fafc',
+          100: '#f5ede2',
+          200: '#ebdcc9',
+          900: '#1e1b4b'
         },
         // 这里引用 CSS 变量，稍后我们在 index.css 里定义
         primary: {

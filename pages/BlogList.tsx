@@ -294,10 +294,6 @@ export const BlogList: React.FC<BlogListProps> = ({
                 {pagination?.totalItems || blogs.length}
               </span>
             </div>
-            <div className="px-3 py-1 border border-slate-200 dark:border-slate-800 rounded bg-slate-50 dark:bg-slate-900">
-              {t.blogList.status}:{' '}
-              <span className="text-green-500 font-bold">{t.blogList.online}</span>
-            </div>
           </div>
         </div>
       </div>
@@ -338,12 +334,11 @@ export const BlogList: React.FC<BlogListProps> = ({
             </div>
 
             {/* Mobile Only Stats (Since header stats hidden on mobile) */}
-            <div className="md:hidden bg-slate-50 dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 flex justify-between text-xs font-mono text-slate-500">
+            <div className="md:hidden bg-slate-50 dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 flex justify-center text-xs font-mono text-slate-500">
               <span>
                 Total Entries:{' '}
                 <b className="text-slate-900 dark:text-white">{pagination?.totalItems}</b>
               </span>
-              <span className="text-green-500 font-bold">System Online</span>
             </div>
           </div>
         </aside>
@@ -366,10 +361,10 @@ export const BlogList: React.FC<BlogListProps> = ({
                   <article
                     key={blog._id}
                     onClick={() => onSelectBlog(blog)}
-                    className="group relative cursor-pointer bg-white dark:bg-[#0f1218] border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300 hover:-translate-y-1 flex flex-col md:flex-row min-h-[180px]"
+                    className="group relative cursor-pointer bg-white/80 dark:bg-[#0f1218]/90 backdrop-blur-md border border-slate-200/80 dark:border-slate-800 rounded-3xl overflow-hidden hover:shadow-xl hover:shadow-primary-500/10 dark:hover:shadow-primary-400/5 hover:border-primary-200 dark:hover:border-primary-800/80 transition-all duration-300 hover:-translate-y-1 flex flex-col md:flex-row min-h-[180px]"
                   >
                     {/* Left Accent Bar */}
-                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-slate-100 dark:bg-slate-800 group-hover:bg-primary-500 transition-colors"></div>
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-slate-200 dark:bg-slate-800 group-hover:bg-gradient-to-b group-hover:from-primary-500 group-hover:to-blue-600 transition-all"></div>
 
                     <div className="flex-1 p-6 md:p-8 pl-8 md:pl-10 flex flex-col justify-center">
                       {/* Meta Top */}
@@ -383,36 +378,61 @@ export const BlogList: React.FC<BlogListProps> = ({
                               className="w-full h-full object-cover"
                             />
                           </div>
-                          <span className="font-bold text-slate-700 dark:text-slate-300">
+                          <span className="font-bold text-slate-600 dark:text-slate-300">
                             {authorName}
                           </span>
                         </div>
 
-                        <span className="font-mono font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider">
+                        <span className="font-mono font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider pr-3 border-r border-slate-200 dark:border-slate-800">
                           {formatUserDate(
                             blog.createdAt || blog.createdDate || blog.date,
                             currentUser
                           )}
                         </span>
+
+                        {/* Like Button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleLikeInternal(blog._id);
+                          }}
+                          className={`flex items-center gap-1.5 text-xs font-bold transition-colors group/like px-2.5 py-0.5 rounded-full border ${
+                            isLiked
+                              ? 'text-pink-500 bg-pink-50 dark:bg-pink-950/20 border-pink-100 dark:border-pink-900/30'
+                              : 'text-slate-400 hover:text-pink-500 hover:bg-slate-100 dark:hover:bg-slate-800 border-transparent'
+                          }`}
+                        >
+                          <i
+                            className={`fas fa-heart ${isLiked ? '' : 'group-hover/like:scale-110 transition-transform'}`}
+                          ></i>
+                          {blog.likes}
+                        </button>
+
                         {blog.isPrivate && (
-                          <span className="inline-flex items-center gap-1 text-rose-500 font-bold uppercase tracking-wider">
-                            <i className="fas fa-lock text-[10px]"></i> Encrypted
+                          <span className="inline-flex items-center gap-1 text-rose-500 font-bold uppercase tracking-wider text-[10px] bg-rose-50 dark:bg-rose-950/20 px-2 py-0.5 rounded-full border border-rose-100 dark:border-rose-900/30">
+                            <i className="fas fa-lock text-[9px]"></i> Encrypted
                           </span>
-                        )}
-                        {blog.tags && blog.tags.length > 0 && (
-                          <>
-                            <span className="text-slate-300 dark:text-slate-700">•</span>
-                            <span className="text-slate-500 dark:text-slate-400 font-medium">
-                              {blog.tags[0]}
-                            </span>
-                          </>
                         )}
                       </div>
 
                       {/* Title */}
-                      <h3 className="font-display font-bold text-2xl md:text-3xl text-slate-900 dark:text-slate-100 mb-3 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors leading-tight">
+                      <h3 className="font-serif font-bold text-2xl md:text-3xl text-slate-900 dark:text-slate-100 mb-3 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors leading-tight">
                         {blog.name}
                       </h3>
+
+                      {/* Tags (Displaying ALL tags) */}
+                      {blog.tags && blog.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mb-3">
+                          {blog.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="px-2.5 py-0.5 rounded-md bg-primary-50 dark:bg-primary-950/30 text-primary-600 dark:text-primary-400 text-[10px] font-bold uppercase tracking-widest border border-primary-100/55 dark:border-primary-900/30 transition-all hover:bg-primary-100 dark:hover:bg-primary-900/50"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
 
                       {/* Summary */}
                       <p className="text-slate-500 dark:text-slate-400 font-light leading-relaxed mb-6 text-sm md:text-base line-clamp-2 md:line-clamp-2">
@@ -421,58 +441,39 @@ export const BlogList: React.FC<BlogListProps> = ({
 
                       {/* Bottom Actions */}
                       <div className="flex items-center justify-between mt-auto">
-                        <div className="flex items-center gap-2 text-xs font-bold text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">
+                        <div className="flex items-center gap-2 text-xs font-bold text-primary-600 dark:text-primary-400 group-hover:text-primary-700 dark:group-hover:text-primary-300 transition-colors">
                           <span>Read Entry</span>
-                          <i className="fas fa-arrow-right transform group-hover:translate-x-1 transition-transform"></i>
+                          <i className="fas fa-arrow-right transform group-hover:translate-x-1.5 transition-transform"></i>
                         </div>
 
-                        <div className="flex items-center gap-4">
-                          {/* Like Button */}
+                        {/* Delete Button (VIP) */}
+                        {canDelete && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleLikeInternal(blog._id);
+                              onDeletePost && onDeletePost(blog);
                             }}
-                            className={`flex items-center gap-1.5 text-xs font-bold transition-colors group/like px-2 py-1 rounded-lg ${
-                              isLiked
-                                ? 'text-pink-500 bg-pink-50 dark:bg-pink-900/20'
-                                : 'text-slate-400 hover:text-pink-500 hover:bg-slate-100 dark:hover:bg-slate-800'
-                            }`}
+                            className="text-slate-300 hover:text-red-500 transition-colors px-1"
+                            title="Delete Log"
                           >
-                            <i
-                              className={`fas fa-heart ${isLiked ? '' : 'group-hover/like:scale-110 transition-transform'}`}
-                            ></i>
-                            {blog.likes}
+                            <i className="fas fa-trash text-xs"></i>
                           </button>
-
-                          {/* Delete Button (VIP) */}
-                          {canDelete && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onDeletePost && onDeletePost(blog);
-                              }}
-                              className="text-slate-300 hover:text-red-500 transition-colors"
-                              title="Delete Log"
-                            >
-                              <i className="fas fa-trash text-xs"></i>
-                            </button>
-                          )}
-                        </div>
+                        )}
                       </div>
                     </div>
 
-                    {/* Optional Thumbnail (Right Side on Desktop, Hidden on Mobile if no image) */}
+                    {/* Optional Thumbnail (Framed Card Insert Design) */}
                     {hasImage && (
-                      <div className="hidden md:block w-48 shrink-0 relative overflow-hidden bg-slate-100 dark:bg-slate-900 border-l border-slate-100 dark:border-slate-800">
-                        <img
-                          src={blog.image}
-                          alt={blog.name}
-                          onError={handleImageError}
-                          className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
-                          loading="lazy"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-r from-black/10 to-transparent pointer-events-none"></div>
+                      <div className="hidden md:block w-48 shrink-0 relative overflow-hidden bg-transparent p-4 flex items-center justify-center">
+                        <div className="w-full h-full rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800/80 shadow-sm">
+                          <img
+                            src={blog.image}
+                            alt={blog.name}
+                            onError={handleImageError}
+                            className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
+                            loading="lazy"
+                          />
+                        </div>
                       </div>
                     )}
                   </article>

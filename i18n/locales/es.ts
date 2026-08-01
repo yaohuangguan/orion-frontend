@@ -34,8 +34,7 @@ export const es = {
     title2: 'lo Desconocido',
     introPrefix: 'Soy ',
     introName: 'Sam',
-    introSuffix:
-      '. Navegando el cosmos digital, construyendo arquitecturas robustes y explorando las fronteras de la Inteligencia Artificial.',
+    introSuffix: '. Bienvenido a mi espacio digital, donde comparto mis reflexiones personales, mi currículum y mis proyectos de desarrollo. Como ingeniero full-stack, crear este sitio web es mi pasatiempo y pasión absoluta. Me llena de alegría y espero sinceramente que a ti también te traiga felicidad e inspiración.',
     ctaPrimary: 'Explorar Diario',
     ctaSecondary: 'Perfil del Sistema'
   },

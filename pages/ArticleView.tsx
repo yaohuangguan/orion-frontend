@@ -256,57 +256,55 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
         </Helmet>
       )}
 
-      {/* Back Button Wrapper (Centered max width for navigation consistency) */}
-      <div className="max-w-5xl mx-auto mb-8">
-        <button
-          onClick={onBack}
-          className="group flex items-center text-sm font-bold text-slate-500 hover:text-primary-600 transition-colors"
-        >
-          <div className="w-8 h-8 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur flex items-center justify-center mr-3 group-hover:bg-primary-50 dark:group-hover:bg-primary-900/20 transition-colors shadow-sm">
-            <i className="fas fa-arrow-left text-xs transition-transform group-hover:-translate-x-1"></i>
-          </div>
-          {t.articleView.back}
-        </button>
-      </div>
+      {/* Header Container - Max-width aligned, combined Back Button & Title */}
+      <div className="max-w-5xl mx-auto mb-8 relative w-full">
+        {/* Top Row: Back button and Tags */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <button
+            onClick={onBack}
+            className="group flex items-center text-sm font-bold text-slate-500 hover:text-primary-600 transition-colors w-fit"
+          >
+            <div className="w-8 h-8 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur flex items-center justify-center mr-3 group-hover:bg-primary-50 dark:group-hover:bg-primary-900/20 transition-colors shadow-sm">
+              <i className="fas fa-arrow-left text-xs transition-transform group-hover:-translate-x-1"></i>
+            </div>
+            {t.articleView.back}
+          </button>
 
-      {blog && (
-        <div className="mb-12 relative w-full">
-          {/* Header Card Container - Distinct Background - Full Width Available */}
-          <div className="bg-slate-100 dark:bg-[#111] rounded-[2.5rem] p-8 md:p-16 text-center border border-slate-200 dark:border-slate-900 shadow-sm relative overflow-hidden w-full">
+          {blog && (
+            <div className="flex flex-wrap gap-2">
+              {blog.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="px-3 py-1 rounded-full bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-[10px] font-bold uppercase tracking-widest border border-slate-200/60 dark:border-slate-700/60 shadow-sm"
+                >
+                  {tag}
+                </span>
+              ))}
+              {blog.isPrivate && (
+                <span className="px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 border border-rose-200 dark:border-rose-800">
+                  <i className="fas fa-lock text-[9px]"></i> Encrypted
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {blog && (
+          <div className="text-left w-full relative overflow-hidden py-4">
             {/* Ambient Background Effect */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-4xl bg-gradient-to-b from-white/40 to-transparent dark:from-white/5 dark:to-transparent pointer-events-none rounded-full blur-3xl opacity-50"></div>
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-amber-500/5 to-transparent dark:from-white/5 dark:to-transparent pointer-events-none rounded-full blur-3xl opacity-60"></div>
 
-            <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center">
-              {/* Tags */}
-              <div className="flex flex-wrap justify-center gap-2 mb-8">
-                {blog.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-3 py-1 rounded-full bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-bold uppercase tracking-widest border border-slate-200 dark:border-slate-700 shadow-sm"
-                  >
-                    {tag}
-                  </span>
-                ))}
-                {blog.isPrivate && (
-                  <span className="px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 border border-rose-200 dark:border-rose-800">
-                    <i className="fas fa-lock text-[9px]"></i> Encrypted
-                  </span>
-                )}
-              </div>
-
+            <div className="relative z-10 max-w-4xl">
               {/* Title */}
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-slate-900 dark:text-white mb-8 leading-tight tracking-tight drop-shadow-sm">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-slate-900 dark:text-white mb-6 leading-tight tracking-tight drop-shadow-sm">
                 {blog.name}
               </h1>
 
-              {/* Meta Data Divider */}
-              <div className="w-16 h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent rounded-full mb-10 opacity-80"></div>
-
-              {/* Author & Date Box */}
-              <div className="flex flex-col md:flex-row items-center gap-8 md:gap-16">
+              {/* Meta Data Row (Author, Date, Last Updated in a single row) */}
+              <div className="flex flex-wrap items-center gap-y-2 gap-x-4 md:gap-x-6 text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium">
                 {/* Author */}
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-white dark:bg-slate-800 p-0.5 shadow-md ring-1 ring-slate-200 dark:ring-slate-700">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-white dark:bg-slate-800 p-0.5 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
                     <img
                       src={
                         blog.user?.photoURL ||
@@ -316,44 +314,38 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
                       alt={blog.author}
                     />
                   </div>
-                  <div className="text-left">
-                    <p className="text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-0.5">
-                      Author
-                    </p>
-                    <p className="font-bold text-slate-900 dark:text-white text-base">
-                      {blog.user?.displayName || blog.author}
-                    </p>
-                  </div>
+                  <span className="text-slate-700 dark:text-slate-200 font-bold">
+                    {blog.user?.displayName || blog.author}
+                  </span>
                 </div>
+
+                <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
 
                 {/* Date */}
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center text-amber-500 shadow-md ring-1 ring-slate-200 dark:ring-slate-700 text-lg">
-                    <i className="far fa-calendar-alt"></i>
-                  </div>
-                  <div className="text-left">
-                    <p className="text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-0.5">
-                      Published
-                    </p>
-                    <p className="font-bold text-slate-900 dark:text-white text-base">
-                      {formatUserDate(getPublishDate(), currentUser, 'detailed')}
-                    </p>
-                  </div>
+                <div className="flex items-center gap-1.5">
+                  <i className="far fa-calendar-alt text-amber-500/80"></i>
+                  <span>
+                    {formatUserDate(getPublishDate(), currentUser, 'detailed')}
+                  </span>
                 </div>
-              </div>
 
-              {/* Last Updated (Strict Logic: Only show if valid and different) */}
-              {shouldShowUpdatedDate() && (
-                <div className="mt-6 text-[10px] font-mono text-slate-400 bg-white/50 dark:bg-slate-800/50 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700">
-                  <i className="fas fa-edit mr-2 text-amber-500"></i>
-                  Last Updated:{' '}
-                  {formatUserDate(blog.updatedAt || blog.updatedDate, currentUser, 'detailed')}
-                </div>
-              )}
+                {/* Last Updated */}
+                {shouldShowUpdatedDate() && (
+                  <>
+                    <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
+                    <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-400 bg-white/40 dark:bg-slate-800/40 px-2 py-0.5 rounded-full border border-slate-200/50 dark:border-slate-700/50">
+                      <i className="fas fa-edit text-amber-500/80"></i>
+                      <span>
+                        Updated: {formatUserDate(blog.updatedAt || blog.updatedDate, currentUser, 'detailed')}
+                      </span>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {blog?.iframeUrl ? (
         <ExternalFramePost src={blog.iframeUrl} title={blog.name} />
@@ -362,7 +354,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
         <div className="max-w-5xl mx-auto">
           {/* Featured Image */}
           {blog?.image && !isImageError ? (
-            <div className="w-full aspect-[21/9] rounded-2xl overflow-hidden mb-12 shadow-xl bg-slate-100 dark:bg-slate-800 relative content-visibility-auto">
+            <div className="w-full aspect-[21/9] rounded-2xl overflow-hidden mb-8 shadow-xl bg-slate-100 dark:bg-slate-800 relative content-visibility-auto">
               <img
                 src={blog.image}
                 alt={blog.name}
@@ -373,7 +365,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
               />
             </div>
           ) : blog?.image && isImageError ? (
-            <div className="w-full h-px bg-slate-200 dark:bg-slate-800 mb-12"></div>
+            <div className="w-full h-px bg-slate-200 dark:bg-slate-800 mb-8"></div>
           ) : null}
 
           {/* Content Area */}

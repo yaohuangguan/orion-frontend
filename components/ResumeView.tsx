@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { useTranslation } from '../i18n/LanguageContext';
 import { PageView, User } from '../types';
 import { createPortal } from 'react-dom';
+import { LikeButton } from './LikeButton';
 
 // --- Star Compass Component ---
 const StarCompass = () => {
@@ -22,46 +23,48 @@ const StarCompass = () => {
   };
 
   return (
-    <div
-      ref={compassRef}
-      onMouseMove={handleMouseMove}
-      className="relative w-64 h-64 md:w-80 md:h-80 mx-auto group cursor-crosshair"
-    >
-      {/* Outer Ring */}
-      <div className="absolute inset-0 rounded-full border-2 border-slate-200 dark:border-slate-800 opacity-50 group-hover:opacity-100 transition-opacity"></div>
-      <div className="absolute inset-2 rounded-full border border-dashed border-amber-500/30 group-hover:border-amber-500/60 transition-colors animate-[spin_60s_linear_infinite]"></div>
-
-      {/* Labels */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 text-xs font-mono font-bold text-slate-400">
-        N
-      </div>
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs font-mono font-bold text-slate-400">
-        S
-      </div>
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-slate-400">
-        W
-      </div>
-      <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-slate-400">
-        E
-      </div>
-
-      {/* Rotating Needle Container */}
+    <div className="bg-[#0b0f19] dark:bg-slate-950/40 rounded-3xl p-8 border border-slate-800/80 shadow-2xl relative max-w-sm mx-auto select-none">
       <div
-        className="absolute inset-0 flex items-center justify-center transition-transform duration-100 ease-out"
-        style={{ transform: `rotate(${rotation}deg)` }}
+        ref={compassRef}
+        onMouseMove={handleMouseMove}
+        className="relative w-64 h-64 md:w-72 md:h-72 mx-auto group cursor-crosshair"
       >
-        {/* Needle */}
-        <div className="relative w-8 h-full">
-          <div className="absolute top-8 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[60px] border-b-amber-500 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div>
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[60px] border-t-slate-300 dark:border-t-slate-700"></div>
-          {/* Center Cap */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-slate-900 dark:bg-white rounded-full border-2 border-amber-500 z-10"></div>
-        </div>
-      </div>
+        {/* Outer Ring */}
+        <div className="absolute inset-0 rounded-full border-2 border-slate-700/50 dark:border-slate-800/60 opacity-60 group-hover:opacity-100 transition-opacity"></div>
+        <div className="absolute inset-2 rounded-full border border-dashed border-amber-500/30 group-hover:border-amber-500/60 transition-colors animate-[spin_60s_linear_infinite]"></div>
 
-      {/* Hover Label */}
-      <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-xs font-mono text-amber-500 uppercase tracking-widest whitespace-nowrap">
-        Interstellar Compass
+        {/* Labels */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 text-xs font-mono font-bold text-slate-500">
+          N
+        </div>
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs font-mono font-bold text-slate-500">
+          S
+        </div>
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-slate-500">
+          W
+        </div>
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-slate-500">
+          E
+        </div>
+
+        {/* Rotating Needle Container */}
+        <div
+          className="absolute inset-0 flex items-center justify-center transition-transform duration-100 ease-out"
+          style={{ transform: `rotate(${rotation}deg)` }}
+        >
+          {/* Needle */}
+          <div className="relative w-8 h-full">
+            <div className="absolute top-8 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[60px] border-b-amber-500 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div>
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[60px] border-t-slate-700"></div>
+            {/* Center Cap */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-slate-900 dark:bg-white rounded-full border-2 border-amber-500 z-10"></div>
+          </div>
+        </div>
+
+        {/* Hover Label */}
+        <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-xs font-mono text-amber-500 uppercase tracking-widest whitespace-nowrap">
+          Interstellar Compass
+        </div>
       </div>
     </div>
   );
@@ -92,33 +95,50 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
   const sections = t.resume.websiteIntro.sections as any;
 
   return (
-    <div className="container mx-auto px-6 py-24 pt-32 max-w-5xl animate-fade-in relative z-10">
+    <div className="container mx-auto px-6 py-12 pt-20 max-w-5xl animate-fade-in relative z-10">
       {/* 1. Header & Identity */}
-      <div className="mb-20 text-center">
-        <div className="inline-block p-4 rounded-full bg-gradient-to-tr from-amber-400 to-amber-600 mb-8 shadow-[0_0_30px_rgba(245,158,11,0.3)]">
-          <i className="fas fa-user-astronaut text-4xl text-white"></i>
+      <div className="mb-10 text-center">
+        <div className="inline-block p-3 rounded-full bg-gradient-to-tr from-primary-400 to-primary-600 mb-4 shadow-[0_0_20px_rgba(var(--color-primary-500),0.25)]">
+          <i className="fas fa-user-astronaut text-2xl text-white"></i>
         </div>
-        <h1 className="text-6xl md:text-7xl font-display font-bold text-slate-900 dark:text-white mb-6 tracking-tight">
-          Sam <span className="text-amber-500">Yao</span>
+        <h1 className="text-4xl md:text-5xl font-display font-bold text-slate-900 dark:text-white mb-3 tracking-tight">
+          Sam <span className="text-primary-500">Yao</span>
         </h1>
-        <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 font-light max-w-3xl mx-auto leading-relaxed mb-4">
+        <p className="text-lg md:text-xl text-slate-600 dark:text-slate-300 font-light max-w-3xl mx-auto leading-relaxed mb-2">
           {t.resume.bio}
         </p>
-        <p className="text-sm font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest max-w-3xl mx-auto">
+        <p className="text-xs font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest max-w-3xl mx-auto">
           {t.resume.credentials}
         </p>
 
-        <div className="flex justify-center gap-6 mt-8 text-slate-400">
+        <div className="flex justify-center gap-6 mt-4 text-slate-400">
           <span className="flex items-center gap-2 text-sm uppercase tracking-widest font-bold">
-            <i className="fas fa-map-marker-alt text-amber-500"></i> {t.resume.basedIn}
+            <i className="fas fa-map-marker-alt text-primary-500"></i> {t.resume.basedIn}
           </span>
           <span className="flex items-center gap-2 text-sm uppercase tracking-widest font-bold">
-            <i className="fas fa-code text-amber-500"></i> Full Stack
+            <i className="fas fa-code text-primary-500"></i> Full Stack
           </span>
           <span className="flex items-center gap-2 text-sm uppercase tracking-widest font-bold">
-            <i className="fas fa-chart-line text-amber-500"></i> Trader
+            <i className="fas fa-chart-line text-primary-500"></i> Trader
           </span>
         </div>
+
+        {/* About Sam Biography Section */}
+        {t.resume.aboutP1 && (
+          <div className="mt-8 max-w-3xl mx-auto border-t border-slate-200/50 dark:border-slate-800/50 pt-8 text-center">
+            <h2 className="font-serif font-bold text-2xl text-slate-900 dark:text-white mb-4 tracking-tight">
+              {t.resume.aboutTitle}
+            </h2>
+            <div className="space-y-4 text-sm text-slate-600 dark:text-slate-300 font-light leading-relaxed text-justify md:text-center">
+              <p>{t.resume.aboutP1}</p>
+              <p>{t.resume.aboutP2}</p>
+              <p>{t.resume.aboutP3}</p>
+            </div>
+
+            {/* Encapsulated Like Button */}
+            <LikeButton />
+          </div>
+        )}
       </div>
 
       {/* 2. Site Introduction / Features Grid (REDESIGNED BENTO GRID) */}
@@ -135,76 +155,94 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
         </div>
 
         {/* Bento Grid Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* CARD 1: JOURNAL (Large) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* CARD 1: JOURNAL */}
           <div
             onClick={() => onNavigate(PageView.BLOG)}
-            className="md:col-span-1 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-slate-900 dark:to-slate-800 rounded-[2rem] p-8 border border-slate-200 dark:border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer group relative overflow-hidden"
+            className="group relative flex flex-col justify-between bg-white/60 dark:bg-slate-900/60 backdrop-blur-md rounded-[2.5rem] p-8 border border-slate-200/50 dark:border-slate-800/80 shadow-md hover:shadow-2xl hover:shadow-primary-500/10 hover:-translate-y-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 cursor-pointer overflow-hidden"
           >
-            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
-              <i className="fas fa-book-open text-9xl text-amber-500"></i>
-            </div>
-            <div className="relative z-10 flex flex-col h-full">
-              <div className="w-14 h-14 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-xl shadow-lg shadow-amber-500/20 mb-6">
+            {/* Top gradient highlight bar */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary-400 to-indigo-500 opacity-80 group-hover:opacity-100 transition-opacity"></div>
+            
+            {/* Subtle background glow */}
+            <div className="absolute -right-20 -top-20 w-48 h-48 rounded-full bg-primary-400/10 blur-3xl group-hover:bg-primary-400/20 transition-all duration-500"></div>
+
+            <div className="relative z-10">
+              <div className="w-12 h-12 rounded-2xl bg-primary-500/10 text-primary-600 dark:text-primary-400 flex items-center justify-center text-lg mb-6 group-hover:scale-110 transition-transform duration-500">
                 <i className="fas fa-pen-nib"></i>
               </div>
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+              <h3 className="text-xl font-bold font-serif text-slate-800 dark:text-white mb-3 tracking-tight group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors duration-300">
                 {t.resume.siteIntro.journalTitle}
               </h3>
-              <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-8">
+              <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed font-light mb-8">
                 {t.resume.siteIntro.journalDesc}
               </p>
-              <div className="mt-auto flex items-center text-amber-600 dark:text-amber-400 font-bold text-sm uppercase tracking-wider group-hover:gap-2 transition-all">
-                <span>Read Logs</span> <i className="fas fa-arrow-right ml-2"></i>
-              </div>
+            </div>
+
+            <div className="relative z-10">
+              <span className="inline-flex items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full border border-slate-200/60 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 text-slate-600 dark:text-slate-300 group-hover:bg-primary-500 group-hover:text-white group-hover:border-transparent transition-all duration-300">
+                <span>Read Logs</span> <i className="fas fa-arrow-right transition-transform group-hover:translate-x-1 duration-300"></i>
+              </span>
             </div>
           </div>
 
-          {/* CARD 2: PROFILE/RESUME PAGE LINK (Center Feature) - Updated to new PageView.RESUME */}
+          {/* CARD 2: PROFILE/RESUME */}
           <div
             onClick={() => onNavigate(PageView.RESUME)}
-            className="md:col-span-1 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 rounded-[2rem] p-8 border border-slate-200 dark:border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer group relative overflow-hidden"
+            className="group relative flex flex-col justify-between bg-white/60 dark:bg-slate-900/60 backdrop-blur-md rounded-[2.5rem] p-8 border border-slate-200/50 dark:border-slate-800/80 shadow-md hover:shadow-2xl hover:shadow-blue-500/10 hover:-translate-y-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 cursor-pointer overflow-hidden"
           >
-            <div className="absolute bottom-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
-              <i className="fas fa-archive text-9xl text-blue-500"></i>
-            </div>
-            <div className="relative z-10 flex flex-col h-full">
-              <div className="w-14 h-14 rounded-2xl bg-blue-500 text-white flex items-center justify-center text-xl shadow-lg shadow-blue-500/20 mb-6">
+            {/* Top gradient highlight bar */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-400 to-cyan-500 opacity-80 group-hover:opacity-100 transition-opacity"></div>
+            
+            {/* Subtle background glow */}
+            <div className="absolute -right-20 -top-20 w-48 h-48 rounded-full bg-blue-400/10 blur-3xl group-hover:bg-blue-400/20 transition-all duration-500"></div>
+
+            <div className="relative z-10">
+              <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg mb-6 group-hover:scale-110 transition-transform duration-500">
                 <i className="fas fa-history"></i>
               </div>
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+              <h3 className="text-xl font-bold font-serif text-slate-800 dark:text-white mb-3 tracking-tight group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors duration-300">
                 {t.resume.siteIntro.profileTitle}
               </h3>
-              <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-8">
+              <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed font-light mb-8">
                 {t.resume.siteIntro.profileDesc}
               </p>
-              <div className="mt-auto flex items-center text-blue-600 dark:text-blue-400 font-bold text-sm uppercase tracking-wider group-hover:gap-2 transition-all">
-                <span>Access Archives</span> <i className="fas fa-arrow-right ml-2"></i>
-              </div>
+            </div>
+
+            <div className="relative z-10">
+              <span className="inline-flex items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full border border-slate-200/60 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 text-slate-600 dark:text-slate-300 group-hover:bg-blue-500 group-hover:text-white group-hover:border-transparent transition-all duration-300">
+                <span>Access Archives</span> <i className="fas fa-arrow-right transition-transform group-hover:translate-x-1 duration-300"></i>
+              </span>
             </div>
           </div>
 
-          {/* CARD 3: STAR COMM (Compact) */}
+          {/* CARD 3: CHAT */}
           <div
             onClick={handleChatClick}
-            className="md:col-span-1 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-900 dark:to-slate-800 rounded-[2rem] p-8 border border-slate-200 dark:border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer group relative overflow-hidden"
+            className="group relative flex flex-col justify-between bg-white/60 dark:bg-slate-900/60 backdrop-blur-md rounded-[2.5rem] p-8 border border-slate-200/50 dark:border-slate-800/80 shadow-md hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 cursor-pointer overflow-hidden"
           >
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-5 group-hover:opacity-10 transition-opacity">
-              <i className="fas fa-satellite-dish text-[12rem] text-purple-500"></i>
-            </div>
-            <div className="relative z-10 flex flex-col h-full">
-              <div className="w-14 h-14 rounded-2xl bg-purple-500 text-white flex items-center justify-center text-xl shadow-lg shadow-purple-500/20 mb-6">
+            {/* Top gradient highlight bar */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-purple-400 to-pink-500 opacity-80 group-hover:opacity-100 transition-opacity"></div>
+            
+            {/* Subtle background glow */}
+            <div className="absolute -right-20 -top-20 w-48 h-48 rounded-full bg-purple-400/10 blur-3xl group-hover:bg-purple-400/20 transition-all duration-500"></div>
+
+            <div className="relative z-10">
+              <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg mb-6 group-hover:scale-110 transition-transform duration-500">
                 <i className="fas fa-comments"></i>
               </div>
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+              <h3 className="text-xl font-bold font-serif text-slate-800 dark:text-white mb-3 tracking-tight group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors duration-300">
                 {t.resume.siteIntro.chatTitle}
               </h3>
-              <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-8">
+              <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed font-light mb-8">
                 {t.resume.siteIntro.chatDesc}
               </p>
-              <div className="mt-auto flex items-center text-purple-600 dark:text-purple-400 font-bold text-sm uppercase tracking-wider group-hover:gap-2 transition-all">
-                <span>Initialize Link</span> <i className="fas fa-arrow-right ml-2"></i>
-              </div>
+            </div>
+
+            <div className="relative z-10">
+              <span className="inline-flex items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full border border-slate-200/60 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 text-slate-600 dark:text-slate-300 group-hover:bg-purple-500 group-hover:text-white group-hover:border-transparent transition-all duration-300">
+                <span>Initialize Link</span> <i className="fas fa-arrow-right transition-transform group-hover:translate-x-1 duration-300"></i>
+              </span>
             </div>
           </div>
         </div>
@@ -216,9 +254,9 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
           <StarCompass />
 
           {/* Orion Explanation */}
-          <div className="mt-12 text-center max-w-md mx-auto bg-white/50 dark:bg-slate-900/50 backdrop-blur-md rounded-3xl p-8 border border-amber-500/10 shadow-xl">
+          <div className="mt-12 text-center max-w-md mx-auto bg-white/50 dark:bg-slate-900/50 backdrop-blur-md rounded-3xl p-8 border border-primary-500/10 shadow-xl">
             <div className="mb-4">
-              <h3 className="text-3xl font-display font-bold text-slate-900 dark:text-white uppercase tracking-widest inline-block border-b-2 border-amber-500 pb-1">
+              <h3 className="text-3xl font-display font-bold text-slate-900 dark:text-white uppercase tracking-widest inline-block border-b-2 border-primary-500 pb-1">
                 Orion
               </h3>
               <p className="text-xs font-mono text-slate-400 mt-2">/əˈraɪən/</p>
@@ -226,9 +264,9 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
 
             <div className="space-y-4 text-sm text-slate-600 dark:text-slate-300 font-light leading-relaxed">
               <p>
-                <strong className="text-amber-600 dark:text-amber-500">Or</strong>{' '}
+                <strong className="text-primary-600 dark:text-primary-500">Or</strong>{' '}
                 {t.resume.orion.etymology1} +{' '}
-                <strong className="text-amber-600 dark:text-amber-500">Orion</strong>{' '}
+                <strong className="text-primary-600 dark:text-primary-500">Orion</strong>{' '}
                 {t.resume.orion.etymology2}
               </p>
               <p className="opacity-90">{t.resume.orion.description}</p>
@@ -250,9 +288,9 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
             <div className="flex flex-col gap-4">
               <a
                 href="mailto:moviegoer24@gmail.com"
-                className="group flex items-center gap-4 text-slate-600 dark:text-slate-400 hover:text-amber-500 transition-colors bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-amber-500/30"
+                className="group flex items-center gap-4 text-slate-600 dark:text-slate-400 hover:text-primary-500 transition-colors bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary-500/30"
               >
-                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary-500 group-hover:text-white transition-colors">
                   <i className="fas fa-envelope text-sm"></i>
                 </div>
                 <div className="flex flex-col">
@@ -266,9 +304,9 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
                 href="https://github.com/yaohuangguan"
                 target="_blank"
                 rel="noreferrer"
-                className="group flex items-center gap-4 text-slate-600 dark:text-slate-400 hover:text-amber-500 transition-colors bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-amber-500/30"
+                className="group flex items-center gap-4 text-slate-600 dark:text-slate-400 hover:text-primary-500 transition-colors bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary-500/30"
               >
-                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary-500 group-hover:text-white transition-colors">
                   <i className="fab fa-github text-sm"></i>
                 </div>
                 <div className="flex flex-col">
@@ -292,7 +330,7 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
               </p>
               <button
                 onClick={() => setShowSpecs(true)}
-                className="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:text-amber-500 dark:hover:text-amber-400 hover:border-amber-500 dark:hover:border-amber-500 transition-all flex items-center gap-2 group"
+                className="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:text-primary-500 dark:hover:text-primary-400 hover:border-primary-500 dark:hover:border-primary-500 transition-all flex items-center gap-2 group"
               >
                 <i className="fas fa-sitemap group-hover:animate-pulse"></i>
                 {t.resume.websiteIntro.viewSpecs}
@@ -412,7 +450,7 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
                   {/* Tech Stack */}
                   <div>
                     <div className="flex items-center gap-3 mb-6">
-                      <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 flex items-center justify-center text-xl shadow-sm">
+                      <div className="w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-900/30 text-primary-600 flex items-center justify-center text-xl shadow-sm">
                         <i className="fas fa-layer-group"></i>
                       </div>
                       <div>

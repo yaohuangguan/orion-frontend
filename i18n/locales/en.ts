@@ -34,8 +34,7 @@ export const en = {
     title2: 'the Unknown',
     introPrefix: 'I am ',
     introName: 'Sam',
-    introSuffix:
-      '. Navigating the digital cosmos, building robust architectures, and exploring the frontiers of Artificial Intelligence.',
+    introSuffix: '. Welcome to my digital workspace—a place where I share my personal insights, professional resume, and engineering projects. As a full-stack developer, building this space is a labor of love and a true hobby of mine. It brings me immense joy, and I hope it brings you a sense of happiness and inspiration as well.',
     ctaPrimary: 'Explore Journal',
     ctaSecondary: 'Orion Applications'
   },
@@ -451,7 +450,11 @@ export const en = {
         description: 'Revolutionized food automation with 3D printing technology (NASA Spin-off).',
         color: 'bg-slate-500'
       }
-    ]
+    ],
+    aboutTitle: 'About Sam',
+    aboutP1: 'I chose software engineering because I love seeing how the code I write genuinely improves people\'s lives and daily workflows. At Tencent Cloud, upgrading the CI/CD platform and watching my developer colleagues build and deploy their code noticeably faster gave me a real sense of accomplishment. Later at Lalamove, seeing driver app features I built make the day-to-day work easier for real drivers was deeply rewarding. What I enjoy most about this career is taking complex technical challenges and turning them into practical, reliable tools that deliver immediate value to users.',
+    aboutP2: 'Currently, I’m completing my Master of Information Technology at the University of Auckland, where I’m sharpening my understanding of advanced computer science concepts and local tech practices. On the practical side, I actively practice building modern full-stack web applications, focusing on React, TypeScript, Node.js, and cloud infrastructure. I have successfully completed core subjects including COMPSCI 734 (Web, Mobile and Enterprise Computing), COMPSCI 742 (Advanced Internet: Global Data Communications), INFOSYS 735 (Cloud Computing Architecture), and DIGIHLTH 706 (Health Data Analytics). I’m also serving as a Class Representative for COMPSCI 734, which lets me practice clear communication, gather feedback, and bridge the gap between students and teaching staff in an academic environment.',
+    aboutP3: 'What sets me apart is a uniquely broad perspective shaped by my full-stack Engineer experience across Shenzhen, Hong Kong, and the US, alongside hands-on entrepreneurial experience in running an investment venture. This background taught me to look at software through both a business and technical lens, ownership, and how to deliver results under real pressure. Combined with strong cross-functional teamwork, I can integrate into a codebase on day one, communicate seamlessly, and reliably see complex tasks through to completion. Reflecting on my engineering journey, I am deeply proud of the systems I’ve helped build and the people I’ve had the privilege to support along the way. I am immensely grateful for every opportunity that has shaped who I am today. Regardless of the outcome, I am genuinely at peace and deeply thankful for the opportunity that I have been given and connect with you.'
   },
   comments: {
     title: 'Comms Channel',

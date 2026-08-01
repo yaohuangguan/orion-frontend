@@ -353,8 +353,57 @@ const App: React.FC = () => {
     }
   };
 
+  const playSwitchSound = (turnOn: boolean) => {
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
+      const ctx = new AudioContextClass();
+      
+      // High-frequency contact click
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      const baseFreq = turnOn ? 1300 : 950;
+      
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(baseFreq, ctx.currentTime);
+      osc1.frequency.exponentialRampToValueAtTime(baseFreq * 1.4, ctx.currentTime + 0.012);
+      
+      gain1.gain.setValueAtTime(0.06, ctx.currentTime);
+      gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.012);
+      
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      
+      // Low-frequency mechanical spring resonance
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(turnOn ? 420 : 340, ctx.currentTime + 0.002);
+      osc2.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.03);
+      
+      gain2.gain.setValueAtTime(0.04, ctx.currentTime + 0.002);
+      gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.03);
+      
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      
+      osc1.start(ctx.currentTime);
+      osc1.stop(ctx.currentTime + 0.015);
+      
+      osc2.start(ctx.currentTime + 0.002);
+      osc2.stop(ctx.currentTime + 0.035);
+    } catch (e) {
+      console.warn('Audio switch playback blocked or not supported:', e);
+    }
+  };
+
   const toggleTheme = () => {
-    setTheme((prev) => (prev === Theme.LIGHT ? Theme.DARK : Theme.LIGHT));
+    setTheme((prev) => {
+      const nextTheme = prev === Theme.LIGHT ? Theme.DARK : Theme.LIGHT;
+      playSwitchSound(nextTheme === Theme.LIGHT);
+      return nextTheme;
+    });
   };
 
   // if (isAuthChecking) {

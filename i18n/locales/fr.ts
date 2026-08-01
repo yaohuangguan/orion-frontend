@@ -35,7 +35,7 @@ export const fr = {
     introPrefix: 'Je suis ',
     introName: 'Sam',
     introSuffix:
-      ". Naviguant dans le cosmos numérique, bâtissant des architectures robustes et explorant les frontières de l'Intelligence Artificielle.",
+      ". Bienvenue dans mon espace numérique, où je partage mes réflexions personnelles, mon CV et mes projets d'ingénierie. En tant que développeur full-stack, la création de ce site est un véritable passe-temps et une passion. Cela m'apporte énormément de joie, et j'espère sincèrement qu'il vous apportera également du bonheur et de l'inspiration.",
     ctaPrimary: 'Explorer le Journal',
     ctaSecondary: 'Profil Système'
   },
