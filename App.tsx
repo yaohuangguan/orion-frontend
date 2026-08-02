@@ -178,10 +178,10 @@ const App: React.FC = () => {
     if (savedTheme === Theme.DARK || savedTheme === Theme.LIGHT) {
       return savedTheme as Theme;
     }
-    // if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    //   return Theme.DARK;
-    // }
-    return Theme.DARK;
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return Theme.DARK;
+    }
+    return Theme.LIGHT;
   });
   const [user, setUser] = useState<User | null>(null);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
