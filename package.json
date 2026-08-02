@@ -1,7 +1,7 @@
 {
   "name": "orion",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "prepare": "husky",
     "sitemap": "node scripts/generate-sitemap.js",
-    "postbuild": "node scripts/run-snap.js"
+    "postbuild": "node scripts/run-snap.js",
+    "release": "standard-version -m \"chore(release): v%s [skip ci]\""
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -65,6 +66,7 @@
     "tailwindcss": "^4.1.18",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
-    "vite-plugin-pwa": "^1.2.0"
+    "vite-plugin-pwa": "^1.2.0",
+    "standard-version": "^9.5.0"
   }
 }
