@@ -50,6 +50,13 @@ export interface Permission {
   createdAt?: string;
 }
 
+export enum UserRole {
+  SuperAdmin = 'super_admin',
+  Admin = 'admin',
+  User = 'user',
+  Bot = 'bot'
+}
+
 export interface User {
   _id: string;
   displayName: string;
@@ -78,7 +85,8 @@ export const PERM_KEYS = {
   // --- User / Public ---
   BLOG_COMMENT: 'BLOG:INTERACT',
   BLOG_MANAGE: 'BLOG:MANAGE',
-
+  RESUME_USE: 'RESUME:USE',
+  RESUME_UPDATE: 'RESUME:UPDATE',
   // --- Private Space Modules ---
   PRIVATE_ACCESS: 'PRIVATE_DOMAIN:ACCESS', // Gatekeeper for Captain's Cabin
 
@@ -116,7 +124,7 @@ export const can = (user: User | null | undefined, permission: string): boolean 
   if (!user) return false;
 
   // 1. Role-based Super Admin Override
-  if (user.role === 'super_admin') return true;
+  if (user.role === UserRole.SuperAdmin) return true;
 
   // 2. Check Permission Array
   if (!user.permissions || !Array.isArray(user.permissions)) return false;

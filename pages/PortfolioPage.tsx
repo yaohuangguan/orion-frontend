@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { ProjectShowcase } from '../components/profile/ProjectShowcase';
 import { ResumeDocument } from '../components/profile/ResumeDocument';
 import { useTranslation } from '../i18n/LanguageContext';
-import { User } from '../types';
+import { User, UserRole } from '../types';
 import { Helmet } from 'react-helmet-async';
 
 interface PortfolioPageProps {
@@ -51,8 +51,8 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ currentUser }) => 
       </Helmet>
 
       {/* Page Header */}
-      <div className="text-center mb-16 relative">
-        {activeTab === 'RESUME' && currentUser?.role === 'super_admin' && (
+      <div className="text-center mb-8 relative">
+        {activeTab === 'RESUME' && currentUser?.role === UserRole.SuperAdmin && (
           <button
             onClick={() => handlePrint()}
             className="hidden md:flex absolute top-0 right-0 items-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full font-bold text-sm hover:opacity-90 transition-opacity shadow-lg"
@@ -70,11 +70,11 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ currentUser }) => 
       </div>
 
       {/* Tabs */}
-      <div className="flex justify-center mb-16">
-        <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-md p-1.5 rounded-full border border-slate-200 dark:border-slate-800 inline-flex shadow-sm">
+      <div className="flex justify-center mb-8">
+        <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-md p-1 rounded-full border border-slate-200 dark:border-slate-800 inline-flex shadow-sm">
           <button
             onClick={() => handleTabChange('RESUME')}
-            className={`px-8 py-3 rounded-full text-sm font-bold uppercase tracking-widest transition-all duration-300 ${
+            className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-300 ${
               activeTab === 'RESUME'
                 ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md'
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -84,7 +84,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ currentUser }) => 
           </button>
           <button
             onClick={() => handleTabChange('PROJECTS')}
-            className={`px-8 py-3 rounded-full text-sm font-bold uppercase tracking-widest transition-all duration-300 ${
+            className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-300 ${
               activeTab === 'PROJECTS'
                 ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md'
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'

@@ -370,7 +370,9 @@ export const en = {
           features: [
             'Interactive 3D-style Hero with dynamic status indicators.',
             'Transmission Log (Blog) with Markdown, tagging, and search.',
-            'Dual-mode Portfolio (Resume Document / Project Cards).',
+            'Dual-mode Portfolio: Professional interactive resume document / project showcase card deck.',
+            'Electronic Resume Management: Support creating multiple resumes for different target roles, with instant data persistence.',
+            'PDF Export & Layout Customization: Configure fonts, sizes, colors, margins, and page layouts, with one-click export to ATS-compatible text PDFs.',
             'AI Agents: Thinking Agent (Gemini 3.0 Pro) & Live Agent (Multimodal).'
           ]
         },

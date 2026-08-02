@@ -12,7 +12,7 @@ import { FitnessInputForm } from '../../components/private/fitness/FitnessInputF
 import { FitnessPhotoWall } from '../../components/private/fitness/FitnessPhotoWall';
 
 // Priority Users to Pin (Secondary fallback if logic needs it, but Role logic takes precedence now)
-const PRIORITY_EMAILS = ['yaob@miamioh.edu', 'cft_cool@hotmail.com'];
+const PRIORITY_EMAILS = ['moviegoer24@gmail.com', 'cenniferchen@gmail.com'];
 
 const toLocalDateStr = (date: Date) => {
   const y = date.getFullYear();

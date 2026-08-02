@@ -24,7 +24,7 @@ const EVENTS = {
 };
 
 // Priority Emails for sorting
-const PRIORITY_EMAILS = ['yaob@miamioh.edu', 'cft_cool@hotmail.com'];
+const PRIORITY_EMAILS = ['moviegoer24@gmail.com', 'cenniferchen@gmail.com'];
 
 export const ChatRoom: React.FC<ChatRoomProps> = ({ currentUser, socket, targetUser }) => {
   const { t } = useTranslation();

@@ -1,15 +1,93 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { apiService } from '../../services/api';
+import { authService } from '../../services/authService';
 import { API_BASE_URL } from '../../services/core';
-import { ResumeData, User } from '../../types';
+import { ResumeData, User, UserRole, PERM_KEYS } from '../../types';
 import { useTranslation } from '../../i18n/LanguageContext';
 import { toast } from '../Toast';
 import { ResumeEditModal } from './ResumeEditModal';
-import { ResumeLayoutSidebar } from './ResumeLayoutSidebar';
 import { ResumePaper } from './ResumePaper';
-import { safeKey } from './utils';
+import { safeKey, getNormalizedSectionOrder } from './utils';
+
+interface CustomSelectProps {
+  label?: string;
+  icon?: string;
+  value: string | number;
+  onChange: (val: any) => void;
+  options: Array<{ value: string | number; label: string; icon?: string }>;
+  disabled?: boolean;
+}
+
+const CustomSelect: React.FC<CustomSelectProps> = ({ label, icon, value, onChange, options, disabled }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const handleClose = (e: MouseEvent) => {
+      if (triggerRef.current && !triggerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('click', handleClose);
+    return () => document.removeEventListener('click', handleClose);
+  }, []);
+
+  const activeOption = options.find((o) => o.value === value) || options[0];
+
+  return (
+    <div className="space-y-1">
+      {label && (
+        <label className="block text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">
+          {label}
+        </label>
+      )}
+      <div className="relative">
+        <button
+          ref={triggerRef}
+          type="button"
+          disabled={disabled}
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full flex items-center justify-between gap-2 px-3 py-2 bg-slate-50 hover:bg-slate-100/30 dark:bg-slate-800/40 dark:hover:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700/60 rounded-xl text-xs font-bold text-slate-750 dark:text-slate-200 transition-all cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed text-left"
+        >
+          <div className="flex items-center gap-1.5 min-w-0">
+            {icon && <i className={`${icon} text-slate-400`}></i>}
+            {activeOption?.icon && <i className={`${activeOption.icon} text-slate-400`}></i>}
+            <span className="truncate">{activeOption?.label || value}</span>
+          </div>
+          <i className={`fas fa-chevron-down text-[9px] text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}></i>
+        </button>
+
+        {isOpen && (
+          <div className="absolute left-0 mt-1 w-full bg-white dark:bg-[#0f172a] border border-slate-200/60 dark:border-slate-800 rounded-xl shadow-xl z-50 py-1 max-h-60 overflow-y-auto animate-fade-in select-none">
+            {options.map((opt) => {
+              const isSelected = opt.value === value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => {
+                    onChange(opt.value);
+                    setIsOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-2 px-3 py-1.5 text-left text-xs transition-all ${
+                    isSelected
+                      ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-l-4 border-amber-500 font-semibold'
+                      : 'hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300'
+                  }`}
+                >
+                  {opt.icon && <i className={`${opt.icon} text-[10px]`}></i>}
+                  <span className="truncate">{opt.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 interface ResumeDocumentProps {
   currentUser?: User | null;
@@ -20,14 +98,24 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
     const { language } = useTranslation();
     const [searchParams] = useSearchParams();
     const urlUser = searchParams.get('user');
-    const defaultProfile = (urlUser || 'sam').trim().toLowerCase();
+    const mapLegacyUser = (user: string | null) => {
+      if (!user) return 'moviegoer24@gmail.com';
+      const trimmed = user.trim().toLowerCase();
+      if (trimmed === 'sam' || trimmed === 'samyao') return 'moviegoer24@gmail.com';
+      if (trimmed === 'jenny') return 'cenniferchen@gmail.com';
+      if (trimmed === 'yaob@miamioh.edu') return 'moviegoer24@gmail.com';
+      if (trimmed === 'cft_cool@hotmail.com') return 'cenniferchen@gmail.com';
+      return trimmed;
+    };
+
+    const defaultProfile = urlUser ? mapLegacyUser(urlUser) : (currentUser?.email || 'moviegoer24@gmail.com');
 
     const [resume, setResume] = useState<ResumeData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [targetProfile, setTargetProfile] = useState<string>(defaultProfile);
     const [currentSlug, setCurrentSlug] = useState<string>(defaultProfile);
-    const [resumeList, setResumeList] = useState<Array<{ slug: string; title: string; user: string }>>([]);
-    const [availableProfiles, setAvailableProfiles] = useState<string[]>(['sam', 'jenny', defaultProfile]);
+    const [resumeList, setResumeList] = useState<Array<{ slug: string; title: string; user: string; isHomepage?: boolean }>>([]);
+    const [availableUsers, setAvailableUsers] = useState<User[]>([]);
 
     // Layout and print settings
     const urlPdfMode = searchParams.get('pdfMode') || 'single-page';
@@ -51,7 +139,39 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
     const [editResume, setEditResume] = useState<ResumeData | null>(null);
     const [activeTab, setActiveTab] = useState<'BASICS' | 'WORK' | 'EDUCATION' | 'SKILLS' | 'VOLUNTEER' | 'INTEREST'>('BASICS');
 
-    const isVip = currentUser?.vip || currentUser?.role === 'super_admin' || currentUser?.role === 'admin';
+    const canUse =
+      currentUser?.role === UserRole.SuperAdmin ||
+      currentUser?.role === UserRole.Admin ||
+      currentUser?.permissions?.includes(PERM_KEYS.RESUME_USE) ||
+      currentUser?.permissions?.includes(PERM_KEYS.RESUME_UPDATE);
+
+    const canUpdate =
+      currentUser?.role === UserRole.SuperAdmin ||
+      currentUser?.role === UserRole.Admin ||
+      currentUser?.permissions?.includes(PERM_KEYS.RESUME_UPDATE);
+
+    const isVip = canUse;
+
+    const [isAccountOpen, setIsAccountOpen] = useState(false);
+    const [isVersionOpen, setIsVersionOpen] = useState(false);
+    const [isLayoutOpen, setIsLayoutOpen] = useState(false);
+    const [isPaperSizeOpen, setIsPaperSizeOpen] = useState(false);
+
+    useEffect(() => {
+      const handleGlobalClick = () => {
+        setIsAccountOpen(false);
+        setIsVersionOpen(false);
+        setIsLayoutOpen(false);
+        setIsPaperSizeOpen(false);
+      };
+      document.addEventListener('click', handleGlobalClick);
+      return () => document.removeEventListener('click', handleGlobalClick);
+    }, []);
+
+    const activeUserObj = availableUsers.find(
+      (u) => (u.email || u.phone || u._id || '').toLowerCase() === targetProfile.toLowerCase()
+    );
+    const activeResumeObj = resumeList.find((item) => item.slug === currentSlug);
 
     // Inline visual editing states
     const [activeInlineEdit, setActiveInlineEdit] = useState<{
@@ -71,36 +191,29 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
     }>({});
 
     useEffect(() => {
-      const loadProfiles = async () => {
+      const loadUsers = async () => {
         try {
-          const users = await apiService.getResumeUsers();
-          const rawList = [
-            'sam',
-            'jenny',
-            defaultProfile,
-            ...(currentUser?.displayName ? [currentUser.displayName] : []),
-            ...(Array.isArray(users) ? users : [])
-          ];
-          const normalized = rawList
-            .map((u) => (typeof u === 'string' ? u.trim().toLowerCase() : ''))
-            .filter(Boolean);
-          const uniqueProfiles = Array.from(new Set(normalized));
-          setAvailableProfiles(uniqueProfiles);
+          const res = await authService.getUsers(1, 1000, '', 'role', 'desc');
+          if (res && Array.isArray(res.data)) {
+            setAvailableUsers(res.data);
+          }
         } catch (e) {
-          console.error('Failed to load resume profiles', e);
-          const fallback = Array.from(
-            new Set(['sam', 'jenny', defaultProfile.toLowerCase().trim()].filter(Boolean))
-          );
-          setAvailableProfiles(fallback);
+          console.error('Failed to load users list for resume dropdown', e);
         }
       };
-      loadProfiles();
-    }, [defaultProfile, currentUser]);
+      loadUsers();
+    }, []);
 
     useEffect(() => {
-      setTargetProfile(defaultProfile);
-      setCurrentSlug(defaultProfile);
-    }, [defaultProfile]);
+      if (currentUser && currentUser.role !== UserRole.SuperAdmin) {
+        const myEmail = (currentUser.email || '').toLowerCase();
+        setTargetProfile(myEmail);
+        setCurrentSlug(myEmail);
+      } else {
+        setTargetProfile(defaultProfile);
+        setCurrentSlug(defaultProfile);
+      }
+    }, [defaultProfile, currentUser]);
 
     useEffect(() => {
       loadResumeAndList();
@@ -168,6 +281,49 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
       const cleanProfile = profile.trim().toLowerCase();
       setTargetProfile(cleanProfile);
       setCurrentSlug(cleanProfile);
+    };
+
+    const updateStyleSetting = async (key: string, val: any) => {
+      if (!resume) return;
+      const updated = {
+        ...resume,
+        styleSettings: {
+          ...(resume.styleSettings || {}),
+          [key]: val
+        }
+      };
+      setResume(updated);
+      await apiService.updateResume(updated, currentSlug);
+    };
+
+    const handlePdfModeChange = async (val: 'single-page' | 'multi-page') => {
+      setPdfMode(val);
+      await updateStyleSetting('pdfMode', val);
+    };
+
+    const handlePaperSizeChange = async (val: 'a4' | 'a3' | 'a5') => {
+      setPaperSize(val);
+      await updateStyleSetting('paperSize', val);
+    };
+
+    const handlePageLimitChange = async (limit: number) => {
+      if (!resume) return;
+      const updated = { ...resume, pageLimit: limit };
+      setResume(updated);
+      await apiService.updateResume(updated, currentSlug);
+    };
+
+    const handleMoveSection = async (idx: number, dir: 'up' | 'down') => {
+      if (!resume) return;
+      const order = [...getNormalizedSectionOrder(resume.sectionOrder)];
+      const targetIdx = dir === 'up' ? idx - 1 : idx + 1;
+      const temp = order[idx];
+      order[idx] = order[targetIdx];
+      order[targetIdx] = temp;
+
+      const updated = { ...resume, sectionOrder: order };
+      setResume(updated);
+      await apiService.updateResume(updated, currentSlug);
     };
 
     const handleExportPdf = () => {
@@ -511,170 +667,6 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
 
     return (
       <div className="relative">
-        {/* Admin Controls */}
-        {isVip && (
-          <div className="mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xl shadow-slate-200/30 dark:shadow-none transition-all duration-300 print:hidden max-w-4xl mx-auto animate-fade-in">
-            {/* Left Side: Profile & Version Selectors */}
-            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-              {/* Account Selector */}
-              <div className="relative flex items-center bg-slate-100/80 dark:bg-slate-800/80 hover:bg-slate-200/80 dark:hover:bg-slate-800 transition-all rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-1.5 shadow-inner">
-                <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 pl-2 pr-1 select-none">
-                  <i className="fas fa-user-circle text-amber-500 text-sm"></i>
-                  <span>{language === 'zh' ? '账号' : 'Account'}</span>
-                </span>
-                <div className="relative flex items-center">
-                  <select
-                    value={targetProfile.toLowerCase()}
-                    onChange={(e) => handleProfileChange(e.target.value)}
-                    className="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg pl-3 pr-7 py-1 text-xs font-bold text-slate-800 dark:text-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-all cursor-pointer shadow-sm min-w-[100px]"
-                  >
-                    {availableProfiles.map((p) => (
-                      <option key={p} value={p} className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200">
-                        {formatProfileName(p)}
-                      </option>
-                    ))}
-                  </select>
-                  <i className="fas fa-chevron-down text-[9px] text-slate-400 dark:text-slate-500 absolute right-2.5 pointer-events-none"></i>
-                </div>
-              </div>
-
-              {/* Resume Version Selector */}
-              {resumeList.length > 0 && (
-                <div className="relative flex items-center bg-slate-100/80 dark:bg-slate-800/80 hover:bg-slate-200/80 dark:hover:bg-slate-800 transition-all rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-1.5 shadow-inner">
-                  <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 pl-2 pr-1 select-none">
-                    <i className="fas fa-layer-group text-sky-500 text-sm"></i>
-                    <span>{language === 'zh' ? '版本' : 'Version'}</span>
-                  </span>
-                  <div className="relative flex items-center">
-                    <select
-                      value={currentSlug}
-                      onChange={(e) => setCurrentSlug(e.target.value)}
-                      className="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg pl-3 pr-7 py-1 text-xs font-bold text-slate-800 dark:text-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 cursor-pointer max-w-[160px] truncate transition-all shadow-sm"
-                    >
-                      {resumeList.map((item) => (
-                        <option key={item.slug} value={item.slug} className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200">
-                          {item.title || item.slug}
-                        </option>
-                      ))}
-                    </select>
-                    <i className="fas fa-chevron-down text-[9px] text-slate-400 dark:text-slate-500 absolute right-2.5 pointer-events-none"></i>
-                  </div>
-                </div>
-              )}
-
-              {/* Layout Mode Selector */}
-              <div className="relative flex items-center bg-slate-100/80 dark:bg-slate-800/80 hover:bg-slate-200/80 dark:hover:bg-slate-800 transition-all rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-1.5 shadow-inner">
-                <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 pl-2 pr-1 select-none">
-                  <i className="fas fa-file-alt text-purple-500 text-sm"></i>
-                  <span>{language === 'zh' ? '版式' : 'Layout'}</span>
-                </span>
-                <div className="relative flex items-center">
-                  <select
-                    value={pdfMode}
-                    onChange={(e) => setPdfMode(e.target.value as any)}
-                    className="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg pl-3 pr-7 py-1 text-xs font-bold text-slate-800 dark:text-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 cursor-pointer transition-all shadow-sm"
-                  >
-                    <option value="single-page">{language === 'zh' ? '连续长页' : 'Continuous'}</option>
-                    <option value="multi-page">{language === 'zh' ? '分页打印' : 'Paginated'}</option>
-                  </select>
-                  <i className="fas fa-chevron-down text-[9px] text-slate-400 dark:text-slate-500 absolute right-2.5 pointer-events-none"></i>
-                </div>
-              </div>
-
-              {/* Paper Size Selector (Only in Paginated Mode) */}
-              {pdfMode === 'multi-page' && (
-                <div className="relative flex items-center bg-slate-100/80 dark:bg-slate-800/80 hover:bg-slate-200/80 dark:hover:bg-slate-800 transition-all rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-1.5 shadow-inner">
-                  <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 pl-2 pr-1 select-none">
-                    <i className="fas fa-ruler-combined text-indigo-500 text-sm"></i>
-                    <span>{language === 'zh' ? '尺寸' : 'Size'}</span>
-                  </span>
-                  <div className="relative flex items-center">
-                    <select
-                      value={paperSize}
-                      onChange={(e) => setPaperSize(e.target.value as any)}
-                      className="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg pl-3 pr-7 py-1 text-xs font-bold text-slate-800 dark:text-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 cursor-pointer transition-all shadow-sm"
-                    >
-                      <option value="a4">A4</option>
-                      <option value="a3">A3</option>
-                      <option value="a5">A5</option>
-                    </select>
-                    <i className="fas fa-chevron-down text-[9px] text-slate-400 dark:text-slate-500 absolute right-2.5 pointer-events-none"></i>
-                  </div>
-                </div>
-              )}
-
-              <button
-                type="button"
-                onClick={handleCreateVersion}
-                title={language === 'zh' ? '新建简历版本' : 'Create New Version'}
-                className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 rounded-xl transition-all duration-200 text-xs font-extrabold flex items-center gap-1.5 shadow-md hover:shadow-lg active:scale-95 border border-amber-400/30"
-              >
-                <i className="fas fa-plus text-[10px]"></i>
-                <span>{language === 'zh' ? '新建' : 'New'}</span>
-              </button>
-            </div>
-
-            {/* Right Side: Action Buttons (Edit, Delete) */}
-            <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-              {resume && (
-                <>
-                  {/* Set Default Homepage Button / Badge */}
-                  {isVip && (
-                    resume.isHomepage ? (
-                      <span className="px-3 py-2 text-xs font-bold uppercase rounded-xl flex items-center gap-1.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 select-none">
-                        <i className="fas fa-home text-[10px]"></i>
-                        <span>{language === 'zh' ? '已设为首页默认' : 'Default Homepage'}</span>
-                      </span>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={handleSetDefault}
-                        title={language === 'zh' ? '设为未登录用户的首页默认展示简历' : 'Set as default homepage resume'}
-                        className="px-3.5 py-2 text-xs font-bold uppercase rounded-xl transition-all duration-200 flex items-center gap-2 shadow-md bg-sky-50 hover:bg-sky-100 text-sky-600 border border-sky-200/50 dark:bg-sky-950/30 dark:hover:bg-sky-950/50 dark:text-sky-400 dark:border-sky-900/30 hover:shadow-lg active:scale-95"
-                      >
-                        <i className="fas fa-home text-[10px]"></i>
-                        <span>{language === 'zh' ? '设为首页默认' : 'Set default'}</span>
-                      </button>
-                    )
-                  )}
-
-                  {/* Delete Button */}
-                  <button
-                    type="button"
-                    onClick={handleDeleteVersion}
-                    title={language === 'zh' ? '删除当前版本' : 'Delete current version'}
-                    className="px-4 py-2 text-xs font-bold uppercase rounded-xl transition-all duration-200 flex items-center gap-2 shadow-md bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/50 dark:bg-rose-950/30 dark:hover:bg-rose-950/50 dark:text-rose-400 dark:border-rose-900/30 hover:shadow-lg active:scale-95"
-                  >
-                    <i className="fas fa-trash text-[10px]"></i>
-                    <span>{language === 'zh' ? '删除版本' : 'Delete'}</span>
-                  </button>
-
-                  {/* Edit Button */}
-                  <button
-                    type="button"
-                    onClick={handleEditOpen}
-                    className="px-5 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-amber-500 dark:hover:bg-amber-400 text-white dark:text-black text-xs font-bold uppercase rounded-xl hover:shadow-lg transition-all duration-200 flex items-center gap-2 shadow-md active:scale-95 border border-transparent dark:border-amber-400/20 font-extrabold"
-                  >
-                    <i className="fas fa-edit text-[10px]"></i>
-                    <span>{language === 'zh' ? '编辑简历' : 'Edit'}</span>
-                  </button>
-
-                  {/* Export ATS PDF Button */}
-                  <button
-                    type="button"
-                    onClick={handleExportPdf}
-                    title={language === 'zh' ? '导出 ATS 可选文本 PDF' : 'Export ATS Text PDF'}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase rounded-xl hover:shadow-lg transition-all duration-200 flex items-center gap-2 shadow-md active:scale-95 border border-emerald-500/30 font-extrabold"
-                  >
-                    <i aria-hidden="true" className="fas fa-file-pdf text-[11px]"></i>
-                    <span>{language === 'zh' ? '导出 PDF' : 'Export PDF'}</span>
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Edit Modal Component */}
         <ResumeEditModal
           isEditing={isEditing}
@@ -692,71 +684,436 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
           handleSave={handleSave}
         />
 
-        {/* Resume Content / Placeholder */}
-        {!resume ? (
-          <div className="bg-white rounded-[2rem] shadow-xl border border-slate-200 p-16 max-w-4xl mx-auto text-center font-sans text-slate-800 dark:bg-[#0b1120] dark:border-slate-800 dark:text-slate-300">
-            <div className="max-w-md mx-auto space-y-6">
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 mb-2">
-                <i className="fas fa-file-invoice text-3xl"></i>
-              </div>
-              <h2 className="text-2xl font-bold tracking-tight text-slate-950 dark:text-white">
-                {language === 'zh' ? '暂无简历内容' : 'No Resume Found'}
-              </h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                {language === 'zh'
-                  ? '该用户尚未创建任何简历版本。如果您有编辑权限，可以点击上方的“新建”按钮来初始化您的第一份简历。'
-                  : 'No resume versions are currently available for this user. If you have editing privileges, click the "New" button to initialize your first resume.'}
-              </p>
-              {isVip && (
+        {/* Main Layout Grid wrapper */}
+    <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 items-start justify-center px-4 w-full relative">
+      {/* Left: Combined Sidebar */}
+      {canUse && (
+        <div className="w-full lg:w-80 flex-shrink-0 bg-white/75 dark:bg-[#0f172a]/75 backdrop-blur-xl border border-slate-200/50 dark:border-slate-800/80 rounded-3xl p-5 shadow-xl space-y-5 sticky top-24 print:hidden z-40 max-h-[calc(100vh-8rem)] overflow-y-auto custom-scrollbar">
+          
+          {/* 1. Account & Version Management */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">
+              {language === 'zh' ? '管理控制 Dossier' : 'Dossier Control'}
+            </h3>
+
+            {/* Account Dropdown */}
+            {currentUser?.role === UserRole.SuperAdmin && (
+              <div className="relative" onClick={(e) => e.stopPropagation()}>
                 <button
-                  type="button"
-                  onClick={handleCreateVersion}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 hover:bg-amber-400 text-black text-sm font-bold uppercase rounded-xl shadow-lg transition-all duration-200 hover:shadow-xl active:scale-95"
+                  onClick={() => {
+                    setIsAccountOpen(!isAccountOpen);
+                    setIsVersionOpen(false);
+                    setIsLayoutOpen(false);
+                    setIsPaperSizeOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 bg-slate-50 hover:bg-slate-100/50 dark:bg-slate-800/40 dark:hover:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700/60 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 transition-all cursor-pointer shadow-sm"
                 >
-                  <i className="fas fa-plus"></i>
-                  <span>{language === 'zh' ? '新建第一份简历' : 'Create First Resume'}</span>
+                  <div className="w-6 h-6 rounded-full overflow-hidden bg-gradient-to-tr from-amber-400 to-orange-500 flex items-center justify-center text-white text-[10px] font-bold shadow-sm flex-shrink-0">
+                    {activeUserObj?.photoURL ? (
+                      <img src={activeUserObj.photoURL} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <span>{(activeUserObj?.displayName || activeUserObj?.email || targetProfile).charAt(0).toUpperCase()}</span>
+                    )}
+                  </div>
+                  <div className="flex flex-col items-start flex-1 min-w-0">
+                    <span className="truncate max-w-[125px]">{activeUserObj?.displayName || activeUserObj?.email || formatProfileName(targetProfile)}</span>
+                    <span className="text-[9px] text-slate-400 font-mono capitalize">{activeUserObj?.role || 'User'}</span>
+                  </div>
+                  <i className={`fas fa-chevron-down text-[9px] text-slate-400 transition-transform duration-200 ${isAccountOpen ? 'rotate-180' : ''}`}></i>
                 </button>
+
+                {isAccountOpen && (
+                  <div className="absolute left-0 mt-2 w-72 bg-white dark:bg-[#0f172a] border border-slate-200/60 dark:border-slate-800 rounded-2xl shadow-xl z-50 py-1.5 animate-fade-in custom-scrollbar max-h-80 overflow-y-auto">
+                    {availableUsers.map((u) => {
+                      const emailVal = (u.email || u.phone || u._id || '').toLowerCase();
+                      const isSelected = emailVal === targetProfile.toLowerCase();
+                      return (
+                        <button
+                          key={u._id || emailVal}
+                          onClick={() => {
+                            handleProfileChange(emailVal);
+                            setIsAccountOpen(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all ${
+                            isSelected
+                              ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-l-4 border-amber-500 font-semibold'
+                              : 'hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300'
+                          }`}
+                        >
+                          <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 flex-shrink-0">
+                            {u.photoURL ? (
+                              <img src={u.photoURL} alt="Avatar" className="w-full h-full object-cover" />
+                            ) : (
+                              <span>{(u.displayName || u.email || '').charAt(0).toUpperCase()}</span>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs font-bold truncate">{u.displayName || 'Unnamed User'}</div>
+                            <div className="text-[10px] text-slate-400 truncate">{u.email || u.phone}</div>
+                          </div>
+                          <span className={`text-[9px] px-2 py-0.5 rounded-full font-mono font-bold uppercase select-none flex-shrink-0 ${
+                            u.role === 'super_admin' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                            u.role === 'admin' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' :
+                            'bg-slate-100 text-slate-600 dark:bg-slate-750 dark:text-slate-400'
+                          }`}>
+                            {u.role || 'user'}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Version Dropdown */}
+            {resumeList.length > 0 && (
+              <div className="relative" onClick={(e) => e.stopPropagation()}>
+                <button
+                  onClick={() => {
+                    setIsVersionOpen(!isVersionOpen);
+                    setIsAccountOpen(false);
+                    setIsLayoutOpen(false);
+                    setIsPaperSizeOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-slate-100/50 dark:bg-slate-800/40 dark:hover:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700/60 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 transition-all cursor-pointer shadow-sm"
+                >
+                  <i className="fas fa-layer-group text-sky-500 text-sm"></i>
+                  <span className="flex-1 text-left truncate">{activeResumeObj?.title || currentSlug}</span>
+                  <i className={`fas fa-chevron-down text-[9px] text-slate-400 transition-transform duration-200 ${isVersionOpen ? 'rotate-180' : ''}`}></i>
+                </button>
+
+                {isVersionOpen && (
+                  <div className="absolute left-0 mt-2 w-full min-w-[200px] bg-white dark:bg-[#0f172a] border border-slate-200/60 dark:border-slate-800 rounded-2xl shadow-xl z-50 py-1.5 animate-fade-in">
+                    {resumeList.map((item) => {
+                      const isSelected = item.slug === currentSlug;
+                      return (
+                        <button
+                          key={item.slug}
+                          onClick={() => {
+                            setCurrentSlug(item.slug);
+                            setIsVersionOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-4 py-2 text-left text-xs transition-all ${
+                            isSelected
+                              ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-l-4 border-sky-500 font-semibold'
+                              : 'hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300'
+                          }`}
+                        >
+                          <span className="truncate">{item.title || item.slug}</span>
+                          {item.isHomepage && (
+                            <i className="fas fa-home text-[9px] text-amber-500" title="Default homepage"></i>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Actions buttons */}
+            <div className="flex flex-col gap-2 pt-2">
+              {resume && (
+                <>
+                  {/* Default Homepage Toggle (Super Admin Only) */}
+                  {currentUser?.role === UserRole.SuperAdmin && (
+                    resume.isHomepage ? (
+                      <span className="px-3 py-2 text-xs font-bold uppercase rounded-xl flex items-center justify-center gap-1.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 select-none">
+                        <i className="fas fa-home text-[10px]"></i>
+                        <span>{language === 'zh' ? '已设为首页默认' : 'Default Homepage'}</span>
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleSetDefault}
+                        className="px-3 py-2 text-xs font-bold uppercase rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-md bg-sky-50 hover:bg-sky-100 text-sky-600 border border-sky-200/50 dark:bg-sky-950/30 dark:hover:bg-sky-950/50 dark:text-sky-400 dark:border-sky-900/30 active:scale-95"
+                      >
+                        <i className="fas fa-home text-[10px]"></i>
+                        <span>{language === 'zh' ? '设为首页默认' : 'Set default'}</span>
+                      </button>
+                    )
+                  )}
+
+                  {/* Edit Button */}
+                  {canUpdate && (
+                    <button
+                      type="button"
+                      onClick={handleEditOpen}
+                      className="w-full py-2 bg-slate-900 hover:bg-slate-800 dark:bg-amber-500 dark:hover:bg-amber-400 text-white dark:text-black text-xs font-bold uppercase rounded-xl hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 active:scale-95"
+                    >
+                      <i className="fas fa-edit text-[10px]"></i>
+                      <span>{language === 'zh' ? '编辑简历' : 'Edit Resume'}</span>
+                    </button>
+                  )}
+
+                  {/* Create Version Button */}
+                  {canUpdate && (
+                    <button
+                      type="button"
+                      onClick={handleCreateVersion}
+                      className="w-full py-2 bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 text-xs font-bold uppercase transition-all duration-205 flex items-center justify-center gap-2 active:scale-95 hover:shadow-md"
+                    >
+                      <i className="fas fa-plus text-[10px]"></i>
+                      <span>{language === 'zh' ? '新建版本' : 'New Version'}</span>
+                    </button>
+                  )}
+
+                  {/* Export PDF Button */}
+                  <button
+                    type="button"
+                    onClick={handleExportPdf}
+                    className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase rounded-xl hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 border border-emerald-500/30"
+                  >
+                    <i className="fas fa-file-pdf text-[10px]"></i>
+                    <span>{language === 'zh' ? '导出 PDF' : 'Export PDF'}</span>
+                  </button>
+
+                  {/* Delete Button */}
+                  {canUpdate && (
+                    <button
+                      type="button"
+                      onClick={handleDeleteVersion}
+                      className="w-full py-2 text-xs font-bold uppercase rounded-xl transition-all duration-200 flex items-center justify-center gap-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/50 dark:bg-rose-950/30 dark:hover:bg-rose-950/50 dark:text-rose-400 dark:border-rose-900/30 active:scale-95"
+                    >
+                      <i className="fas fa-trash text-[10px]"></i>
+                      <span>{language === 'zh' ? '删除版本' : 'Delete'}</span>
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </div>
-        ) : (
-          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 items-start justify-center px-4 w-full">
-            {/* Left: The Resume Paper Sheet */}
-            <div className="flex-1 w-full max-w-4xl">
-              <ResumePaper
-                ref={ref}
-                resume={resume}
-                isPrint={isPrint}
-                isVip={isVip}
-                language={language}
-                currentPdfMode={currentPdfMode as any}
-                currentPaperSize={currentPaperSize as any}
-                currentPageLimit={currentPageLimit}
-                fontSizeClass={fontSizeClass}
-                lineHeightClass={lineHeightClass}
-                themeColorClass={themeColorClass}
-                marginClass={marginClass}
-                sectionGapClass={sectionGapClass}
-                pageHeight={pageHeight}
-                setActiveInlineEdit={setActiveInlineEdit}
-                setInlineEditAnchor={setInlineEditAnchor}
+
+          {/* 2. Style & Page layout Settings */}
+          {resume && (
+            <div className="space-y-4 pt-4 border-t border-slate-200/65 dark:border-slate-800">
+              <h3 className="text-xs font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">
+                {language === 'zh' ? '排版设置 Styles' : 'Page Styles'}
+              </h3>
+
+              {/* Mode select */}
+              <CustomSelect
+                label={language === 'zh' ? '导出模式 Mode' : 'Print Mode'}
+                value={pdfMode}
+                onChange={handlePdfModeChange}
+                options={[
+                  { value: 'single-page', label: language === 'zh' ? '连续长页' : 'Continuous', icon: 'fas fa-arrows-alt-v' },
+                  { value: 'multi-page', label: language === 'zh' ? '分页打印' : 'Paginated', icon: 'fas fa-file-invoice' }
+                ]}
+                disabled={!canUpdate}
+              />
+
+              {/* Paper Size Selector (Only in Paginated Mode) */}
+              {pdfMode === 'multi-page' && (
+                <CustomSelect
+                  label={language === 'zh' ? '纸张尺寸 Size' : 'Paper Size'}
+                  value={paperSize}
+                  onChange={handlePaperSizeChange}
+                  options={[
+                    { value: 'a4', label: 'A4' },
+                    { value: 'a3', label: 'A3' },
+                    { value: 'a5', label: 'A5' }
+                  ]}
+                  icon="fas fa-ruler-combined"
+                  disabled={!canUpdate}
+                />
+              )}
+
+              {/* Page Limit Selector (Only in Paginated Mode) */}
+              {pdfMode === 'multi-page' && (
+                <CustomSelect
+                  label={language === 'zh' ? '页数限制 Limits' : 'Page Limits'}
+                  value={resume.pageLimit || 0}
+                  onChange={handlePageLimitChange}
+                  options={[
+                    { value: 0, label: language === 'zh' ? '不限页数' : 'Unlimited' },
+                    { value: 1, label: language === 'zh' ? '限制 1 页' : 'Limit 1 Page' },
+                    { value: 2, label: language === 'zh' ? '限制 2 页' : 'Limit 2 Pages' },
+                    { value: 3, label: language === 'zh' ? '限制 3 页' : 'Limit 3 Pages' }
+                  ]}
+                  icon="fas fa-file-alt"
+                  disabled={!canUpdate}
+                />
+              )}
+
+              {/* Margins */}
+              <CustomSelect
+                label={language === 'zh' ? '页边距 Margins' : 'Page Margins'}
+                value={resume.styleSettings?.margin || 'normal'}
+                onChange={(val) => updateStyleSetting('margin', val)}
+                options={[
+                  { value: 'small', label: language === 'zh' ? '窄边距 (8mm)' : 'Narrow (8mm)' },
+                  { value: 'normal', label: language === 'zh' ? '默认边距 (12mm)' : 'Normal (12mm)' },
+                  { value: 'large', label: language === 'zh' ? '宽边距 (18mm)' : 'Wide (18mm)' }
+                ]}
+                icon="fas fa-border-style"
+                disabled={!canUpdate}
+              />
+
+              {/* Section spacing */}
+              <CustomSelect
+                label={language === 'zh' ? '板块间距 Spacing' : 'Section Spacing'}
+                value={resume.styleSettings?.sectionGap || 'normal'}
+                onChange={(val) => updateStyleSetting('sectionGap', val)}
+                options={[
+                  { value: 'compact', label: language === 'zh' ? '紧凑' : 'Compact' },
+                  { value: 'normal', label: language === 'zh' ? '默认' : 'Normal' },
+                  { value: 'relaxed', label: language === 'zh' ? '宽松' : 'Relaxed' }
+                ]}
+                icon="fas fa-compress-arrows-alt"
+                disabled={!canUpdate}
+              />
+
+              {/* Font Size */}
+              <CustomSelect
+                label={language === 'zh' ? '默认字号 Size' : 'Font Size'}
+                value={resume.styleSettings?.fontSize || 'normal'}
+                onChange={(val) => updateStyleSetting('fontSize', val)}
+                options={[
+                  { value: 'small', label: language === 'zh' ? '较小' : 'Small' },
+                  { value: 'normal', label: language === 'zh' ? '默认' : 'Normal' },
+                  { value: 'large', label: language === 'zh' ? '较大' : 'Large' }
+                ]}
+                icon="fas fa-text-height"
+                disabled={!canUpdate}
+              />
+
+              {/* Line height */}
+              <CustomSelect
+                label={language === 'zh' ? '默认行高 Line Spacing' : 'Line Spacing'}
+                value={resume.styleSettings?.lineHeight || 'normal'}
+                onChange={(val) => updateStyleSetting('lineHeight', val)}
+                options={[
+                  { value: 'compact', label: language === 'zh' ? '紧凑' : 'Compact' },
+                  { value: 'normal', label: language === 'zh' ? '默认' : 'Normal' },
+                  { value: 'relaxed', label: language === 'zh' ? '宽松' : 'Relaxed' }
+                ]}
+                icon="fas fa-align-left"
+                disabled={!canUpdate}
+              />
+
+              {/* Accent Theme Color */}
+              <CustomSelect
+                label={language === 'zh' ? '强调色 Accent' : 'Theme Color'}
+                value={resume.styleSettings?.themeColor || 'slate'}
+                onChange={(val) => updateStyleSetting('themeColor', val)}
+                options={[
+                  { value: 'slate', label: language === 'zh' ? '极简黑' : 'Slate / Black' },
+                  { value: 'amber', label: language === 'zh' ? '琥珀黄' : 'Amber' },
+                  { value: 'emerald', label: language === 'zh' ? '翡翠绿' : 'Emerald' },
+                  { value: 'sky', label: language === 'zh' ? '天空蓝' : 'Sky' },
+                  { value: 'crimson', label: language === 'zh' ? '玫瑰红' : 'Crimson' }
+                ]}
+                icon="fas fa-palette"
+                disabled={!canUpdate}
               />
             </div>
+          )}
 
-            {/* Right: The Layout Control Panel Sidebar */}
-            <ResumeLayoutSidebar
-              resume={resume}
-              isVip={isVip}
-              language={language}
-              pdfMode={pdfMode}
-              setPdfMode={setPdfMode}
-              paperSize={paperSize}
-              setPaperSize={setPaperSize}
-              currentSlug={currentSlug}
-              setResume={setResume}
-            />
+          {/* 3. Section Ordering */}
+          {resume && (
+            <div className="space-y-3 pt-4 border-t border-slate-200/65 dark:border-slate-800">
+              <label className="block text-xs font-bold uppercase text-slate-400 dark:text-slate-500 tracking-wider">
+                {language === 'zh' ? '版块显示顺序' : 'Section Order'}
+              </label>
+              <div className="space-y-1.5">
+                {getNormalizedSectionOrder(resume.sectionOrder).map((sectionId, idx, arr) => {
+                  const getSectionName = (sid: string) => {
+                    if (sid === 'profile') return language === 'zh' ? '个人简介' : 'Profile';
+                    if (sid === 'work') return language === 'zh' ? '工作经历' : 'Work';
+                    if (sid === 'projects') return language === 'zh' ? '作品项目' : 'Projects';
+                    if (sid === 'education') return language === 'zh' ? '教育经历' : 'Education';
+                    if (sid === 'volunteer') return language === 'zh' ? '志愿活动' : 'Volunteer';
+                    if (sid === 'interest') return language === 'zh' ? '兴趣爱好' : 'Interests';
+                    if (sid === 'skills') return language === 'zh' ? '专业技能' : 'Skills';
+                    return sid;
+                  };
+
+                  return (
+                    <div
+                      key={sectionId}
+                      className="flex items-center justify-between p-2 bg-slate-50 dark:bg-slate-800/30 border border-slate-200/50 dark:border-slate-700/50 rounded-lg text-xs"
+                    >
+                      <span className="font-semibold text-slate-750 dark:text-slate-350">{getSectionName(sectionId)}</span>
+                      {canUpdate && (
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            disabled={idx === 0}
+                            onClick={() => handleMoveSection(idx, 'up')}
+                            className="p-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-slate-700 dark:text-slate-300 disabled:opacity-30 rounded transition-colors"
+                          >
+                            <i className="fas fa-arrow-up text-[8px]"></i>
+                          </button>
+                          <button
+                            type="button"
+                            disabled={idx === arr.length - 1}
+                            onClick={() => handleMoveSection(idx, 'down')}
+                            className="p-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-slate-700/70 dark:text-slate-300 disabled:opacity-30 rounded transition-colors"
+                          >
+                            <i className="fas fa-arrow-down text-[8px]"></i>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+        </div>
+      )}
+
+      {/* Right Area: Resume Sheet or Placeholder */}
+      <div className="flex-grow w-full max-w-4xl min-w-0">
+        {!resume ? (
+          <div className="bg-white rounded-[2rem] shadow-xl border border-slate-200 p-16 text-center font-sans text-slate-800 dark:bg-[#0b1120] dark:border-slate-800 dark:text-slate-300 space-y-6">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 mb-2">
+              <i className="fas fa-file-invoice text-3xl"></i>
+            </div>
+            <h2 className="text-2xl font-bold tracking-tight text-slate-950 dark:text-white">
+              {language === 'zh' ? '暂无简历内容' : 'No Resume Found'}
+            </h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+              {language === 'zh'
+                ? '该用户尚未创建任何简历版本。如果您有编辑权限，可以点击左侧的“新建”按钮来初始化您的第一份简历。'
+                : 'No resume versions are currently available for this user. If you have editing privileges, click the "New" button in the sidebar to initialize your first resume.'}
+            </p>
+            {canUpdate && (
+              <button
+                type="button"
+                onClick={handleCreateVersion}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 hover:bg-amber-400 text-black text-sm font-bold uppercase rounded-xl shadow-lg transition-all duration-200 hover:shadow-xl active:scale-95"
+              >
+                <i className="fas fa-plus"></i>
+                <span>{language === 'zh' ? '新建第一份简历' : 'Create First Resume'}</span>
+              </button>
+            )}
           </div>
+        ) : (
+          <ResumePaper
+            ref={ref}
+            resume={resume}
+            isPrint={isPrint}
+            isVip={canUpdate}
+            language={language}
+            currentPdfMode={currentPdfMode as any}
+            currentPaperSize={currentPaperSize as any}
+            currentPageLimit={currentPageLimit}
+            fontSizeClass={fontSizeClass}
+            lineHeightClass={lineHeightClass}
+            themeColorClass={themeColorClass}
+            marginClass={marginClass}
+            sectionGapClass={sectionGapClass}
+            pageHeight={pageHeight}
+            setActiveInlineEdit={setActiveInlineEdit}
+            setInlineEditAnchor={setInlineEditAnchor}
+          />
         )}
+      </div>
+    </div>
 
         {/* Custom Modal for Creating Version */}
         {isCreateModalOpen &&

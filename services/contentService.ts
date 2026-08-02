@@ -423,7 +423,7 @@ export const contentService = {
     return await fetchClient<ResumeItem[]>('/resume');
   },
 
-  getResumeData: async (userSlug: string = 'sam'): Promise<ResumeData> => {
+  getResumeData: async (userSlug: string = 'moviegoer24@gmail.com'): Promise<ResumeData> => {
     return await fetchClient<ResumeData>(`/resumes?user=${userSlug}`);
   },
 
@@ -432,7 +432,7 @@ export const contentService = {
   },
 
   getResumeList: async (
-    userSlug: string = 'sam'
+    userSlug: string = 'moviegoer24@gmail.com'
   ): Promise<Array<{ slug: string; title: string; user: string; createdAt: string }>> => {
     return await fetchClient<Array<{ slug: string; title: string; user: string; createdAt: string }>>(
       `/resumes/list?user=${userSlug}`
@@ -441,7 +441,7 @@ export const contentService = {
 
   updateResume: async (
     data: Partial<ResumeData>,
-    userSlug: string = 'sam'
+    userSlug: string = 'moviegoer24@gmail.com'
   ): Promise<ResumeData> => {
     const res = await fetchClient<ResumeData>(`/resumes?user=${userSlug}`, {
       method: 'PUT',
