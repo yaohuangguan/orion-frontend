@@ -12,6 +12,22 @@ interface ProjectShowcaseProps {
   currentUser?: User | null;
 }
 
+const getGradientFromTitle = (title: string) => {
+  const gradients = [
+    'from-blue-500 to-indigo-600 dark:from-blue-650 dark:to-indigo-800',
+    'from-emerald-400 to-teal-600 dark:from-emerald-550 dark:to-teal-800',
+    'from-amber-400 to-orange-500 dark:from-amber-550 dark:to-orange-700',
+    'from-rose-400 to-pink-600 dark:from-rose-550 dark:to-pink-800',
+    'from-violet-400 to-purple-600 dark:from-violet-550 dark:to-purple-850',
+    'from-cyan-400 to-blue-500 dark:from-cyan-550 dark:to-blue-750'
+  ];
+  let sum = 0;
+  for (let i = 0; i < title.length; i++) {
+    sum += title.charCodeAt(i);
+  }
+  return gradients[sum % gradients.length];
+};
+
 export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser }) => {
   const { language, t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -36,6 +52,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
   const [viewMode, setViewMode] = useState<'CHOICE' | 'IFRAME' | null>(null);
   const [iframeLoading, setIframeLoading] = useState(true);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+  const [activeDetailProject, setActiveDetailProject] = useState<PortfolioProject | null>(null);
 
   const isVip = currentUser?.vip && currentUser?.private_token === 'ilovechenfangting';
 
@@ -586,21 +603,22 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
           document.body
         )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {projects.map((project, index) => (
           <div
             key={project._id}
-            className="group relative flex flex-col h-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2"
+            className="group relative flex flex-col h-full bg-white dark:bg-[#0f172a] border border-slate-200/60 dark:border-slate-800 rounded-[2rem] overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 cursor-pointer"
+            onClick={() => setActiveDetailProject(project)}
           >
             {/* Admin Controls */}
             {isVip && (
-              <div className="absolute top-4 right-4 z-20 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute top-4 right-4 z-20 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleEdit(project);
                   }}
-                  className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 text-blue-500 flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+                  className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 text-blue-500 flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer"
                 >
                   <i className="fas fa-pencil-alt text-xs"></i>
                 </button>
@@ -609,7 +627,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                     e.stopPropagation();
                     setProjectToDelete(project);
                   }}
-                  className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 text-red-500 flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+                  className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 text-red-500 flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer"
                 >
                   <i className="fas fa-trash text-xs"></i>
                 </button>
@@ -618,7 +636,10 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
 
             {/* Cover Image */}
             <div
-              onClick={() => project.coverImage && setZoomedImage(project.coverImage)}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (project.coverImage) setZoomedImage(project.coverImage);
+              }}
               className="aspect-[16/9] shrink-0 bg-slate-100 dark:bg-slate-950 overflow-hidden relative cursor-zoom-in group/img"
             >
               {/* Zoom Prompt Icon */}
@@ -678,76 +699,81 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
               )}
 
               {/* Overlay Gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-slate-900/10 to-transparent opacity-60 transition-opacity"></div>
+            </div>
 
-              {/* Tech Stack Overlay */}
-              <div className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2">
+            {/* Card Info Content */}
+            <div className="p-5 flex flex-col flex-1 space-y-4">
+              {/* App-Store style Header */}
+              <div className="flex items-center justify-between gap-3 shrink-0">
+                <div className="flex items-center min-w-0 flex-1">
+                  {/* App Icon */}
+                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${getGradientFromTitle(getLocalized(project, 'title') || 'P')} flex items-center justify-center text-white text-lg font-black shadow-md flex-shrink-0 select-none`}>
+                    {(getLocalized(project, 'title') || 'P').charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 pl-3">
+                    <h3 className="text-base font-display font-black text-slate-900 dark:text-white truncate group-hover:text-amber-500 transition-colors leading-snug">
+                      {getLocalized(project, 'title')}
+                    </h3>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                      {project.techStack[0] || 'Software'}
+                    </p>
+                  </div>
+                </div>
+
+                {project.demoUrl && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleLiveDemoClick(project);
+                    }}
+                    className="px-3.5 py-1.5 text-[10px] font-black rounded-full bg-slate-100 hover:bg-amber-500 hover:text-black dark:bg-slate-800 dark:hover:bg-amber-400 text-slate-700 dark:text-slate-200 transition-all shadow-sm flex-shrink-0 cursor-pointer active:scale-95 border border-slate-200/30 dark:border-slate-700/50"
+                  >
+                    {language === 'zh' ? '打开' : 'GET'}
+                  </button>
+                )}
+              </div>
+
+              {/* Tech Stack pills */}
+              <div className="flex flex-wrap gap-1.5 shrink-0">
                 {project.techStack.map((tech, i) => (
                   <span
                     key={i}
-                    className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-white/20 backdrop-blur-md text-white rounded border border-white/10"
+                    className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-slate-50 dark:bg-slate-850 text-slate-500 dark:text-slate-400 rounded-md border border-slate-100 dark:border-slate-800"
                   >
                     {tech}
                   </span>
                 ))}
               </div>
-            </div>
 
-            {/* Content */}
-            <div className="p-4 md:p-6 flex flex-col flex-1">
-              <h3 className="shrink-0 text-xl md:text-2xl font-display font-bold text-slate-900 dark:text-white mb-2 group-hover:text-amber-500 transition-colors">
-                {getLocalized(project, 'title')}
-              </h3>
+              {/* Clamped Summary */}
+              <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed line-clamp-3 flex-grow pb-2">
+                {getLocalized(project, 'summary') || 'Click specs below to read full details.'}
+              </p>
 
-              {/* Scrollable Summary & Description Container */}
-              <div className="h-60 overflow-y-auto custom-scrollbar pr-2 mb-6 flex flex-col gap-4">
-                {/* Summary Section */}
-                {getLocalized(project, 'summary') && (
-                  <div className="relative pl-3 border-l-2 border-amber-500/30">
-                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
-                      {language === 'zh' ? '简介' : 'SUMMARY'}
-                    </h4>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
-                      {getLocalized(project, 'summary')}
-                    </p>
-                  </div>
-                )}
+              {/* Bottom Details Trigger */}
+              <div className="mt-auto flex justify-between items-center pt-3 border-t border-slate-100 dark:border-slate-800/80 shrink-0">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveDetailProject(project);
+                  }}
+                  className="text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:text-amber-500 flex items-center gap-1 cursor-pointer transition-colors group/btn"
+                >
+                  <span>{language === 'zh' ? '详情与规格' : 'Specs & Details'}</span>
+                  <i className="fas fa-arrow-right text-[8px] transform group-hover/btn:translate-x-0.5 transition-transform"></i>
+                </button>
 
-                {/* Description Section */}
-                {getLocalized(project, 'description') && (
-                  <div>
-                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 mt-2 border-b border-slate-100 dark:border-slate-800 pb-1">
-                      {language === 'zh' ? '项目详情' : 'DESCRIPTION'}
-                    </h4>
-                    <div
-                      className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed prose prose-sm dark:prose-invert max-w-none"
-                      dangerouslySetInnerHTML={{
-                        __html: window.marked
-                          ? window.marked.parse(getLocalized(project, 'description') || '')
-                          : (getLocalized(project, 'description') || '').replace(/\n/g, '<br/>')
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-auto flex gap-4 border-t border-slate-100 dark:border-slate-800 pt-6 shrink-0">
-                {project.demoUrl && (
-                  <button
-                    onClick={() => handleLiveDemoClick(project)}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold uppercase tracking-wider hover:from-amber-600 hover:to-orange-600 shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
-                  >
-                    <i className="fas fa-play-circle text-sm"></i> {t.portfolio.liveDemo}
-                  </button>
-                )}
                 {project.repoUrl && (
                   <a
                     href={project.repoUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors p-1"
+                    title={language === 'zh' ? '查看源码' : 'View Source'}
                   >
-                    <i className="fab fa-github text-lg"></i> {t.portfolio.sourceCode}
+                    <i className="fab fa-github text-base"></i>
                   </a>
                 )}
               </div>
@@ -755,6 +781,158 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
           </div>
         ))}
       </div>
+
+      {/* Project Detail Modal */}
+      {activeDetailProject &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-fade-in text-slate-900"
+            onClick={() => setActiveDetailProject(null)}
+          >
+            <div
+              className="bg-white dark:bg-[#0f172a] rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-slate-800 max-w-4xl w-full max-h-[85vh] overflow-hidden flex flex-col relative animate-scale-in"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setActiveDetailProject(null)}
+                className="absolute top-6 right-6 w-10 h-10 rounded-full bg-black/45 hover:bg-black/60 text-white flex items-center justify-center transition-all z-35 backdrop-blur-md border border-white/25 cursor-pointer shadow-lg active:scale-90"
+              >
+                <i className="fas fa-times text-sm"></i>
+              </button>
+
+              {/* Hero Banner Area */}
+              <div className="h-48 md:h-72 shrink-0 relative bg-slate-950 overflow-hidden">
+                {activeDetailProject.coverImage ? (
+                  <img
+                    src={activeDetailProject.coverImage}
+                    alt={getLocalized(activeDetailProject, 'title')}
+                    className="w-full h-full object-cover opacity-75"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
+                    <i className="fas fa-cube text-6xl text-slate-700"></i>
+                  </div>
+                )}
+                {/* Immersive overlay gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-[#0f172a] via-transparent to-black/30"></div>
+              </div>
+
+              {/* Modal Body (Scrollable) */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-10 -mt-16 relative z-10 space-y-6 bg-gradient-to-b from-transparent via-white dark:via-[#0f172a] to-white dark:to-[#0f172a]">
+                
+                {/* Header Block */}
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800/80">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${getGradientFromTitle(getLocalized(activeDetailProject, 'title') || 'P')} flex items-center justify-center text-white text-3xl font-black shadow-lg flex-shrink-0 select-none`}>
+                      {(getLocalized(activeDetailProject, 'title') || 'P').charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h2 className="text-2xl md:text-3xl font-display font-black text-slate-900 dark:text-white leading-tight">
+                        {getLocalized(activeDetailProject, 'title')}
+                      </h2>
+                      <p className="text-xs font-mono text-amber-500 uppercase tracking-wider font-bold mt-1">
+                        Application Specification
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 shrink-0">
+                    {activeDetailProject.demoUrl && (
+                      <button
+                        onClick={() => {
+                          handleLiveDemoClick(activeDetailProject);
+                          setActiveDetailProject(null);
+                        }}
+                        className="px-6 py-2.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold uppercase tracking-wider shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                      >
+                        <i className="fas fa-play-circle mr-1.5"></i> {t.portfolio.liveDemo}
+                      </button>
+                    )}
+                    {activeDetailProject.repoUrl && (
+                      <a
+                        href={activeDetailProject.repoUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-slate-200 dark:border-slate-800 text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-850 dark:border-slate-700 transition-all"
+                      >
+                        <i className="fab fa-github text-sm"></i> GitHub
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                {/* Specs Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50 dark:bg-slate-900/60 p-5 rounded-[1.5rem] border border-slate-100 dark:border-slate-800/80 text-slate-900 dark:text-slate-100">
+                  <div>
+                    <span className="block text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Developer</span>
+                    <span className="text-xs font-bold">Sam Yao</span>
+                  </div>
+                  <div>
+                    <span className="block text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Status</span>
+                    <span className="text-xs font-bold flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                      <span>Live / Stable</span>
+                    </span>
+                  </div>
+                  <div>
+                    <span className="block text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Access</span>
+                    <span className="text-xs font-bold">Public Sandbox</span>
+                  </div>
+                  <div>
+                    <span className="block text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Category</span>
+                    <span className="text-xs font-bold capitalize">{activeDetailProject.techStack[0] || 'Software'}</span>
+                  </div>
+                </div>
+
+                {/* Details Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
+                  {/* Left Column: Tech (1/3) */}
+                  <div className="space-y-4">
+                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Core Tech Stack</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {activeDetailProject.techStack.map((tech, i) => (
+                        <span
+                          key={i}
+                          className="px-2.5 py-1 text-xs font-bold bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 border border-blue-100/50 dark:border-blue-900/30 rounded-xl"
+                        >
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Right Column: Markdown / Summary (2/3) */}
+                  <div className="lg:col-span-2 space-y-6 text-slate-600 dark:text-slate-350 leading-relaxed text-sm">
+                    {/* Summary */}
+                    {getLocalized(activeDetailProject, 'summary') && (
+                      <div className="relative pl-4 border-l-4 border-amber-500 bg-amber-500/5 p-4 rounded-r-2xl text-slate-800 dark:text-slate-200">
+                        <p className="font-bold">
+                          {getLocalized(activeDetailProject, 'summary')}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Markdown Description */}
+                    {getLocalized(activeDetailProject, 'description') && (
+                      <div className="prose dark:prose-invert prose-slate max-w-none prose-sm">
+                        <div
+                          dangerouslySetInnerHTML={{
+                            __html: window.marked
+                              ? window.marked.parse(getLocalized(activeDetailProject, 'description') || '')
+                              : (getLocalized(activeDetailProject, 'description') || '').replace(/\n/g, '<br/>')
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
 
       {/* Image Zoom Modal */}
       {zoomedImage &&
