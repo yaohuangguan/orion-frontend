@@ -652,11 +652,6 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
       setInlineEditAnchor(null);
     };
 
-    if (isLoading) {
-      return (
-        <div className="text-center py-20 text-slate-400 animate-pulse">Retrieving dossier...</div>
-      );
-    }
 
     const fontSizeClass = resume?.styleSettings?.fontSize ? `resume-style-font-${resume.styleSettings.fontSize}` : 'resume-style-font-normal';
     const lineHeightClass = resume?.styleSettings?.lineHeight ? `resume-style-line-${resume.styleSettings.lineHeight}` : 'resume-style-line-normal';
@@ -1068,7 +1063,36 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
 
       {/* Right Area: Resume Sheet or Placeholder */}
       <div className="flex-grow w-full max-w-4xl min-w-0">
-        {!resume ? (
+        {isLoading ? (
+          <div className="bg-white rounded-[2rem] shadow-xl border border-slate-200 p-16 dark:bg-[#0b1120] dark:border-slate-800 space-y-8 animate-pulse min-h-[800px]">
+            {/* Header Skeleton */}
+            <div className="text-center space-y-4">
+              <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded w-1/3 mx-auto"></div>
+              <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/2 mx-auto"></div>
+              <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded w-2/3 mx-auto"></div>
+            </div>
+            
+            {/* Section 1 */}
+            <div className="space-y-4 pt-8">
+              <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded w-1/4"></div>
+              <div className="h-[2px] bg-slate-200 dark:bg-slate-800 w-full"></div>
+              <div className="space-y-3">
+                <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-full"></div>
+                <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-5/6"></div>
+              </div>
+            </div>
+
+            {/* Section 2 */}
+            <div className="space-y-4 pt-4">
+              <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded w-1/4"></div>
+              <div className="h-[2px] bg-slate-200 dark:bg-slate-800 w-full"></div>
+              <div className="space-y-3">
+                <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-full"></div>
+                <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-4/5"></div>
+              </div>
+            </div>
+          </div>
+        ) : !resume ? (
           <div className="bg-white rounded-[2rem] shadow-xl border border-slate-200 p-16 text-center font-sans text-slate-800 dark:bg-[#0b1120] dark:border-slate-800 dark:text-slate-300 space-y-6">
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 mb-2">
               <i className="fas fa-file-invoice text-3xl"></i>

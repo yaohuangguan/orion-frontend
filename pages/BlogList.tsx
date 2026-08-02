@@ -241,24 +241,6 @@ export const BlogList: React.FC<BlogListProps> = ({
     );
   };
 
-  // Render Loading State (List Skeleton)
-  if (loading || initialLoading) {
-    return (
-      <div className="container mx-auto px-6 py-24 max-w-7xl pt-32">
-        <div className="flex flex-col lg:flex-row gap-10">
-          <div className="flex-1 space-y-6">
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="h-48 border border-slate-200 dark:border-slate-800 bg-slate-100/50 dark:bg-slate-900/50 relative overflow-hidden rounded-3xl animate-pulse"
-              ></div>
-            ))}
-          </div>
-          <div className="lg:w-[320px] h-96 bg-slate-100/50 dark:bg-slate-900/50 rounded-3xl animate-pulse"></div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div id="latest-posts" className="container mx-auto px-6 py-24 pt-32 max-w-7xl relative z-10">
@@ -345,7 +327,16 @@ export const BlogList: React.FC<BlogListProps> = ({
 
         {/* LEFT COLUMN: Blog List - Order 2 on Mobile, 1 on Desktop */}
         <div className="flex-1 min-w-0 order-2 lg:order-1">
-          {blogs.length > 0 ? (
+          {loading || initialLoading ? (
+            <div className="flex flex-col gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="h-48 border border-slate-200 dark:border-slate-800 bg-slate-100/50 dark:bg-slate-900/50 relative overflow-hidden rounded-3xl animate-pulse"
+                ></div>
+              ))}
+            </div>
+          ) : blogs.length > 0 ? (
             <div className="flex flex-col gap-6">
               {blogs.map((blog) => {
                 const canDelete = currentUser?.vip && onDeletePost;
@@ -502,7 +493,7 @@ export const BlogList: React.FC<BlogListProps> = ({
           )}
 
           {/* Bottom Pagination */}
-          {renderPagination()}
+          {!(loading || initialLoading) && renderPagination()}
         </div>
       </div>
     </div>
