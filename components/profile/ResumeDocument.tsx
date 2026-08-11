@@ -7,8 +7,11 @@ import { API_BASE_URL } from '../../services/core';
 import { ResumeData, User, UserRole, PERM_KEYS } from '../../types';
 import { useTranslation } from '../../i18n/LanguageContext';
 import { toast } from '../Toast';
-import { ResumeEditModal } from './ResumeEditModal';
 import { ResumePaper } from './ResumePaper';
+
+const ResumeEditModal = React.lazy(() =>
+  import('./ResumeEditModal').then((m) => ({ default: m.ResumeEditModal }))
+);
 import { safeKey, getNormalizedSectionOrder } from './utils';
 
 interface CustomSelectProps {
@@ -108,12 +111,23 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
       return trimmed;
     };
 
-    const defaultProfile = urlUser ? mapLegacyUser(urlUser) : (currentUser?.email || 'moviegoer24@gmail.com');
+    const getBaseEmail = (userQuery: string) => {
+      const atIndex = userQuery.indexOf('@');
+      if (atIndex !== -1) {
+        const hyphenIndex = userQuery.indexOf('-', atIndex);
+        return hyphenIndex !== -1 ? userQuery.substring(0, hyphenIndex) : userQuery;
+      }
+      return userQuery.split('-')[0];
+    };
+
+    const parsedUser = urlUser ? mapLegacyUser(urlUser) : (currentUser?.email || 'moviegoer24@gmail.com');
+    const baseEmail = getBaseEmail(parsedUser);
 
     const [resume, setResume] = useState<ResumeData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [targetProfile, setTargetProfile] = useState<string>(defaultProfile);
-    const [currentSlug, setCurrentSlug] = useState<string>(defaultProfile);
+    const [targetProfile, setTargetProfile] = useState<string>(baseEmail);
+    const [currentSlug, setCurrentSlug] = useState<string>(parsedUser);
+    const [hasInitializedDefault, setHasInitializedDefault] = useState(false);
     const [resumeList, setResumeList] = useState<Array<{ slug: string; title: string; user: string; isHomepage?: boolean }>>([]);
     const [availableUsers, setAvailableUsers] = useState<User[]>([]);
 
@@ -201,19 +215,25 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
           console.error('Failed to load users list for resume dropdown', e);
         }
       };
-      loadUsers();
-    }, []);
+      if (currentUser?.role === UserRole.SuperAdmin) {
+        loadUsers();
+      }
+    }, [currentUser]);
+
+    useEffect(() => {
+      setHasInitializedDefault(false);
+    }, [targetProfile]);
 
     useEffect(() => {
       if (currentUser && currentUser.role !== UserRole.SuperAdmin) {
         const myEmail = (currentUser.email || '').toLowerCase();
-        setTargetProfile(myEmail);
+        setTargetProfile(getBaseEmail(myEmail));
         setCurrentSlug(myEmail);
       } else {
-        setTargetProfile(defaultProfile);
-        setCurrentSlug(defaultProfile);
+        setTargetProfile(baseEmail);
+        setCurrentSlug(parsedUser);
       }
-    }, [defaultProfile, currentUser]);
+    }, [parsedUser, baseEmail, currentUser]);
 
     useEffect(() => {
       loadResumeAndList();
@@ -237,9 +257,22 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
 
         if (processed.length > 0) {
           let activeSlug = currentSlug;
-          if (!activeSlug || !processed.some((item) => item.slug === activeSlug)) {
-            const defaultItem = processed.find((item) => item.slug === targetProfile);
-            activeSlug = defaultItem ? defaultItem.slug : processed[0].slug;
+          if (!hasInitializedDefault) {
+            setHasInitializedDefault(true);
+            const homepageItem = processed.find((item) => item.isHomepage);
+            if (activeSlug && activeSlug !== targetProfile && processed.some((item) => item.slug === activeSlug)) {
+              // Keep explicitly requested version
+            } else if (homepageItem) {
+              activeSlug = homepageItem.slug;
+            } else {
+              const defaultItem = processed.find((item) => item.slug === targetProfile);
+              activeSlug = defaultItem ? defaultItem.slug : processed[0].slug;
+            }
+          } else {
+            if (!activeSlug || !processed.some((item) => item.slug === activeSlug)) {
+              const defaultItem = processed.find((item) => item.slug === targetProfile);
+              activeSlug = defaultItem ? defaultItem.slug : processed[0].slug;
+            }
           }
 
           if (activeSlug !== currentSlug) {
@@ -663,21 +696,25 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
     return (
       <div className="relative">
         {/* Edit Modal Component */}
-        <ResumeEditModal
-          isEditing={isEditing}
-          setIsEditing={setIsEditing}
-          editResume={editResume}
-          setEditResume={setEditResume}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          language={language}
-          targetProfile={targetProfile}
-          currentSlug={currentSlug}
-          updateField={updateField}
-          removeItem={removeItem}
-          addItem={addItem}
-          handleSave={handleSave}
-        />
+        {isEditing && (
+          <React.Suspense fallback={<div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center"><i className="fas fa-circle-notch fa-spin text-white text-3xl"></i></div>}>
+            <ResumeEditModal
+              isEditing={isEditing}
+              setIsEditing={setIsEditing}
+              editResume={editResume}
+              setEditResume={setEditResume}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              language={language}
+              targetProfile={targetProfile}
+              currentSlug={currentSlug}
+              updateField={updateField}
+              removeItem={removeItem}
+              addItem={addItem}
+              handleSave={handleSave}
+            />
+          </React.Suspense>
+        )}
 
         {/* Main Layout Grid wrapper */}
     <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 items-start justify-center px-4 w-full relative">
