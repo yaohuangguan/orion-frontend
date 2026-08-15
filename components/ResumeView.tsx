@@ -93,6 +93,26 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
   };
 
   const sections = t.resume.websiteIntro.sections as any;
+  const aboutCards = [
+    {
+      label: t.resume.aboutCard1Label,
+      title: t.resume.aboutCard1Title,
+      body: t.resume.aboutP1,
+      icon: 'fa-bullseye'
+    },
+    {
+      label: t.resume.aboutCard2Label,
+      title: t.resume.aboutCard2Title,
+      body: t.resume.aboutP2,
+      icon: 'fa-layer-group'
+    },
+    {
+      label: t.resume.aboutCard3Label,
+      title: t.resume.aboutCard3Title,
+      body: t.resume.aboutP3,
+      icon: 'fa-compass'
+    }
+  ];
 
   return (
     <div className="container mx-auto px-6 py-12 pt-20 max-w-5xl animate-fade-in relative z-10">
@@ -111,7 +131,7 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
           {t.resume.credentials}
         </p>
 
-        <div className="flex justify-center gap-6 mt-4 text-slate-400">
+        <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-4 text-slate-400">
           <span className="flex items-center gap-2 text-sm uppercase tracking-widest font-bold">
             <i className="fas fa-map-marker-alt text-primary-500"></i> {t.resume.basedIn}
           </span>
@@ -125,19 +145,62 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
 
         {/* About Sam Biography Section */}
         {t.resume.aboutP1 && (
-          <div className="mt-8 max-w-3xl mx-auto border-t border-slate-200/50 dark:border-slate-800/50 pt-8 text-center">
-            <h2 className="font-serif font-bold text-2xl text-slate-900 dark:text-white mb-4 tracking-tight">
-              {t.resume.aboutTitle}
-            </h2>
-            <div className="space-y-4 text-sm text-slate-600 dark:text-slate-300 font-light leading-relaxed text-justify md:text-center">
-              <p>{t.resume.aboutP1}</p>
-              <p>{t.resume.aboutP2}</p>
-              <p>{t.resume.aboutP3}</p>
-            </div>
+          <section className="mt-12 mx-auto text-left" aria-labelledby="about-sam-title">
+            <div className="relative overflow-hidden rounded-[2rem] border border-slate-200/70 dark:border-slate-800/80 bg-white/55 dark:bg-slate-950/45 px-5 py-7 md:px-8 md:py-9 shadow-[0_24px_70px_-48px_rgba(15,23,42,0.45)] dark:shadow-[0_24px_80px_-50px_rgba(0,0,0,0.9)] backdrop-blur-xl">
+              <div className="pointer-events-none absolute -top-24 -right-16 h-56 w-56 rounded-full bg-primary-400/10 blur-3xl"></div>
+              <div className="pointer-events-none absolute -bottom-28 -left-20 h-56 w-56 rounded-full bg-indigo-400/10 blur-3xl"></div>
 
-            {/* Encapsulated Like Button */}
-            <LikeButton />
-          </div>
+              <div className="relative mb-7 flex flex-col gap-3 md:mb-8 md:flex-row md:items-end md:justify-between">
+                <div>
+                  <p className="mb-2 font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-primary-600 dark:text-primary-400">
+                    {t.resume.aboutEyebrow}
+                  </p>
+                  <h2
+                    id="about-sam-title"
+                    className="font-serif text-3xl font-bold tracking-tight text-slate-900 dark:text-white md:text-4xl"
+                  >
+                    {t.resume.aboutTitle}
+                  </h2>
+                </div>
+                <p className="max-w-md text-sm leading-relaxed text-slate-500 dark:text-slate-400 md:text-right">
+                  {t.resume.aboutSubtitle}
+                </p>
+              </div>
+
+              <div className="relative grid grid-cols-1 gap-4 md:grid-cols-3">
+                {aboutCards.map((card, index) => (
+                  <article
+                    key={card.label}
+                    className="group relative overflow-hidden rounded-3xl border border-slate-200/70 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/70 p-5 md:p-6 transition-all duration-300 hover:-translate-y-1 hover:border-primary-300/80 dark:hover:border-primary-700/70 hover:shadow-xl hover:shadow-primary-500/5"
+                  >
+                    <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-primary-400/70 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                    <div className="mb-5 flex items-center justify-between">
+                      <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-primary-600 dark:text-primary-400">
+                        {card.label}
+                      </span>
+                      <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary-500/10 text-sm text-primary-600 dark:text-primary-400 transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110">
+                        <i className={`fas ${card.icon}`} aria-hidden="true"></i>
+                      </span>
+                    </div>
+                    <h3 className="mb-3 font-serif text-xl font-bold leading-snug text-slate-800 dark:text-slate-100">
+                      {card.title}
+                    </h3>
+                    <p className="text-[15px] font-light leading-7 text-slate-600 dark:text-slate-300">
+                      {card.body}
+                    </p>
+                    <span className="pointer-events-none absolute -bottom-3 right-4 font-mono text-6xl font-bold text-slate-900/[0.025] dark:text-white/[0.025]">
+                      0{index + 1}
+                    </span>
+                  </article>
+                ))}
+              </div>
+
+              {/* Encapsulated Like Button */}
+              <div className="relative mt-7 flex justify-center border-t border-slate-200/60 pt-6 dark:border-slate-800/70">
+                <LikeButton />
+              </div>
+            </div>
+          </section>
         )}
       </div>
 

@@ -79,7 +79,7 @@ export const LikeButton: React.FC = () => {
   };
 
   return (
-    <div className="mt-8 flex flex-col items-center select-none">
+    <div className="flex flex-col items-center select-none">
       {homeId && (
         <div className="relative">
           {/* Floating Hearts Area */}
