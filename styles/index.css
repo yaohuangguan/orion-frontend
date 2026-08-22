@@ -275,12 +275,13 @@ body {
 
 /* Screen Print Guidelines Specific */
 @media screen {
-
   /* For standard print views on screen, align background & margins nicely */
   .pdf-mode-multi-page {
     border-radius: 0.5rem !important;
     position: relative !important;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+    box-shadow:
+      0 10px 15px -3px rgba(0, 0, 0, 0.1),
+      0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
   }
 }
 
@@ -357,7 +358,7 @@ body {
   /* 13px */
 }
 
-.resume-paper-sheet.resume-style-font-small .space-y-4>*+* {
+.resume-paper-sheet.resume-style-font-small .space-y-4 > * + * {
   margin-top: 0.75rem !important;
 }
 
@@ -374,7 +375,7 @@ body {
   /* 17px */
 }
 
-.resume-paper-sheet.resume-style-font-large .space-y-4>*+* {
+.resume-paper-sheet.resume-style-font-large .space-y-4 > * + * {
   margin-top: 1.25rem !important;
 }
 
@@ -402,7 +403,12 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(to bottom, rgba(255, 241, 242, 0.4) 0%, rgba(255, 241, 242, 0.85) 50px, rgba(255, 241, 242, 0.95) 100%) !important;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 241, 242, 0.4) 0%,
+    rgba(255, 241, 242, 0.85) 50px,
+    rgba(255, 241, 242, 0.95) 100%
+  ) !important;
   backdrop-filter: blur(1.5px);
   z-index: 40;
   pointer-events: none;
@@ -455,5 +461,158 @@ body {
 
   .resume-paper-sheet.resume-style-gap-relaxed section {
     margin-bottom: 9mm !important;
+  }
+}
+
+/* ==================================================================================
+   PROFESSIONAL WEB RESUME
+   Keeps the document structure ATS-friendly while adding Orion's polished web UI.
+   ================================================================================== */
+.resume-paper-sheet {
+  --resume-accent: #0f172a;
+  isolation: isolate;
+  letter-spacing: -0.006em;
+}
+
+.resume-paper-sheet.resume-style-theme-amber {
+  --resume-accent: #d97706;
+}
+
+.resume-paper-sheet.resume-style-theme-emerald {
+  --resume-accent: #059669;
+}
+
+.resume-paper-sheet.resume-style-theme-sky {
+  --resume-accent: #0284c7;
+}
+
+.resume-paper-sheet.resume-style-theme-crimson {
+  --resume-accent: #e11d48;
+}
+
+.resume-accent-bar {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 1;
+  height: 5px;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    var(--resume-accent),
+    color-mix(in srgb, var(--resume-accent) 62%, white)
+  );
+}
+
+.resume-identity {
+  position: relative;
+}
+
+.resume-contact a {
+  color: #334155;
+  text-decoration-color: #cbd5e1;
+  text-underline-offset: 3px;
+}
+
+.resume-contact a:hover {
+  color: var(--resume-accent);
+  text-decoration: underline;
+}
+
+.resume-paper-sheet section > h2 {
+  display: flex !important;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.9rem !important;
+  border-width: 0 0 1px !important;
+  border-color: #cbd5e1 !important;
+  padding-bottom: 0.55rem !important;
+  color: #0f172a !important;
+  font-size: 0.75rem !important;
+  line-height: 1.2 !important;
+  letter-spacing: 0.18em !important;
+}
+
+.resume-paper-sheet section > h2::before {
+  width: 3px;
+  height: 0.9rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--resume-accent);
+  content: '';
+}
+
+.resume-paper-sheet section h3 {
+  color: #0f172a !important;
+  font-size: 1.08rem !important;
+  line-height: 1.35 !important;
+  letter-spacing: -0.012em;
+}
+
+.resume-paper-sheet section p.italic {
+  margin-bottom: 0.45rem !important;
+  color: #475569 !important;
+  font-style: normal !important;
+  font-weight: 650 !important;
+}
+
+.resume-paper-sheet section ul {
+  color: #334155 !important;
+}
+
+.resume-paper-sheet section ul li {
+  line-height: 1.62 !important;
+}
+
+.resume-paper-sheet section ul li > span:first-child {
+  color: var(--resume-accent) !important;
+}
+
+.resume-paper-sheet .resume-date {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.resume-paper-sheet.resume-style-gap-compact section {
+  margin-bottom: 1.25rem !important;
+}
+
+.resume-paper-sheet section:last-of-type {
+  margin-bottom: 0 !important;
+}
+
+@media (max-width: 639px) {
+  .resume-paper-sheet.resume-style-margin-small,
+  .resume-paper-sheet.resume-style-margin-normal,
+  .resume-paper-sheet.resume-style-margin-large {
+    padding: 1.5rem 1.25rem !important;
+  }
+
+  .resume-paper-sheet section h3 {
+    font-size: 1rem !important;
+  }
+
+  .resume-paper-sheet section ul {
+    font-size: 0.9rem !important;
+  }
+
+  .resume-contact > div > span.text-slate-300 {
+    display: none;
+  }
+}
+
+@media print {
+  .resume-accent-bar {
+    background: #0f172a !important;
+    print-color-adjust: exact;
+  }
+
+  .resume-paper-sheet section > h2::before {
+    background: #0f172a !important;
+    print-color-adjust: exact;
+  }
+
+  .resume-paper-sheet.resume-style-gap-compact section {
+    margin-bottom: 3mm !important;
   }
 }

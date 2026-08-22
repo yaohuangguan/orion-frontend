@@ -55,10 +55,13 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
       <div
         ref={ref}
         id="resume-paper-sheet"
-        className={`resume-paper-sheet bg-white rounded-[2rem] shadow-xl border border-slate-200 p-8 md:p-16 max-w-4xl mx-auto print:shadow-none print:border-none print:m-0 print:p-8 print:max-w-none print:rounded-none font-sans text-slate-900 ${
-          currentPdfMode === 'multi-page' ? `pdf-mode-multi-page layout-mode-${currentPaperSize}` : ''
+        className={`resume-paper-sheet bg-white rounded-[1.5rem] sm:rounded-[2rem] shadow-[0_24px_70px_-30px_rgba(15,23,42,0.35)] border border-slate-200/80 p-6 sm:p-10 md:p-14 max-w-4xl mx-auto print:shadow-none print:border-none print:m-0 print:p-8 print:max-w-none print:rounded-none font-sans text-slate-900 ${
+          currentPdfMode === 'multi-page'
+            ? `pdf-mode-multi-page layout-mode-${currentPaperSize}`
+            : ''
         } ${fontSizeClass} ${lineHeightClass} ${themeColorClass} ${marginClass} ${sectionGapClass} relative`}
       >
+        <div className="resume-accent-bar" aria-hidden="true" />
         {/* Visual Page Boundaries for screen preview */}
         {currentPdfMode === 'multi-page' && !isPrint && (
           <>
@@ -110,19 +113,22 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
           >
             <div className="bg-rose-600 text-white px-4 py-2 rounded-full font-bold shadow-lg flex items-center gap-2 pointer-events-auto text-xs font-sans tracking-wide">
               <i className="fas fa-ban"></i>
-              <span>已超出 {currentPageLimit} 页打印限制范围 / Exceeds {currentPageLimit} Page Print Limit</span>
+              <span>
+                已超出 {currentPageLimit} 页打印限制范围 / Exceeds {currentPageLimit} Page Print
+                Limit
+              </span>
             </div>
           </div>
         )}
 
-        {/* Header / Basics - Removing the border bottom line */}
-        <div className="pb-3 mb-5 text-left">
+        {/* Header / Basics */}
+        <header className="resume-identity mb-6 border-b border-slate-200 pb-5 text-center sm:mb-7 sm:pb-6">
           <EditableText
             path={`basics.name_${language}`}
             label={language === 'zh' ? '大名 / Name' : 'Full Name'}
             value={getLocalized(resume.basics, 'name', language)}
             as="h1"
-            className="text-3xl font-sans font-semibold tracking-tight text-slate-900 mb-2.5 block w-full"
+            className="mb-2 block w-full text-center font-display text-[2rem] font-bold tracking-[-0.025em] text-slate-950 sm:text-4xl"
             isVip={isVip}
             isPrint={isPrint}
             resume={resume}
@@ -131,7 +137,7 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
           />
 
           {getLocalized(resume.basics, 'label', language) && (
-            <div className="text-lg text-slate-800 font-medium mb-1.5 font-sans">
+            <div className="mb-3 text-center font-sans text-sm font-semibold uppercase tracking-[0.16em] text-slate-600 sm:text-base">
               <EditableText
                 path={`basics.label_${language}`}
                 label={language === 'zh' ? '称谓 / Label' : 'Professional Label'}
@@ -146,53 +152,73 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
             </div>
           )}
 
-          <div className="text-sm text-slate-700 font-sans space-y-1.5 w-full">
-            {/* Row 2: Location | Phone | Email */}
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-              <EditableText
-                path={`basics.location_${language}`}
-                label={language === 'zh' ? '地点 / Location' : 'Location'}
-                value={getLocalized(resume.basics, 'location', language)}
-                as="span"
-                isVip={isVip}
-                isPrint={isPrint}
-                resume={resume}
-                setActiveInlineEdit={setActiveInlineEdit}
-                setInlineEditAnchor={setInlineEditAnchor}
-              />
-              <span className="text-slate-300 select-none">|</span>
-              <EditableText
-                path="basics.phone"
-                label={language === 'zh' ? '电话 / Phone' : 'Phone Number'}
-                value={resume.basics.phone || ''}
-                as="span"
-                isVip={isVip}
-                isPrint={isPrint}
-                resume={resume}
-                setActiveInlineEdit={setActiveInlineEdit}
-                setInlineEditAnchor={setInlineEditAnchor}
-              />
-              <span className="text-slate-300 select-none">|</span>
-              <EditableText
-                path="basics.email"
-                label={language === 'zh' ? '邮箱 / Email' : 'Email Address'}
-                value={resume.basics.email || ''}
-                as="span"
-                isVip={isVip}
-                isPrint={isPrint}
-                resume={resume}
-                setActiveInlineEdit={setActiveInlineEdit}
-                setInlineEditAnchor={setInlineEditAnchor}
-              />
-            </div>
+          {(() => {
+            const locVal = getLocalized(resume.basics, 'location', language);
+            const phoneVal = resume.basics.phone;
+            const emailVal = resume.basics.email;
+            const webVal = resume.basics.website;
+            const linkedinVal = resume.basics.linkedin;
+            const visaVal = getLocalized(resume.basics, 'visaStatus', language);
 
-            {/* Row 3: Portfolio | LinkedIn | Visa */}
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-              {resume.basics.website && (
-                <>
+            const items: React.ReactNode[] = [];
+
+            if (locVal && locVal.trim()) {
+              items.push(
+                <EditableText
+                  key="location"
+                  path={`basics.location_${language}`}
+                  label={language === 'zh' ? '地点 / Location' : 'Location'}
+                  value={locVal}
+                  as="span"
+                  isVip={isVip}
+                  isPrint={isPrint}
+                  resume={resume}
+                  setActiveInlineEdit={setActiveInlineEdit}
+                  setInlineEditAnchor={setInlineEditAnchor}
+                />
+              );
+            }
+
+            if (phoneVal && phoneVal.trim()) {
+              items.push(
+                <EditableText
+                  key="phone"
+                  path="basics.phone"
+                  label={language === 'zh' ? '电话 / Phone' : 'Phone Number'}
+                  value={phoneVal}
+                  as="span"
+                  isVip={isVip}
+                  isPrint={isPrint}
+                  resume={resume}
+                  setActiveInlineEdit={setActiveInlineEdit}
+                  setInlineEditAnchor={setInlineEditAnchor}
+                />
+              );
+            }
+
+            if (emailVal && emailVal.trim()) {
+              items.push(
+                <EditableText
+                  key="email"
+                  path="basics.email"
+                  label={language === 'zh' ? '邮箱 / Email' : 'Email Address'}
+                  value={emailVal}
+                  as="span"
+                  isVip={isVip}
+                  isPrint={isPrint}
+                  resume={resume}
+                  setActiveInlineEdit={setActiveInlineEdit}
+                  setInlineEditAnchor={setInlineEditAnchor}
+                />
+              );
+            }
+
+            if (webVal && webVal.trim()) {
+              items.push(
+                <span key="website" className="inline-flex items-center gap-1">
                   <span className="font-semibold text-slate-800">Portfolio:</span>
                   <a
-                    href={resume.basics.website.startsWith('http') ? resume.basics.website : `https://${resume.basics.website}`}
+                    href={webVal.startsWith('http') ? webVal : `https://${webVal}`}
                     target="_blank"
                     rel="noreferrer"
                     className="hover:underline"
@@ -200,7 +226,7 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                     <EditableText
                       path="basics.website"
                       label={language === 'zh' ? '个人网站 / Website' : 'Website URL'}
-                      value={resume.basics.website}
+                      value={webVal}
                       as="span"
                       isVip={isVip}
                       isPrint={isPrint}
@@ -209,14 +235,16 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                       setInlineEditAnchor={setInlineEditAnchor}
                     />
                   </a>
-                  <span className="text-slate-300 select-none">|</span>
-                </>
-              )}
-              {resume.basics.linkedin && (
-                <>
+                </span>
+              );
+            }
+
+            if (linkedinVal && linkedinVal.trim()) {
+              items.push(
+                <span key="linkedin" className="inline-flex items-center gap-1">
                   <span className="font-semibold text-slate-800">LinkedIn:</span>
                   <a
-                    href={resume.basics.linkedin.startsWith('http') ? resume.basics.linkedin : `https://${resume.basics.linkedin}`}
+                    href={linkedinVal.startsWith('http') ? linkedinVal : `https://${linkedinVal}`}
                     target="_blank"
                     rel="noreferrer"
                     className="hover:underline"
@@ -224,7 +252,7 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                     <EditableText
                       path="basics.linkedin"
                       label="LinkedIn"
-                      value={resume.basics.linkedin}
+                      value={linkedinVal}
                       as="span"
                       isVip={isVip}
                       isPrint={isPrint}
@@ -233,24 +261,45 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                       setInlineEditAnchor={setInlineEditAnchor}
                     />
                   </a>
-                  <span className="text-slate-300 select-none">|</span>
-                </>
-              )}
-              <span className="font-semibold text-slate-800">Visa:</span>
-              <EditableText
-                path={`basics.visaStatus_${language}`}
-                label={language === 'zh' ? '签证状况 / Visa' : 'Visa Status'}
-                value={getLocalized(resume.basics, 'visaStatus', language)}
-                as="span"
-                isVip={isVip}
-                isPrint={isPrint}
-                resume={resume}
-                setActiveInlineEdit={setActiveInlineEdit}
-                setInlineEditAnchor={setInlineEditAnchor}
-              />
-            </div>
-          </div>
-        </div>
+                </span>
+              );
+            }
+
+            if (visaVal && visaVal.trim()) {
+              items.push(
+                <span key="visa" className="inline-flex items-center gap-1">
+                  <span className="font-semibold text-slate-800">Visa:</span>
+                  <EditableText
+                    path={`basics.visaStatus_${language}`}
+                    label={language === 'zh' ? '签证状况 / Visa' : 'Visa Status'}
+                    value={visaVal}
+                    as="span"
+                    isVip={isVip}
+                    isPrint={isPrint}
+                    resume={resume}
+                    setActiveInlineEdit={setActiveInlineEdit}
+                    setInlineEditAnchor={setInlineEditAnchor}
+                  />
+                </span>
+              );
+            }
+
+            if (items.length === 0) return null;
+
+            return (
+              <div className="resume-contact w-full font-sans text-xs text-slate-600 sm:text-sm">
+                <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1.5">
+                  {items.map((item, idx) => (
+                    <React.Fragment key={idx}>
+                      {idx > 0 && <span className="text-slate-300 select-none">|</span>}
+                      {item}
+                    </React.Fragment>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+        </header>
 
         {/* Summary, Work, Projects, Education, and Skills Sections (Rendered Dynamically via sectionOrder) */}
         {getNormalizedSectionOrder(resume.sectionOrder).map((sectionId) => {
@@ -262,7 +311,10 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                 <EditableText
                   path={`sectionTitles.profile_${language}`}
                   label={language === 'zh' ? '版块标题 / Title' : 'Section Title'}
-                  value={resume.sectionTitles?.[`profile_${language}`] || getDefaultSectionTitle('profile', language)}
+                  value={
+                    resume.sectionTitles?.[`profile_${language}`] ||
+                    getDefaultSectionTitle('profile', language)
+                  }
                   as="h2"
                   className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-3 border-b-2 border-slate-900 pb-2 w-full block text-left"
                   isVip={isVip}
@@ -297,7 +349,10 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                 <EditableText
                   path={`sectionTitles.work_${language}`}
                   label={language === 'zh' ? '版块标题 / Title' : 'Section Title'}
-                  value={resume.sectionTitles?.[`work_${language}`] || getDefaultSectionTitle('work', language)}
+                  value={
+                    resume.sectionTitles?.[`work_${language}`] ||
+                    getDefaultSectionTitle('work', language)
+                  }
                   as="h2"
                   className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-3.5 border-b-2 border-slate-900 pb-2 w-full block text-left"
                   isVip={isVip}
@@ -309,7 +364,9 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                 <div className="space-y-5 print:space-y-3.5">
                   {getSortedWorkExperience(resume.work).map((job, idx) => {
                     const jobOriginalIndex = resume.work.findIndex(
-                      (item) => (item.company_zh && item.company_zh === job.company_zh) || (item.company_en && item.company_en === job.company_en)
+                      (item) =>
+                        (item.company_zh && item.company_zh === job.company_zh) ||
+                        (item.company_en && item.company_en === job.company_en)
                     );
 
                     return (
@@ -337,12 +394,7 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                               />
                             </h3>
                             <div className="flex items-center gap-2">
-                              {typeof job.weight === 'number' && job.weight > 0 && (
-                                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300 font-bold">
-                                  Weight: {job.weight}
-                                </span>
-                              )}
-                              <span className="font-sans text-sm text-slate-700 bg-slate-100 px-2 py-1 rounded font-medium">
+                              <span className="resume-date font-sans text-sm font-semibold text-slate-500">
                                 <EditableText
                                   path={`work.${jobOriginalIndex}.startDate`}
                                   label={language === 'zh' ? '开始日期 / Start Date' : 'Start Date'}
@@ -353,7 +405,9 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                                   resume={resume}
                                   setActiveInlineEdit={setActiveInlineEdit}
                                   setInlineEditAnchor={setInlineEditAnchor}
-                                /> — <EditableText
+                                />{' '}
+                                —{' '}
+                                <EditableText
                                   path={`work.${jobOriginalIndex}.endDate`}
                                   label={language === 'zh' ? '结束日期 / End Date' : 'End Date'}
                                   value={job.endDate || ''}
@@ -387,10 +441,15 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                           {/* Location Display */}
                           {(job.location_zh || job.location_en) && (
                             <p className="text-sm text-slate-600 mb-2 font-sans flex items-center gap-2">
-                              <i aria-hidden="true" className="fas fa-map-marker-alt opacity-70"></i>
+                              <i
+                                aria-hidden="true"
+                                className="fas fa-map-marker-alt opacity-70"
+                              ></i>
                               <EditableText
                                 path={`work.${jobOriginalIndex}.location_${language}`}
-                                label={language === 'zh' ? '工作地点 / Job Location' : 'Job Location'}
+                                label={
+                                  language === 'zh' ? '工作地点 / Job Location' : 'Job Location'
+                                }
                                 value={getLocalized(job, 'location', language)}
                                 as="span"
                                 isVip={isVip}
@@ -403,24 +462,28 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                           )}
 
                           <ul className="space-y-1.5 text-slate-800 leading-relaxed text-base text-left">
-                            {getLocalizedArray(job, 'highlights', language).map((hl: string, i: number) => (
-                              <li key={i} className="flex items-start gap-2">
-                                <span className="text-slate-400 select-none pt-1 shrink-0 font-bold">•</span>
-                                <EditableText
-                                  path={`work.${jobOriginalIndex}.highlights_${language}.${i}`}
-                                  label={`${language === 'zh' ? '工作亮点' : 'Highlight'} #${i + 1}`}
-                                  value={hl}
-                                  isTextArea={true}
-                                  as="span"
-                                  className="flex-1"
-                                  isVip={isVip}
-                                  isPrint={isPrint}
-                                  resume={resume}
-                                  setActiveInlineEdit={setActiveInlineEdit}
-                                  setInlineEditAnchor={setInlineEditAnchor}
-                                />
-                              </li>
-                            ))}
+                            {getLocalizedArray(job, 'highlights', language).map(
+                              (hl: string, i: number) => (
+                                <li key={i} className="flex items-start gap-2">
+                                  <span className="text-slate-400 select-none pt-1 shrink-0 font-bold">
+                                    •
+                                  </span>
+                                  <EditableText
+                                    path={`work.${jobOriginalIndex}.highlights_${language}.${i}`}
+                                    label={`${language === 'zh' ? '工作亮点' : 'Highlight'} #${i + 1}`}
+                                    value={hl}
+                                    isTextArea={true}
+                                    as="span"
+                                    className="flex-1"
+                                    isVip={isVip}
+                                    isPrint={isPrint}
+                                    resume={resume}
+                                    setActiveInlineEdit={setActiveInlineEdit}
+                                    setInlineEditAnchor={setInlineEditAnchor}
+                                  />
+                                </li>
+                              )
+                            )}
                           </ul>
                         </div>
                       </React.Fragment>
@@ -438,7 +501,10 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                 <EditableText
                   path={`sectionTitles.projects_${language}`}
                   label={language === 'zh' ? '版块标题 / Title' : 'Section Title'}
-                  value={resume.sectionTitles?.[`projects_${language}`] || getDefaultSectionTitle('projects', language)}
+                  value={
+                    resume.sectionTitles?.[`projects_${language}`] ||
+                    getDefaultSectionTitle('projects', language)
+                  }
                   as="h2"
                   className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-3.5 border-b-2 border-slate-900 pb-2 w-full block text-left"
                   isVip={isVip}
@@ -450,7 +516,9 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                 <div className="space-y-5 print:space-y-3.5">
                   {getSortedFeaturedProjects(resume.work).map((job, idx) => {
                     const jobOriginalIndex = resume.work.findIndex(
-                      (item) => (item.company_zh && item.company_zh === job.company_zh) || (item.company_en && item.company_en === job.company_en)
+                      (item) =>
+                        (item.company_zh && item.company_zh === job.company_zh) ||
+                        (item.company_en && item.company_en === job.company_en)
                     );
 
                     return (
@@ -478,12 +546,7 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                               />
                             </h3>
                             <div className="flex items-center gap-2">
-                              {typeof job.weight === 'number' && job.weight > 0 && (
-                                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300 font-bold">
-                                  Weight: {job.weight}
-                                </span>
-                              )}
-                              <span className="font-sans text-sm text-slate-700 bg-slate-100 px-2 py-1 rounded font-medium">
+                              <span className="resume-date font-sans text-sm font-semibold text-slate-500">
                                 <EditableText
                                   path={`work.${jobOriginalIndex}.startDate`}
                                   label={language === 'zh' ? '开始日期 / Start Date' : 'Start Date'}
@@ -494,7 +557,9 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                                   resume={resume}
                                   setActiveInlineEdit={setActiveInlineEdit}
                                   setInlineEditAnchor={setInlineEditAnchor}
-                                /> — <EditableText
+                                />{' '}
+                                —{' '}
+                                <EditableText
                                   path={`work.${jobOriginalIndex}.endDate`}
                                   label={language === 'zh' ? '结束日期 / End Date' : 'End Date'}
                                   value={job.endDate || ''}
@@ -528,10 +593,17 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                           {/* Location Display */}
                           {(job.location_zh || job.location_en) && (
                             <p className="text-sm text-slate-600 mb-2 font-sans flex items-center gap-2">
-                              <i aria-hidden="true" className="fas fa-map-marker-alt opacity-70"></i>
+                              <i
+                                aria-hidden="true"
+                                className="fas fa-map-marker-alt opacity-70"
+                              ></i>
                               <EditableText
                                 path={`work.${jobOriginalIndex}.location_${language}`}
-                                label={language === 'zh' ? '项目链接或地点 / Link or Location' : 'Link or Location'}
+                                label={
+                                  language === 'zh'
+                                    ? '项目链接或地点 / Link or Location'
+                                    : 'Link or Location'
+                                }
                                 value={getLocalized(job, 'location', language)}
                                 as="span"
                                 isVip={isVip}
@@ -544,24 +616,28 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                           )}
 
                           <ul className="space-y-1.5 text-slate-800 leading-relaxed text-base text-left">
-                            {getLocalizedArray(job, 'highlights', language).map((hl: string, i: number) => (
-                              <li key={i} className="flex items-start gap-2">
-                                <span className="text-slate-400 select-none pt-1 shrink-0 font-bold">•</span>
-                                <EditableText
-                                  path={`work.${jobOriginalIndex}.highlights_${language}.${i}`}
-                                  label={`${language === 'zh' ? '项目描述亮点' : 'Project Highlight'} #${i + 1}`}
-                                  value={hl}
-                                  isTextArea={true}
-                                  as="span"
-                                  className="flex-1"
-                                  isVip={isVip}
-                                  isPrint={isPrint}
-                                  resume={resume}
-                                  setActiveInlineEdit={setActiveInlineEdit}
-                                  setInlineEditAnchor={setInlineEditAnchor}
-                                />
-                              </li>
-                            ))}
+                            {getLocalizedArray(job, 'highlights', language).map(
+                              (hl: string, i: number) => (
+                                <li key={i} className="flex items-start gap-2">
+                                  <span className="text-slate-400 select-none pt-1 shrink-0 font-bold">
+                                    •
+                                  </span>
+                                  <EditableText
+                                    path={`work.${jobOriginalIndex}.highlights_${language}.${i}`}
+                                    label={`${language === 'zh' ? '项目描述亮点' : 'Project Highlight'} #${i + 1}`}
+                                    value={hl}
+                                    isTextArea={true}
+                                    as="span"
+                                    className="flex-1"
+                                    isVip={isVip}
+                                    isPrint={isPrint}
+                                    resume={resume}
+                                    setActiveInlineEdit={setActiveInlineEdit}
+                                    setInlineEditAnchor={setInlineEditAnchor}
+                                  />
+                                </li>
+                              )
+                            )}
                           </ul>
                         </div>
                       </React.Fragment>
@@ -578,7 +654,10 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                 <EditableText
                   path={`sectionTitles.education_${language}`}
                   label={language === 'zh' ? '版块标题 / Title' : 'Section Title'}
-                  value={resume.sectionTitles?.[`education_${language}`] || getDefaultSectionTitle('education', language)}
+                  value={
+                    resume.sectionTitles?.[`education_${language}`] ||
+                    getDefaultSectionTitle('education', language)
+                  }
                   as="h2"
                   className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-3 border-b-2 border-slate-900 pb-2 w-full block text-left"
                   isVip={isVip}
@@ -602,7 +681,9 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                           <h3 className="text-xl font-bold text-black flex items-center gap-2">
                             <EditableText
                               path={`education.${idx}.studyType_${language}`}
-                              label={language === 'zh' ? '专业与学位 / Major & Degree' : 'Major & Degree'}
+                              label={
+                                language === 'zh' ? '专业与学位 / Major & Degree' : 'Major & Degree'
+                              }
                               value={getLocalized(edu, 'studyType', language)}
                               as="span"
                               isVip={isVip}
@@ -623,7 +704,9 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                               resume={resume}
                               setActiveInlineEdit={setActiveInlineEdit}
                               setInlineEditAnchor={setInlineEditAnchor}
-                            /> — <EditableText
+                            />{' '}
+                            —{' '}
+                            <EditableText
                               path={`education.${idx}.endDate`}
                               label={language === 'zh' ? '毕业日期 / End Date' : 'End Date'}
                               value={edu.endDate || ''}
@@ -654,10 +737,15 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                             <>
                               <span className="text-slate-300 select-none">|</span>
                               <span className="text-sm text-slate-600 flex items-center gap-1">
-                                <i aria-hidden="true" className="fas fa-map-marker-alt opacity-70"></i>
+                                <i
+                                  aria-hidden="true"
+                                  className="fas fa-map-marker-alt opacity-70"
+                                ></i>
                                 <EditableText
                                   path={`education.${idx}.location`}
-                                  label={language === 'zh' ? '学校地点 / Location' : 'School Location'}
+                                  label={
+                                    language === 'zh' ? '学校地点 / Location' : 'School Location'
+                                  }
                                   value={edu.location}
                                   as="span"
                                   isVip={isVip}
@@ -675,7 +763,9 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                               <span className="text-slate-600 italic">
                                 <EditableText
                                   path={`education.${idx}.score_${language}`}
-                                  label={language === 'zh' ? '成绩表现 / GPA & Honors' : 'GPA & Honors'}
+                                  label={
+                                    language === 'zh' ? '成绩表现 / GPA & Honors' : 'GPA & Honors'
+                                  }
                                   value={getLocalized(edu, 'score', language)}
                                   as="span"
                                   isVip={isVip}
@@ -688,6 +778,21 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                             </>
                           )}
                         </p>
+                        {getLocalized(edu, 'area', language) && (
+                          <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
+                            <EditableText
+                              path={`education.${idx}.area_${language}`}
+                              label={language === 'zh' ? '专业说明 / Study Focus' : 'Study Focus'}
+                              value={getLocalized(edu, 'area', language)}
+                              as="span"
+                              isVip={isVip}
+                              isPrint={isPrint}
+                              resume={resume}
+                              setActiveInlineEdit={setActiveInlineEdit}
+                              setInlineEditAnchor={setInlineEditAnchor}
+                            />
+                          </p>
+                        )}
                       </div>
                     </React.Fragment>
                   ))}
@@ -703,7 +808,10 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                 <EditableText
                   path={`sectionTitles.volunteer_${language}`}
                   label={language === 'zh' ? '版块标题 / Title' : 'Section Title'}
-                  value={resume.sectionTitles?.[`volunteer_${language}`] || getDefaultSectionTitle('volunteer', language)}
+                  value={
+                    resume.sectionTitles?.[`volunteer_${language}`] ||
+                    getDefaultSectionTitle('volunteer', language)
+                  }
                   as="h2"
                   className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-3.5 border-b-2 border-slate-900 pb-2 w-full block text-left"
                   isVip={isVip}
@@ -739,14 +847,18 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                                   setInlineEditAnchor={setInlineEditAnchor}
                                 />
                               </h3>
-                            ) : <div />}
+                            ) : (
+                              <div />
+                            )}
                             {(vol.startDate || vol.endDate) && (
                               <div className="flex items-center gap-2">
-                                <span className="font-sans text-sm text-slate-700 bg-slate-100 px-2 py-1 rounded font-medium">
+                                <span className="resume-date font-sans text-sm font-semibold text-slate-500">
                                   {vol.startDate && (
                                     <EditableText
                                       path={`volunteer.${idx}.startDate`}
-                                      label={language === 'zh' ? '开始日期 / Start Date' : 'Start Date'}
+                                      label={
+                                        language === 'zh' ? '开始日期 / Start Date' : 'Start Date'
+                                      }
                                       value={vol.startDate || ''}
                                       as="span"
                                       isVip={isVip}
@@ -779,7 +891,9 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                             <p className="text-slate-800 font-bold text-base mb-3 italic">
                               <EditableText
                                 path={`volunteer.${idx}.organization_${language}`}
-                                label={language === 'zh' ? '组织机构 / Organization' : 'Organization'}
+                                label={
+                                  language === 'zh' ? '组织机构 / Organization' : 'Organization'
+                                }
                                 value={getLocalized(vol, 'organization', language)}
                                 as="span"
                                 isVip={isVip}
@@ -792,24 +906,28 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                           )}
 
                           <ul className="space-y-1.5 text-slate-800 leading-relaxed text-base text-left">
-                            {getLocalizedArray(vol, 'highlights', language).map((hl: string, i: number) => (
-                              <li key={i} className="flex items-start gap-2">
-                                <span className="text-slate-400 select-none pt-1 shrink-0 font-bold">•</span>
-                                <EditableText
-                                  path={`volunteer.${idx}.highlights_${language}.${i}`}
-                                  label={`${language === 'zh' ? '志愿活动亮点' : 'Highlight'} #${i + 1}`}
-                                  value={hl}
-                                  isTextArea={true}
-                                  as="span"
-                                  className="flex-1"
-                                  isVip={isVip}
-                                  isPrint={isPrint}
-                                  resume={resume}
-                                  setActiveInlineEdit={setActiveInlineEdit}
-                                  setInlineEditAnchor={setInlineEditAnchor}
-                                />
-                              </li>
-                            ))}
+                            {getLocalizedArray(vol, 'highlights', language).map(
+                              (hl: string, i: number) => (
+                                <li key={i} className="flex items-start gap-2">
+                                  <span className="text-slate-400 select-none pt-1 shrink-0 font-bold">
+                                    •
+                                  </span>
+                                  <EditableText
+                                    path={`volunteer.${idx}.highlights_${language}.${i}`}
+                                    label={`${language === 'zh' ? '志愿活动亮点' : 'Highlight'} #${i + 1}`}
+                                    value={hl}
+                                    isTextArea={true}
+                                    as="span"
+                                    className="flex-1"
+                                    isVip={isVip}
+                                    isPrint={isPrint}
+                                    resume={resume}
+                                    setActiveInlineEdit={setActiveInlineEdit}
+                                    setInlineEditAnchor={setInlineEditAnchor}
+                                  />
+                                </li>
+                              )
+                            )}
                           </ul>
                         </div>
                       </React.Fragment>
@@ -827,7 +945,10 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                 <EditableText
                   path={`sectionTitles.interest_${language}`}
                   label={language === 'zh' ? '版块标题 / Title' : 'Section Title'}
-                  value={resume.sectionTitles?.[`interest_${language}`] || getDefaultSectionTitle('interest', language)}
+                  value={
+                    resume.sectionTitles?.[`interest_${language}`] ||
+                    getDefaultSectionTitle('interest', language)
+                  }
                   as="h2"
                   className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-3 border-b-2 border-slate-900 pb-2 w-full block text-left"
                   isVip={isVip}
@@ -862,11 +983,14 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                             />
                           </h3>
                         ) : (
-                          !isPrint && isVip && (
+                          !isPrint &&
+                          isVip && (
                             <div className="mb-2">
                               <EditableText
                                 path={`interest.${idx}.name_${language}`}
-                                label={language === 'zh' ? '分类名称 / Category Name' : 'Category Name'}
+                                label={
+                                  language === 'zh' ? '分类名称 / Category Name' : 'Category Name'
+                                }
                                 value=""
                                 as="span"
                                 className="text-xs text-slate-400 border border-dashed border-slate-300 px-2 py-0.5 rounded cursor-pointer hover:bg-slate-50"
@@ -879,7 +1003,7 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                             </div>
                           )
                         )}
-                        
+
                         <div className="text-slate-800 text-sm">
                           <EditableText
                             path={`interest.${idx}.keywords`}
@@ -897,7 +1021,9 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1.5 text-left">
                               {interestGroup.keywords?.map((kw, i) => (
                                 <div key={i} className="flex items-start gap-2 leading-relaxed">
-                                  <span className="text-slate-400 select-none pt-1 shrink-0 text-[10px]">•</span>
+                                  <span className="text-slate-400 select-none pt-1 shrink-0 text-[10px]">
+                                    •
+                                  </span>
                                   <span className="text-slate-800 font-sans text-sm md:text-[14px] leading-relaxed">
                                     {renderRichText(kw)}
                                   </span>
@@ -921,7 +1047,10 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                 <EditableText
                   path={`sectionTitles.skills_${language}`}
                   label={language === 'zh' ? '版块标题 / Title' : 'Section Title'}
-                  value={resume.sectionTitles?.[`skills_${language}`] || getDefaultSectionTitle('skills', language)}
+                  value={
+                    resume.sectionTitles?.[`skills_${language}`] ||
+                    getDefaultSectionTitle('skills', language)
+                  }
                   as="h2"
                   className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-3 border-b-2 border-slate-900 pb-2 w-full block text-left"
                   isVip={isVip}
@@ -969,7 +1098,9 @@ export const ResumePaper = React.forwardRef<HTMLDivElement, ResumePaperProps>(
                           >
                             {skillGroup.keywords?.map((kw, i) => (
                               <React.Fragment key={i}>
-                                {i > 0 && <span className="mr-1.5 font-bold text-slate-400">, </span>}
+                                {i > 0 && (
+                                  <span className="mr-1.5 font-bold text-slate-400">, </span>
+                                )}
                                 {renderRichText(kw)}
                               </React.Fragment>
                             ))}

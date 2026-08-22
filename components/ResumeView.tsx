@@ -3,6 +3,7 @@ import { useTranslation } from '../i18n/LanguageContext';
 import { PageView, User } from '../types';
 import { createPortal } from 'react-dom';
 import { LikeButton } from './LikeButton';
+import { LinkedInBadge } from './LinkedInBadge';
 
 // --- Star Compass Component ---
 const StarCompass = () => {
@@ -349,36 +350,47 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
               Contact
             </h2>
             <div className="flex flex-col gap-4">
-              <a
-                href="mailto:moviegoer24@gmail.com"
-                className="group flex items-center gap-4 text-slate-600 dark:text-slate-400 hover:text-primary-500 transition-colors bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary-500/30"
-              >
-                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary-500 group-hover:text-white transition-colors">
-                  <i className="fas fa-envelope text-sm"></i>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <a
+                  href="mailto:moviegoer24@gmail.com"
+                  className="group flex items-center gap-4 text-slate-600 dark:text-slate-400 hover:text-primary-500 transition-colors bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary-500/30 shadow-sm"
+                >
+                  <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary-500 group-hover:text-white transition-colors">
+                    <i className="fas fa-envelope text-sm"></i>
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                      Email
+                    </span>
+                    <span className="text-sm font-mono font-bold truncate">moviegoer24@gmail.com</span>
+                  </div>
+                </a>
+                <a
+                  href="https://github.com/yaohuangguan"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group flex items-center gap-4 text-slate-600 dark:text-slate-400 hover:text-primary-500 transition-colors bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary-500/30 shadow-sm"
+                >
+                  <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary-500 group-hover:text-white transition-colors">
+                    <i className="fab fa-github text-sm"></i>
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                      GitHub
+                    </span>
+                    <span className="text-sm font-mono font-bold truncate">github.com/yaohuangguan</span>
+                  </div>
+                </a>
+              </div>
+
+              {/* LinkedIn Badge Embed */}
+              <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:border-sky-500/30 transition-all">
+                <div className="flex items-center gap-2 mb-3 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
+                  <i className="fab fa-linkedin text-sky-600 dark:text-sky-400 text-sm"></i>
+                  <span>LinkedIn Profile</span>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
-                    Email
-                  </span>
-                  <span className="text-sm font-mono font-bold">moviegoer24@gmail.com</span>
-                </div>
-              </a>
-              <a
-                href="https://github.com/yaohuangguan"
-                target="_blank"
-                rel="noreferrer"
-                className="group flex items-center gap-4 text-slate-600 dark:text-slate-400 hover:text-primary-500 transition-colors bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary-500/30"
-              >
-                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary-500 group-hover:text-white transition-colors">
-                  <i className="fab fa-github text-sm"></i>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
-                    GitHub
-                  </span>
-                  <span className="text-sm font-mono font-bold">github.com/yaohuangguan</span>
-                </div>
-              </a>
+                <LinkedInBadge />
+              </div>
             </div>
           </section>
 

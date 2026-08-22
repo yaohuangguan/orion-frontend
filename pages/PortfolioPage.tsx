@@ -1,10 +1,11 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { useSearchParams } from 'react-router-dom';
 import { ProjectShowcase } from '../components/profile/ProjectShowcase';
 import { ResumeDocument } from '../components/profile/ResumeDocument';
+import { CANONICAL_RESUME_PDF_PATH } from '../components/profile/canonicalResume';
 import { useTranslation } from '../i18n/LanguageContext';
-import { User, UserRole } from '../types';
+import { User } from '../types';
 import { Helmet } from 'react-helmet-async';
 
 interface PortfolioPageProps {
@@ -33,7 +34,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ currentUser }) => 
 
   const handlePrint = useReactToPrint({
     contentRef: resumeRef,
-    documentTitle: `Resume - ${currentUser?.displayName || 'Profile'}`
+    documentTitle: `Resume - ${currentUser?.displayName || 'Sam_Yao'}`
   });
 
   return (
@@ -52,14 +53,27 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ currentUser }) => 
 
       {/* Page Header */}
       <div className="text-center mb-8 relative">
-        {activeTab === 'RESUME' && currentUser?.role === UserRole.SuperAdmin && (
-          <button
-            onClick={() => handlePrint()}
-            className="hidden md:flex absolute top-0 right-0 items-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full font-bold text-sm hover:opacity-90 transition-opacity shadow-lg"
-          >
-            <i className="fas fa-file-pdf"></i>
-            <span>Export PDF</span>
-          </button>
+        {activeTab === 'RESUME' && currentUser && (
+          <div className="hidden md:flex absolute top-0 right-0 items-center gap-3">
+            <button
+              type="button"
+              onClick={() => handlePrint()}
+              className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 rounded-full font-bold text-sm transition-all duration-200 shadow-lg hover:scale-105 active:scale-95 cursor-pointer"
+              title="Print / Save as PDF via browser"
+            >
+              <i className="fas fa-print"></i>
+              <span>Export PDF</span>
+            </button>
+            <a
+              href={CANONICAL_RESUME_PDF_PATH}
+              download="Sam_Yao_Resume.pdf"
+              className="flex items-center gap-2 px-4 py-2.5 bg-white/80 hover:bg-white dark:bg-slate-800/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-full font-bold text-sm transition-all duration-200 border border-slate-200/80 dark:border-slate-700/80 shadow-md hover:scale-105 active:scale-95 cursor-pointer"
+              title="Download original static PDF"
+            >
+              <i className="fas fa-download text-xs"></i>
+              <span>Original PDF</span>
+            </a>
+          </div>
         )}
         <h1 className="text-5xl md:text-7xl font-display font-bold text-slate-900 dark:text-white mb-6 tracking-tight">
           {t.portfolio.title}
@@ -76,7 +90,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ currentUser }) => 
             onClick={() => handleTabChange('RESUME')}
             className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-300 ${
               activeTab === 'RESUME'
-                ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md'
+                 ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md'
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -94,6 +108,28 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ currentUser }) => 
           </button>
         </div>
       </div>
+
+      {/* Mobile Download & Print Actions */}
+      {activeTab === 'RESUME' && currentUser && (
+        <div className="flex md:hidden justify-center items-center gap-2 mb-6">
+          <button
+            type="button"
+            onClick={() => handlePrint()}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full font-bold text-xs shadow-md hover:opacity-90 transition-opacity"
+          >
+            <i className="fas fa-print"></i>
+            <span>Export PDF</span>
+          </button>
+          <a
+            href={CANONICAL_RESUME_PDF_PATH}
+            download="Sam_Yao_Resume.pdf"
+            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-full font-bold text-xs shadow-md hover:opacity-90 transition-opacity"
+          >
+            <i className="fas fa-download text-[10px]"></i>
+            <span>Original PDF</span>
+          </a>
+        </div>
+      )}
 
       {/* Content Area */}
       <div className="animate-slide-up">

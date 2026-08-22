@@ -58,13 +58,15 @@ export const getLocalizedArray = (obj: any, field: string, language: Language) =
 };
 
 export const getDefaultSectionTitle = (sectionId: string, language: Language) => {
-  if (sectionId === 'profile') return language === 'zh' ? '个人简介 / Profile' : 'Professional Summary';
-  if (sectionId === 'work') return language === 'zh' ? '工作经历 / Experience' : 'Work Experience';
-  if (sectionId === 'projects') return language === 'zh' ? '作品项目 / Projects' : 'Featured Projects';
+  if (sectionId === 'profile') return language === 'zh' ? '个人简介 / Profile' : 'Profile';
+  if (sectionId === 'work') return language === 'zh' ? '工作经历 / Experience' : 'Experience';
+  if (sectionId === 'projects')
+    return language === 'zh' ? '精选项目 / Selected Project' : 'Selected Project';
   if (sectionId === 'education') return language === 'zh' ? '教育经历 / Education' : 'Education';
-  if (sectionId === 'volunteer') return language === 'zh' ? '志愿活动 / Volunteer' : 'Volunteer Experience';
+  if (sectionId === 'volunteer')
+    return language === 'zh' ? '领导力与活动 / Leadership & Activities' : 'Leadership & Activities';
   if (sectionId === 'interest') return language === 'zh' ? '兴趣爱好 / Interests' : 'Interests';
-  if (sectionId === 'skills') return language === 'zh' ? '专业技能 / Skills' : 'Skills & Languages';
+  if (sectionId === 'skills') return language === 'zh' ? '专业技能 / Skills' : 'Skills';
   return sectionId;
 };
 
@@ -85,7 +87,20 @@ const parseDateString = (str: string): number => {
   const yearMatch = clean.match(/\b(19|20)\d{2}\b/);
   if (yearMatch) {
     const year = parseInt(yearMatch[0], 10);
-    const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    const months = [
+      'jan',
+      'feb',
+      'mar',
+      'apr',
+      'may',
+      'jun',
+      'jul',
+      'aug',
+      'sep',
+      'oct',
+      'nov',
+      'dec'
+    ];
     let monthIdx = 0;
     for (let i = 0; i < months.length; i++) {
       if (clean.includes(months[i])) {
@@ -127,7 +142,15 @@ export const getCombinedSkills = (skills: any[]) => {
 };
 
 export const getNormalizedSectionOrder = (order?: string[]) => {
-  const canonicalSections = ['profile', 'work', 'projects', 'education', 'volunteer', 'interest', 'skills'];
+  const canonicalSections = [
+    'profile',
+    'skills',
+    'work',
+    'education',
+    'projects',
+    'volunteer',
+    'interest'
+  ];
   if (!order || order.length === 0) return canonicalSections;
   const result = [...order];
   canonicalSections.forEach((sec) => {
@@ -141,4 +164,4 @@ export const getNormalizedSectionOrder = (order?: string[]) => {
     }
   });
   return result;
-};;
+};

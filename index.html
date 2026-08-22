@@ -19,10 +19,9 @@
       (function() {
         try {
           const savedTheme = localStorage.getItem('app_theme');
-          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
           
-          // 如果存了 dark，或者没存但是系统是 dark，就直接给 html 加 class
-          if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+          // 默认白色主题，仅当用户保存了 dark 时才启用暗黑模式
+          if (savedTheme === 'dark') {
             document.documentElement.classList.add('dark');
           } else {
             document.documentElement.classList.remove('dark');
