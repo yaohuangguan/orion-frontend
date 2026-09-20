@@ -34,19 +34,15 @@ export const authService = {
 
   // --- Users ---
   login: async (email: string, password: string): Promise<{ token: string; user?: User }> => {
-    try {
-      const response = await fetchClient<{ token: string; user?: User }>('/users/signin', {
-        method: 'POST',
-        body: JSON.stringify({ email, password })
-      });
-      if (response.token) {
-        localStorage.setItem('auth_token', response.token);
-      }
-      toast.success('Welcome back!');
-      return response;
-    } catch (error) {
-      throw error;
+    const response = await fetchClient<{ token: string; user?: User }>('/users/signin', {
+      method: 'POST',
+      body: JSON.stringify({ email, password })
+    });
+    if (response.token) {
+      localStorage.setItem('auth_token', response.token);
     }
+    toast.success('Welcome back!');
+    return response;
   },
 
   register: async (
@@ -56,25 +52,21 @@ export const authService = {
     passwordConf: string,
     phone?: string
   ): Promise<{ token: string; user?: User }> => {
-    try {
-      const response = await fetchClient<{ token: string; user?: User }>('/users', {
-        method: 'POST',
-        body: JSON.stringify({
-          displayName,
-          email,
-          password,
-          passwordConf,
-          phone
-        })
-      });
-      if (response.token) {
-        localStorage.setItem('auth_token', response.token);
-      }
-      toast.success('Registration successful! Welcome aboard.');
-      return response;
-    } catch (error) {
-      throw error;
+    const response = await fetchClient<{ token: string; user?: User }>('/users', {
+      method: 'POST',
+      body: JSON.stringify({
+        displayName,
+        email,
+        password,
+        passwordConf,
+        phone
+      })
+    });
+    if (response.token) {
+      localStorage.setItem('auth_token', response.token);
     }
+    toast.success('Registration successful! Welcome aboard.');
+    return response;
   },
 
   changePassword: async (oldPassword: string, newPassword: string): Promise<any> => {
@@ -106,22 +98,18 @@ export const authService = {
     identifier: string,
     code: string
   ): Promise<{ token: string; user?: User; isProfileCompleted: boolean }> => {
-    try {
-      const response = await fetchClient<{
-        token: string;
-        user?: User;
-        isProfileCompleted: boolean;
-      }>('/auth/verify-otp', {
-        method: 'POST',
-        body: JSON.stringify({ identifier, code })
-      });
-      if (response.token) {
-        localStorage.setItem('auth_token', response.token);
-      }
-      return response;
-    } catch (error) {
-      throw error;
+    const response = await fetchClient<{
+      token: string;
+      user?: User;
+      isProfileCompleted: boolean;
+    }>('/auth/verify-otp', {
+      method: 'POST',
+      body: JSON.stringify({ identifier, code })
+    });
+    if (response.token) {
+      localStorage.setItem('auth_token', response.token);
     }
+    return response;
   },
 
   completeProfile: async (
@@ -129,37 +117,29 @@ export const authService = {
     email?: string,
     phone?: string
   ): Promise<{ user: User }> => {
-    try {
-      const response = await fetchClient<{ user: User }>('/users/complete-profile', {
-        method: 'PUT',
-        body: JSON.stringify({ displayName, email, phone })
-      });
-      toast.success('Profile completed successfully!');
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    const response = await fetchClient<{ user: User }>('/users/complete-profile', {
+      method: 'PUT',
+      body: JSON.stringify({ displayName, email, phone })
+    });
+    toast.success('Profile completed successfully!');
+    return response;
   },
 
   verifyFirebaseToken: async (
     idToken: string
   ): Promise<{ token: string; user?: User; isProfileCompleted: boolean }> => {
-    try {
-      const response = await fetchClient<{
-        token: string;
-        user?: User;
-        isProfileCompleted: boolean;
-      }>('/auth/firebase-verify', {
-        method: 'POST',
-        body: JSON.stringify({ idToken })
-      });
-      if (response.token) {
-        localStorage.setItem('auth_token', response.token);
-      }
-      return response;
-    } catch (error) {
-      throw error;
+    const response = await fetchClient<{
+      token: string;
+      user?: User;
+      isProfileCompleted: boolean;
+    }>('/auth/firebase-verify', {
+      method: 'POST',
+      body: JSON.stringify({ idToken })
+    });
+    if (response.token) {
+      localStorage.setItem('auth_token', response.token);
     }
+    return response;
   },
 
   grantVip: async (email: string): Promise<any> => {

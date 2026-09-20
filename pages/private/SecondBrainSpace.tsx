@@ -903,3 +903,5 @@ export const SecondBrainSpace: React.FC<SecondBrainSpaceProps> = ({ user }) => {
 };
 
 export default SecondBrainSpace;
+
+BrainMessageItem.displayName = 'BrainMessageItem';

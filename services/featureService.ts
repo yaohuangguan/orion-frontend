@@ -218,39 +218,31 @@ export const featureService = {
     remindAt?: string,
     options?: { notifyUsers?: string[]; bark?: any; isActive?: boolean }
   ): Promise<Todo[]> => {
-    try {
-      const payload = {
-        todo,
-        description,
-        targetDate,
-        images,
-        type,
-        recurrence,
-        remindAt,
-        ...(options || {})
-      };
+    const payload = {
+      todo,
+      description,
+      targetDate,
+      images,
+      type,
+      recurrence,
+      remindAt,
+      ...(options || {})
+    };
 
-      const res = await fetchClient<Todo[]>('/todo', {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      });
-      toast.success('Added to the list!');
-      return res;
-    } catch (e) {
-      throw e;
-    }
+    const res = await fetchClient<Todo[]>('/todo', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    toast.success('Added to the list!');
+    return res;
   },
 
   updateTodo: async (id: string, updates: Partial<Todo>): Promise<Todo[]> => {
-    try {
-      const payload: any = { ...updates };
-      return await fetchClient<Todo[]>(`/todo/done/${id}`, {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      });
-    } catch (e) {
-      throw e;
-    }
+    const payload: any = { ...updates };
+    return await fetchClient<Todo[]>(`/todo/done/${id}`, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
   },
 
   checkRoutine: async (id: string): Promise<{ success: boolean; nextRun: string; msg: string }> => {

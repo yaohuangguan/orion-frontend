@@ -1,6 +1,8 @@
 # Journal regression checks
 
-Start the frontend with `pnpm exec vite --host 127.0.0.1 --port 5178 --strictPort`.
+Run `pnpm test` (or `pnpm run test:journal`). The runner starts its own Vite server on a free port, runs both browser suites, and closes the server, including on failure. No separately running app is needed.
+
+Use `pnpm run lint` and `pnpm run typecheck` for static checks. On Linux/macOS, install Puppeteer Chrome with `pnpm exec puppeteer browsers install chrome`, or set `CHROME_PATH` to an installed browser. On Windows the tests default to Microsoft Edge.
 In another terminal run `pnpm run typecheck`, `pnpm run test:journal`, and `pnpm exec vite build`.
 
 Set `CHROME_PATH` if Chromium/Edge is installed elsewhere. Set `JOURNAL_OUTPUT` to choose the screenshot/report directory (default: `test-results/journal`). All API requests from the test browser are intercepted; tests never publish real diary entries or upload to production storage. The fixture uses the production editor, renderer, App Store component and JournalSpace; it is not included in the normal production entry.
@@ -21,6 +23,6 @@ The checks mock cloud storage and persistence. They do not verify live R2 creden
 
 ## Formatting and media checks
 
-Run `node tests/journal/media.test.mjs` alongside the dev server. It checks selected-text font/size/color, emoji, mocked online meme search, GIF insertion, platform/native video round trips and theme-aware ink. The Cabin editor and Cabin readers stay light; only external readers follow the site theme. Custom text hues are adjusted to at least 4.5:1 contrast against the external reader paper, without changing stored source colors.
+The media suite is included in `pnpm test`. For a manually started server, set `JOURNAL_BASE_URL` and run `node tests/journal/media.test.mjs`. It checks selected-text font/size/color, emoji, mocked online meme search, GIF insertion, platform/native video round trips and theme-aware ink. The Cabin editor and Cabin readers stay light; only external readers follow the site theme. Custom text hues are adjusted to at least 4.5:1 contrast against the external reader paper, without changing stored source colors.
 
 The online picker fetches the keyless Imgflip popular template list only when opened, supports local name filtering and a small Chinese keyword alias list, and stores the original remote image URL. It is not a general web image search. Uploaded GIF/JPG files use the existing R2-first upload flow (10 MB maximum); remote availability remains controlled by the image host. Video embeds accept YouTube, Bilibili and Vimeo, and HTTPS MP4/WebM/OGG links; platform playback may depend on the viewer's network and the video's embed permissions.

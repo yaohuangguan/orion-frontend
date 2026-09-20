@@ -108,7 +108,10 @@ const paste = async (text, html = '') =>
     { text, html }
   );
 try {
-  await page.goto('http://127.0.0.1:5178/tests/journal/index.html', { waitUntil: 'networkidle0' });
+  await page.goto(
+    `${process.env.JOURNAL_BASE_URL || 'http://127.0.0.1:5178'}/tests/journal/index.html`,
+    { waitUntil: 'networkidle0' }
+  );
   await page.waitForSelector('[aria-label="日记正文"]');
   check('Editor loads without an overlay', !(await page.$('vite-error-overlay')));
   await page.type('[aria-label="日记标题"]', '把今天写下来 · A quiet Sunday');
@@ -272,16 +275,22 @@ price = "$10"; $$not_math$$
     await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)
   );
   await page.screenshot({ path: `${output}/journal-mobile.png`, fullPage: true });
-  await page.goto('http://127.0.0.1:5178/tests/journal/index.html?store', {
-    waitUntil: 'networkidle0'
-  });
+  await page.goto(
+    `${process.env.JOURNAL_BASE_URL || 'http://127.0.0.1:5178'}/tests/journal/index.html?store`,
+    {
+      waitUntil: 'networkidle0'
+    }
+  );
   check(
     'App Store includes the independent Note Learn app',
     await page.evaluate(() => document.body.innerText.includes('Note Learn'))
   );
-  await page.goto('http://127.0.0.1:5178/tests/journal/index.html?cabin', {
-    waitUntil: 'networkidle0'
-  });
+  await page.goto(
+    `${process.env.JOURNAL_BASE_URL || 'http://127.0.0.1:5178'}/tests/journal/index.html?cabin`,
+    {
+      waitUntil: 'networkidle0'
+    }
+  );
   await page.waitForSelector('[aria-label="日记正文"]');
   await paste(String.raw`真实 Journal 页面：$$P(\text{mW})=10^{\frac{\text{dBm}}{10}}$$`);
   await page.waitForSelector('.journal-reader .katex');
@@ -309,7 +318,10 @@ price = "$10"; $$not_math$$
       (el) => el.getAttribute('aria-checked') === 'true'
     )
   );
-  await page.goto('http://127.0.0.1:5178/tests/journal/index.html', { waitUntil: 'networkidle0' });
+  await page.goto(
+    `${process.env.JOURNAL_BASE_URL || 'http://127.0.0.1:5178'}/tests/journal/index.html`,
+    { waitUntil: 'networkidle0' }
+  );
   await page.waitForSelector('[aria-label="日记正文"]');
   const legacy = await page.evaluate(() =>
     window.journalTest.renderContent(

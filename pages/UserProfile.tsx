@@ -644,7 +644,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onUpdateUser }) 
                       <optgroup label="Personal">
                         <option value="todos">Tasks (Todos)</option>
                         <option value="fitness">Fitness Records</option>
-                        <option value="menus">Menus (Chef's Wheel)</option>
+                        <option value="menus">Menus (Chef&apos;s Wheel)</option>
                         <option value="periods">Period Tracker Data</option>
                         <option value="resume">Resume Data</option>
                       </optgroup>

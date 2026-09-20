@@ -57,7 +57,9 @@ export const JournalSpace: React.FC = () => {
     if (savedLikes) {
       try {
         setLikedPosts(new Set(JSON.parse(savedLikes)));
-      } catch (e) {}
+      } catch (e) {
+        /* Optional cleanup/cache failure does not block the page. */
+      }
     }
   }, []);
 

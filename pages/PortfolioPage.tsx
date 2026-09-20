@@ -44,7 +44,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ currentUser }) => 
       } transition-all duration-500 animate-fade-in relative z-10 min-h-screen`}
     >
       <Helmet>
-        <title>Orion App Store | Sam's Engineering Portfolio | 工程项目与作品集</title>
+        <title>Orion App Store | Sam&apos;s Engineering Portfolio | 工程项目与作品集</title>
         <meta
           name="description"
           content="A curated collection of Sam's engineering projects and professional history. Sam的个人工程项目展示与职业履历归档。"

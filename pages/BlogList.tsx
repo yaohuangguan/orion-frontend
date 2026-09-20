@@ -49,7 +49,9 @@ export const BlogList: React.FC<BlogListProps> = ({
     if (savedLikes) {
       try {
         setLikedPosts(new Set(JSON.parse(savedLikes)));
-      } catch (e) {}
+      } catch (e) {
+        /* Optional cleanup/cache failure does not block the page. */
+      }
     }
   }, []);
 

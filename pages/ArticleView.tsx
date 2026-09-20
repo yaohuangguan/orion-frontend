@@ -101,7 +101,9 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
       try {
         const likesSet = new Set(JSON.parse(savedLikes));
         setIsLiked(likesSet.has(blog._id));
-      } catch (e) {}
+      } catch (e) {
+        /* Optional cleanup/cache failure does not block the page. */
+      }
     }
   }, [blog]);
 

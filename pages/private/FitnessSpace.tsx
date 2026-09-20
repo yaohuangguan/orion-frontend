@@ -486,7 +486,7 @@ export const FitnessSpace: React.FC<FitnessSpaceProps> = ({ currentUser }) => {
                           </div>
                           {rec.workout.note && (
                             <div className="mt-2 text-sm text-slate-600 bg-white p-2 rounded-lg italic">
-                              "{rec.workout.note}"
+                              &quot;{rec.workout.note}&quot;
                             </div>
                           )}
                         </div>

@@ -12,8 +12,10 @@
     "sitemap": "node scripts/generate-sitemap.js",
     "postbuild": "node scripts/run-snap.js",
     "release": "standard-version -m \"chore(release): v%s [skip ci]\"",
-    "test:journal": "node tests/journal/journal.test.mjs",
-    "typecheck": "tsc --noEmit"
+    "test:journal": "node tests/journal/run.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "node tests/journal/run.mjs"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -85,6 +87,7 @@
     "standard-version": "^9.5.0",
     "tailwindcss": "^4.1.18",
     "typescript": "~5.8.2",
+    "typescript-eslint": "^8.70.0",
     "vite": "^6.2.0",
     "vite-plugin-pwa": "^1.2.0"
   }

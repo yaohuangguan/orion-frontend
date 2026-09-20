@@ -1,7 +1,11 @@
 import puppeteer from 'puppeteer';
 import assert from 'node:assert/strict';
 const browser = await puppeteer.launch({
-  executablePath: 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
+  executablePath:
+    process.env.CHROME_PATH ||
+    (process.platform === 'win32'
+      ? 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
+      : undefined),
   headless: true
 });
 const page = await browser.newPage();
@@ -35,7 +39,9 @@ page.on('request', (req) => {
   return req.continue();
 });
 try {
-  await page.goto('http://127.0.0.1:5178/tests/journal/index.html');
+  await page.goto(
+    `${process.env.JOURNAL_BASE_URL || 'http://127.0.0.1:5178'}/tests/journal/index.html`
+  );
   await page.waitForSelector('.tiptap');
   await page.click('.tiptap');
   await page.keyboard.type('Font selection survives toolbar');

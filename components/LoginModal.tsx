@@ -122,7 +122,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
       if (verifier) {
         try {
           verifier.clear();
-        } catch (e) {}
+        } catch (e) {
+          /* Optional cleanup/cache failure does not block the page. */
+        }
         setRecaptchaVerifier(null);
       }
     };
@@ -226,7 +228,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
             size: 'invisible'
           });
           setRecaptchaVerifier(verifier);
-        } catch (e) {}
+        } catch (e) {
+          /* Optional cleanup/cache failure does not block the page. */
+        }
       }
     } finally {
       setIsLoading(false);

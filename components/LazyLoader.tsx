@@ -144,7 +144,7 @@ export function createLazyComponent<T extends ComponentType<any>>(
   const LazyComponent = React.lazy(() => retryImport(factory));
 
   // 返回一个封装好的组件
-  return (props: ComponentProps<T>) => {
+  return function LazyLoadedComponent(props: ComponentProps<T>) {
     // 每次渲染时清除当前页面的重试标记 (视为成功加载)
     // 使用 setTimeout 确保组件真正 mount 后再清除，避免还没加载完就清除
     useEffect(() => {

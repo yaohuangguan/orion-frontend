@@ -103,7 +103,7 @@ export const RequestManagement: React.FC = () => {
                     {t.system.requests.reason}
                   </div>
                   <p className="text-sm text-slate-600 dark:text-slate-400 italic">
-                    "{req.reason}"
+                    &quot;{req.reason}&quot;
                   </p>
                 </div>
               </div>

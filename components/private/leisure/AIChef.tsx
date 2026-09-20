@@ -387,7 +387,7 @@ export const AIChef: React.FC = () => {
           <i className="fas fa-lightbulb text-yellow-500 mt-0.5"></i>
           <div>
             <span className="text-[10px] font-bold text-yellow-600 uppercase block mb-1">
-              Chef's Tip
+              Chef&apos;s Tip
             </span>
             <p className="text-xs text-yellow-700 leading-relaxed">{activeRecipe.recipe.tips}</p>
           </div>

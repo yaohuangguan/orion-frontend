@@ -191,3 +191,5 @@ export const CosmicBackground: React.FC<CosmicBackgroundProps> = React.memo(
     );
   }
 );
+
+CosmicBackground.displayName = 'CosmicBackground';

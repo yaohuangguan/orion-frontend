@@ -27,7 +27,7 @@ markdown.use({
     {
       name: 'journalMath',
       level: 'inline',
-      start: (source) => source.search(/\$|\\[\[(]/),
+      start: (source) => source.search(/\$|\\[[(]/),
       tokenizer(source) {
         const match = new RegExp('^(?:' + mathPattern.source + ')').exec(source);
         if (!match) return;
