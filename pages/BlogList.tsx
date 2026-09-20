@@ -241,7 +241,6 @@ export const BlogList: React.FC<BlogListProps> = ({
     );
   };
 
-
   return (
     <div id="latest-posts" className="container mx-auto px-6 py-24 pt-32 max-w-7xl relative z-10">
       <Helmet>

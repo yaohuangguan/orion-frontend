@@ -57,7 +57,7 @@ export const JournalSpace: React.FC = () => {
     if (savedLikes) {
       try {
         setLikedPosts(new Set(JSON.parse(savedLikes)));
-      } catch (e) { }
+      } catch (e) {}
     }
   }, []);
 
@@ -206,7 +206,9 @@ export const JournalSpace: React.FC = () => {
     }
   };
 
-  const handlePostCreated = () => {
+  const handlePostCreated = (isPrivate: boolean) => {
+    const nextSource = isPrivate ? 'private' : 'public';
+    setLogSource(nextSource);
     // Determine if it was a new post or an edit based on current state
     // If editingPost is not null, we are updating. If null, we are creating.
     const wasEditing = !!editingPost;
@@ -225,7 +227,7 @@ export const JournalSpace: React.FC = () => {
         p.set('page', '1');
         return p;
       });
-    } else {
+    } else if (nextSource === logSource) {
       // Otherwise (Editing existing post, OR Creating on Page 1), manually refresh the current view.
       if (logSource === 'private') fetchPrivateBlogs();
       else fetchPublicLogs();
@@ -254,14 +256,18 @@ export const JournalSpace: React.FC = () => {
   const hasContent = (data: any) => {
     if (!data) return false;
     const textContent = (data.content || '').replace(/<[^>]*>/g, '').trim();
-    return !!data.title?.trim() || textContent.length > 0;
+    return (
+      !!data.title?.trim() ||
+      textContent.length > 0 ||
+      /<(img|figure|video|iframe)|data-type="journal-math"/.test(data.content || '')
+    );
   };
 
   const showPreview = previewData && hasContent(previewData) && !isPreviewHidden;
 
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-10 lg:pb-0 lg:h-[88vh] lg:min-h-[850px] min-h-0 relative">
+      <div className="journal-space grid grid-cols-1 lg:grid-cols-2 gap-8 pb-10 lg:pb-0 lg:h-[88vh] lg:min-h-[850px] min-h-0 relative">
         <DeleteModal
           isOpen={!!postToDelete}
           onClose={() => setPostToDelete(null)}
@@ -335,7 +341,7 @@ export const JournalSpace: React.FC = () => {
                     <CommentsSection
                       postId={selectedEntry._id}
                       currentUser={user}
-                      onLoginRequest={() => { }}
+                      onLoginRequest={() => {}}
                       forceLight={true}
                     />
                   </div>
@@ -493,7 +499,7 @@ export const JournalSpace: React.FC = () => {
             className="lg:flex-1 lg:min-h-0 h-[80vh] shadow-xl rounded-[2rem] bg-white overflow-hidden flex flex-col"
           >
             <SimpleEditor
-              key={editingPost ? editingPost._id : 'new-post'}
+              key={`${user?._id}:${editingPost?._id || 'new-post'}`}
               user={user}
               onPostCreated={handlePostCreated}
               editingPost={editingPost}

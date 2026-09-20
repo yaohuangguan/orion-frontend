@@ -48,7 +48,7 @@ export const EditableText: React.FC<EditableTextProps> = ({
   const inlineStyle: React.CSSProperties = {
     fontSize: customStyle?.fontSize || undefined,
     fontWeight: customStyle?.fontWeight || undefined,
-    color: customStyle?.color || undefined,
+    color: customStyle?.color || undefined
   };
 
   const handleElementClick = (e: React.MouseEvent<HTMLElement>) => {
@@ -71,10 +71,11 @@ export const EditableText: React.FC<EditableTextProps> = ({
   return (
     <Tag
       onClick={handleElementClick}
-      className={`${className} ${isEditable
+      className={`${className} ${
+        isEditable
           ? 'cursor-pointer hover:bg-slate-100 hover:ring-2 hover:ring-amber-500/50 hover:ring-offset-1 rounded transition-all inline-block duration-150'
           : ''
-        } ${isEditable && !value ? 'text-slate-400 border border-dashed border-slate-300 px-1 bg-slate-50' : ''}`}
+      } ${isEditable && !value ? 'text-slate-400 border border-dashed border-slate-300 px-1 bg-slate-50' : ''}`}
       style={inlineStyle}
       title={isEditable ? `点击编辑 / Click to edit style & text` : undefined}
     >

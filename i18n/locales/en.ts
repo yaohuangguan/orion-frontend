@@ -34,7 +34,8 @@ export const en = {
     title2: 'the Unknown',
     introPrefix: 'I am ',
     introName: 'Sam',
-    introSuffix: '. Welcome to my digital workspace—a place where I share my personal insights, professional resume, and engineering projects. As a full-stack developer, building this space is a labor of love and a true hobby of mine. It brings me immense joy, and I hope it brings you a sense of happiness and inspiration as well.',
+    introSuffix:
+      '. Welcome to my digital workspace—a place where I share my personal insights, professional resume, and engineering projects. As a full-stack developer, building this space is a labor of love and a true hobby of mine. It brings me immense joy, and I hope it brings you a sense of happiness and inspiration as well.',
     ctaPrimary: 'Explore Journal',
     ctaSecondary: 'Orion Applications'
   },
@@ -458,13 +459,16 @@ export const en = {
     aboutSubtitle: 'Three ideas shape how I learn, build, and collaborate.',
     aboutCard1Label: '01 · Impact',
     aboutCard1Title: 'Build for real people',
-    aboutP1: 'I became a software engineer to turn difficult problems into practical tools that make a tangible difference. At Tencent Cloud, I improved a CI/CD platform that helped teams build and deploy more efficiently. At Lalamove, I shipped driver-facing features that made everyday logistics work simpler. Those experiences still define how I work: start with the user, understand the system, and deliver reliable improvements that create clear value.',
+    aboutP1:
+      'I became a software engineer to turn difficult problems into practical tools that make a tangible difference. At Tencent Cloud, I improved a CI/CD platform that helped teams build and deploy more efficiently. At Lalamove, I shipped driver-facing features that made everyday logistics work simpler. Those experiences still define how I work: start with the user, understand the system, and deliver reliable improvements that create clear value.',
     aboutCard2Label: '02 · Growth',
     aboutCard2Title: 'Keep expanding the craft',
-    aboutP2: 'I’m currently completing a Master of Information Technology at the University of Auckland, deepening my foundation in enterprise web systems, global data communications, cloud architecture, and health data analytics. Alongside my studies, I build modern full-stack products with React, TypeScript, Node.js, and cloud infrastructure. Serving as the COMPSCI 734 Class Representative has also strengthened how I listen, synthesize feedback, and communicate across cultures.',
+    aboutP2:
+      'I’m currently completing a Master of Information Technology at the University of Auckland, deepening my foundation in enterprise web systems, global data communications, cloud architecture, and health data analytics. Alongside my studies, I build modern full-stack products with React, TypeScript, Node.js, and cloud infrastructure. Serving as the COMPSCI 734 Class Representative has also strengthened how I listen, synthesize feedback, and communicate across cultures.',
     aboutCard3Label: '03 · Perspective',
     aboutCard3Title: 'Connect technology and business',
-    aboutP3: 'My perspective has been shaped across Shenzhen, Hong Kong, the United States, and now Auckland—as well as by building an investment venture of my own. Moving between engineering and business taught me to balance product value, technical quality, and delivery under pressure. I bring ownership, curiosity, and calm collaboration to unfamiliar codebases, and I’m always glad to meet people who care about building useful things well.'
+    aboutP3:
+      'My perspective has been shaped across Shenzhen, Hong Kong, the United States, and now Auckland—as well as by building an investment venture of my own. Moving between engineering and business taught me to balance product value, technical quality, and delivery under pressure. I bring ownership, curiosity, and calm collaboration to unfamiliar codebases, and I’m always glad to meet people who care about building useful things well.'
   },
   comments: {
     title: 'Comms Channel',

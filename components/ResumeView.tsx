@@ -227,7 +227,7 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
           >
             {/* Top gradient highlight bar */}
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary-400 to-indigo-500 opacity-80 group-hover:opacity-100 transition-opacity"></div>
-            
+
             {/* Subtle background glow */}
             <div className="absolute -right-20 -top-20 w-48 h-48 rounded-full bg-primary-400/10 blur-3xl group-hover:bg-primary-400/20 transition-all duration-500"></div>
 
@@ -245,7 +245,8 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
 
             <div className="relative z-10">
               <span className="inline-flex items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full border border-slate-200/60 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 text-slate-600 dark:text-slate-300 group-hover:bg-primary-500 group-hover:text-white group-hover:border-transparent transition-all duration-300">
-                <span>Read Logs</span> <i className="fas fa-arrow-right transition-transform group-hover:translate-x-1 duration-300"></i>
+                <span>Read Logs</span>{' '}
+                <i className="fas fa-arrow-right transition-transform group-hover:translate-x-1 duration-300"></i>
               </span>
             </div>
           </div>
@@ -257,7 +258,7 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
           >
             {/* Top gradient highlight bar */}
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-400 to-cyan-500 opacity-80 group-hover:opacity-100 transition-opacity"></div>
-            
+
             {/* Subtle background glow */}
             <div className="absolute -right-20 -top-20 w-48 h-48 rounded-full bg-blue-400/10 blur-3xl group-hover:bg-blue-400/20 transition-all duration-500"></div>
 
@@ -275,7 +276,8 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
 
             <div className="relative z-10">
               <span className="inline-flex items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full border border-slate-200/60 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 text-slate-600 dark:text-slate-300 group-hover:bg-blue-500 group-hover:text-white group-hover:border-transparent transition-all duration-300">
-                <span>Access Archives</span> <i className="fas fa-arrow-right transition-transform group-hover:translate-x-1 duration-300"></i>
+                <span>Access Archives</span>{' '}
+                <i className="fas fa-arrow-right transition-transform group-hover:translate-x-1 duration-300"></i>
               </span>
             </div>
           </div>
@@ -287,7 +289,7 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
           >
             {/* Top gradient highlight bar */}
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-purple-400 to-pink-500 opacity-80 group-hover:opacity-100 transition-opacity"></div>
-            
+
             {/* Subtle background glow */}
             <div className="absolute -right-20 -top-20 w-48 h-48 rounded-full bg-purple-400/10 blur-3xl group-hover:bg-purple-400/20 transition-all duration-500"></div>
 
@@ -305,7 +307,8 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
 
             <div className="relative z-10">
               <span className="inline-flex items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full border border-slate-200/60 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 text-slate-600 dark:text-slate-300 group-hover:bg-purple-500 group-hover:text-white group-hover:border-transparent transition-all duration-300">
-                <span>Initialize Link</span> <i className="fas fa-arrow-right transition-transform group-hover:translate-x-1 duration-300"></i>
+                <span>Initialize Link</span>{' '}
+                <i className="fas fa-arrow-right transition-transform group-hover:translate-x-1 duration-300"></i>
               </span>
             </div>
           </div>
@@ -362,7 +365,9 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
                     <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
                       Email
                     </span>
-                    <span className="text-sm font-mono font-bold truncate">moviegoer24@gmail.com</span>
+                    <span className="text-sm font-mono font-bold truncate">
+                      moviegoer24@gmail.com
+                    </span>
                   </div>
                 </a>
                 <a
@@ -378,7 +383,9 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
                     <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
                       GitHub
                     </span>
-                    <span className="text-sm font-mono font-bold truncate">github.com/yaohuangguan</span>
+                    <span className="text-sm font-mono font-bold truncate">
+                      github.com/yaohuangguan
+                    </span>
                   </div>
                 </a>
               </div>

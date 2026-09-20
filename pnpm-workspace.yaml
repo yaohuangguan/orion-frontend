@@ -1,4 +1,4 @@
 allowBuilds:
   esbuild: false
-  protobufjs: set this to true or false
+  protobufjs: false
   puppeteer: false

@@ -1,4 +1,3 @@
-
 import { fetchClient } from './core';
 import { uploadImage } from './media';
 import { authService } from './authService';

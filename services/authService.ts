@@ -102,9 +102,16 @@ export const authService = {
     });
   },
 
-  verifyOtp: async (identifier: string, code: string): Promise<{ token: string; user?: User; isProfileCompleted: boolean }> => {
+  verifyOtp: async (
+    identifier: string,
+    code: string
+  ): Promise<{ token: string; user?: User; isProfileCompleted: boolean }> => {
     try {
-      const response = await fetchClient<{ token: string; user?: User; isProfileCompleted: boolean }>('/auth/verify-otp', {
+      const response = await fetchClient<{
+        token: string;
+        user?: User;
+        isProfileCompleted: boolean;
+      }>('/auth/verify-otp', {
         method: 'POST',
         body: JSON.stringify({ identifier, code })
       });
@@ -117,7 +124,11 @@ export const authService = {
     }
   },
 
-  completeProfile: async (displayName: string, email?: string, phone?: string): Promise<{ user: User }> => {
+  completeProfile: async (
+    displayName: string,
+    email?: string,
+    phone?: string
+  ): Promise<{ user: User }> => {
     try {
       const response = await fetchClient<{ user: User }>('/users/complete-profile', {
         method: 'PUT',
@@ -130,9 +141,15 @@ export const authService = {
     }
   },
 
-  verifyFirebaseToken: async (idToken: string): Promise<{ token: string; user?: User; isProfileCompleted: boolean }> => {
+  verifyFirebaseToken: async (
+    idToken: string
+  ): Promise<{ token: string; user?: User; isProfileCompleted: boolean }> => {
     try {
-      const response = await fetchClient<{ token: string; user?: User; isProfileCompleted: boolean }>('/auth/firebase-verify', {
+      const response = await fetchClient<{
+        token: string;
+        user?: User;
+        isProfileCompleted: boolean;
+      }>('/auth/firebase-verify', {
         method: 'POST',
         body: JSON.stringify({ idToken })
       });

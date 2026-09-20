@@ -350,18 +350,24 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={toggleTheme}
             className={`w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300 ${
-              theme === Theme.DARK 
-                ? 'text-slate-400 hover:text-amber-400 hover:bg-slate-800/30' 
+              theme === Theme.DARK
+                ? 'text-slate-400 hover:text-amber-400 hover:bg-slate-800/30'
                 : 'text-amber-500 bg-amber-50 hover:bg-amber-100/50 shadow-sm shadow-amber-500/10 border border-amber-100/50'
             }`}
             aria-label="Toggle Theme"
-            title={theme === Theme.DARK ? 'Turn On the Lights (Light Mode)' : 'Turn Off the Lights (Dark Mode)'}
+            title={
+              theme === Theme.DARK
+                ? 'Turn On the Lights (Light Mode)'
+                : 'Turn Off the Lights (Dark Mode)'
+            }
           >
-            <i className={`${theme === Theme.DARK ? 'far' : 'fas'} fa-lightbulb text-base transition-transform duration-300 hover:scale-105 active:scale-95`}></i>
+            <i
+              className={`${theme === Theme.DARK ? 'far' : 'fas'} fa-lightbulb text-base transition-transform duration-300 hover:scale-105 active:scale-95`}
+            ></i>
           </button>
 
           {/* Redesigned Language Switcher Pill */}
-          <div 
+          <div
             className={`
               flex items-center p-0.5 rounded-full border shadow-sm transition-all duration-300 relative
               ${
@@ -379,8 +385,12 @@ export const Header: React.FC<HeaderProps> = ({
                 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-full transition-all duration-300
                 ${
                   language === 'en'
-                    ? (isPrivate ? 'bg-rose-500 text-white shadow-sm' : 'bg-primary-500 text-white shadow-sm shadow-primary-500/20')
-                    : (isPrivate ? 'hover:bg-rose-50 text-slate-600' : 'hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400')
+                    ? isPrivate
+                      ? 'bg-rose-500 text-white shadow-sm'
+                      : 'bg-primary-500 text-white shadow-sm shadow-primary-500/20'
+                    : isPrivate
+                      ? 'hover:bg-rose-50 text-slate-600'
+                      : 'hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400'
                 }
               `}
               title="English"
@@ -395,8 +405,12 @@ export const Header: React.FC<HeaderProps> = ({
                 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-full transition-all duration-300
                 ${
                   language === 'zh'
-                    ? (isPrivate ? 'bg-rose-500 text-white shadow-sm' : 'bg-primary-500 text-white shadow-sm shadow-primary-500/20')
-                    : (isPrivate ? 'hover:bg-rose-50 text-slate-600' : 'hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400')
+                    ? isPrivate
+                      ? 'bg-rose-500 text-white shadow-sm'
+                      : 'bg-primary-500 text-white shadow-sm shadow-primary-500/20'
+                    : isPrivate
+                      ? 'hover:bg-rose-50 text-slate-600'
+                      : 'hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400'
                 }
               `}
               title="简体中文"
@@ -412,7 +426,7 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
               className={`
                 p-1.5 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 group
-                ${isLangMenuOpen ? (isPrivate ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 dark:bg-slate-700/50 text-primary-500') : (isPrivate ? 'hover:bg-rose-50' : 'hover:bg-slate-100 dark:hover:bg-white/5')}
+                ${isLangMenuOpen ? (isPrivate ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 dark:bg-slate-700/50 text-primary-500') : isPrivate ? 'hover:bg-rose-50' : 'hover:bg-slate-100 dark:hover:bg-white/5'}
               `}
               title="More Languages"
             >
@@ -431,35 +445,37 @@ export const Header: React.FC<HeaderProps> = ({
                     : 'bg-white/95 dark:bg-[#0f172a]/95 border-slate-200 dark:border-slate-700/50'
                 }`}
               >
-                {LANGUAGES.filter(lang => lang.code !== 'en' && lang.code !== 'zh').map((lang) => (
-                  <button
-                    key={lang.code}
-                    onClick={() => {
-                      setLanguage(lang.code);
-                      setIsLangMenuOpen(false);
-                    }}
-                    className={`w-full text-left px-4 py-2.5 text-xs font-bold uppercase tracking-wider flex items-center justify-between group transition-colors ${
-                      isPrivate
-                        ? 'hover:bg-rose-50 text-slate-600 hover:text-rose-600'
-                        : 'hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400'
-                    } ${language === lang.code ? (isPrivate ? 'bg-rose-50/50 text-rose-600' : 'bg-slate-50 dark:bg-white/5 text-primary-600 dark:text-primary-400') : ''}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex -space-x-1.5">
-                        {lang.flags.map((f) => (
-                          <img
-                            key={f}
-                            src={getFlagUrl(f)}
-                            className="w-5 h-5 rounded-full object-cover border border-white dark:border-slate-800 shadow-sm relative z-0 group-hover:z-10 transition-all"
-                            alt={f}
-                          />
-                        ))}
+                {LANGUAGES.filter((lang) => lang.code !== 'en' && lang.code !== 'zh').map(
+                  (lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => {
+                        setLanguage(lang.code);
+                        setIsLangMenuOpen(false);
+                      }}
+                      className={`w-full text-left px-4 py-2.5 text-xs font-bold uppercase tracking-wider flex items-center justify-between group transition-colors ${
+                        isPrivate
+                          ? 'hover:bg-rose-50 text-slate-600 hover:text-rose-600'
+                          : 'hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400'
+                      } ${language === lang.code ? (isPrivate ? 'bg-rose-50/50 text-rose-600' : 'bg-slate-50 dark:bg-white/5 text-primary-600 dark:text-primary-400') : ''}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex -space-x-1.5">
+                          {lang.flags.map((f) => (
+                            <img
+                              key={f}
+                              src={getFlagUrl(f)}
+                              className="w-5 h-5 rounded-full object-cover border border-white dark:border-slate-800 shadow-sm relative z-0 group-hover:z-10 transition-all"
+                              alt={f}
+                            />
+                          ))}
+                        </div>
+                        <span>{lang.label}</span>
                       </div>
-                      <span>{lang.label}</span>
-                    </div>
-                    {language === lang.code && <i className="fas fa-check text-[10px]"></i>}
-                  </button>
-                ))}
+                      {language === lang.code && <i className="fas fa-check text-[10px]"></i>}
+                    </button>
+                  )
+                )}
               </div>
             )}
           </div>

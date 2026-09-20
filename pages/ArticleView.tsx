@@ -324,9 +324,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
                 {/* Date */}
                 <div className="flex items-center gap-1.5">
                   <i className="far fa-calendar-alt text-amber-500/80"></i>
-                  <span>
-                    {formatUserDate(getPublishDate(), currentUser, 'detailed')}
-                  </span>
+                  <span>{formatUserDate(getPublishDate(), currentUser, 'detailed')}</span>
                 </div>
 
                 {/* Last Updated */}
@@ -336,7 +334,12 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
                     <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-400 bg-white/40 dark:bg-slate-800/40 px-2 py-0.5 rounded-full border border-slate-200/50 dark:border-slate-700/50">
                       <i className="fas fa-edit text-amber-500/80"></i>
                       <span>
-                        Updated: {formatUserDate(blog.updatedAt || blog.updatedDate, currentUser, 'detailed')}
+                        Updated:{' '}
+                        {formatUserDate(
+                          blog.updatedAt || blog.updatedDate,
+                          currentUser,
+                          'detailed'
+                        )}
                       </span>
                     </div>
                   </>

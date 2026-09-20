@@ -34,7 +34,8 @@ export const de = {
     title2: 'Erkunden',
     introPrefix: 'Ich bin ',
     introName: 'Sam',
-    introSuffix: '. Willkommen in meinem digitalen Bereich, in dem ich meine persönlichen Gedanken, meinen Lebenslauf und meine Entwicklungsprojekte teile. Als Full-Stack-Entwickler ist der Aufbau dieser Website mein reines Hobby und meine Leidenschaft. Es bringt mir große Freude, und ich hoffe aufrichtig, dass es auch Ihnen Freude und Inspiration bringt.',
+    introSuffix:
+      '. Willkommen in meinem digitalen Bereich, in dem ich meine persönlichen Gedanken, meinen Lebenslauf und meine Entwicklungsprojekte teile. Als Full-Stack-Entwickler ist der Aufbau dieser Website mein reines Hobby und meine Leidenschaft. Es bringt mir große Freude, und ich hoffe aufrichtig, dass es auch Ihnen Freude und Inspiration bringt.',
     ctaPrimary: 'Journal erkunden',
     ctaSecondary: 'Systemprofil'
   },

@@ -4,7 +4,9 @@ import { apiService } from '../services/api';
 export const LikeButton: React.FC = () => {
   const [likes, setLikes] = useState<number>(0);
   const [homeId, setHomeId] = useState<string | null>(null);
-  const [hearts, setHearts] = useState<Array<{ id: number; left: number; sway: string; rotate: string; emoji: string }>>([]);
+  const [hearts, setHearts] = useState<
+    Array<{ id: number; left: number; sway: string; rotate: string; emoji: string }>
+  >([]);
   const [showThanks, setShowThanks] = useState(false);
 
   const pendingLikesRef = useRef<number>(0);
@@ -19,7 +21,7 @@ export const LikeButton: React.FC = () => {
           setHomeId(data[0]._id);
         }
       } catch (e) {
-        console.error("Failed to fetch likes", e);
+        console.error('Failed to fetch likes', e);
       }
     };
     fetchLikes();
@@ -38,9 +40,26 @@ export const LikeButton: React.FC = () => {
       setLikes((prev) => prev + 1);
 
       const emojis = [
-        '❤️', '🧡', '💛', '💚', '💙', '💜', '💖', '💝',
-        '😀', '😍', '😎', '🥳', '🥰', '😂',
-        '🔥', '✨', '🎉', '👍', '🌟', '🚀'
+        '❤️',
+        '🧡',
+        '💛',
+        '💚',
+        '💙',
+        '💜',
+        '💖',
+        '💝',
+        '😀',
+        '😍',
+        '😎',
+        '🥳',
+        '🥰',
+        '😂',
+        '🔥',
+        '✨',
+        '🎉',
+        '👍',
+        '🌟',
+        '🚀'
       ];
       const newHeart = {
         id: Date.now() + Math.random(),
@@ -64,13 +83,12 @@ export const LikeButton: React.FC = () => {
         try {
           await apiService.addHomeLikesBatch(homeId, countToSend);
         } catch (err) {
-          console.error("Failed to send batch likes", err);
+          console.error('Failed to send batch likes', err);
         }
         setShowThanks(false);
       }, 1200);
-
     } catch (e) {
-      console.error("Like failed", e);
+      console.error('Like failed', e);
     }
   };
 
@@ -88,12 +106,14 @@ export const LikeButton: React.FC = () => {
               <span
                 key={heart.id}
                 className="absolute animate-heart-float text-3xl select-none"
-                style={{
-                  left: `calc(50% + ${heart.left}px)`,
-                  '--sway-x': heart.sway,
-                  '--rotate-deg': heart.rotate,
-                  textShadow: '0 2px 12px rgba(0,0,0,0.15)'
-                } as React.CSSProperties}
+                style={
+                  {
+                    left: `calc(50% + ${heart.left}px)`,
+                    '--sway-x': heart.sway,
+                    '--rotate-deg': heart.rotate,
+                    textShadow: '0 2px 12px rgba(0,0,0,0.15)'
+                  } as React.CSSProperties
+                }
                 onAnimationEnd={() => removeHeart(heart.id)}
               >
                 {heart.emoji}
@@ -113,7 +133,9 @@ export const LikeButton: React.FC = () => {
       )}
 
       {/* Thank You Message */}
-      <div className={`mt-2 text-xs font-bold text-pink-500 uppercase tracking-widest transition-opacity duration-500 h-4 ${showThanks ? 'opacity-100' : 'opacity-0'}`}>
+      <div
+        className={`mt-2 text-xs font-bold text-pink-500 uppercase tracking-widest transition-opacity duration-500 h-4 ${showThanks ? 'opacity-100' : 'opacity-0'}`}
+      >
         Thank you! ❤
       </div>
 

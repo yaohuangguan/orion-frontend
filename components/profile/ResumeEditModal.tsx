@@ -77,7 +77,9 @@ interface ResumeEditModalProps {
   editResume: ResumeData | null;
   setEditResume: React.Dispatch<React.SetStateAction<ResumeData | null>>;
   activeTab: 'BASICS' | 'WORK' | 'EDUCATION' | 'SKILLS' | 'VOLUNTEER' | 'INTEREST';
-  setActiveTab: (tab: 'BASICS' | 'WORK' | 'EDUCATION' | 'SKILLS' | 'VOLUNTEER' | 'INTEREST') => void;
+  setActiveTab: (
+    tab: 'BASICS' | 'WORK' | 'EDUCATION' | 'SKILLS' | 'VOLUNTEER' | 'INTEREST'
+  ) => void;
   language: Language;
   targetProfile: string;
   currentSlug: string;
@@ -88,7 +90,10 @@ interface ResumeEditModalProps {
     index?: number,
     nestedField?: string
   ) => void;
-  removeItem: (section: 'work' | 'education' | 'skills' | 'volunteer' | 'interest', index: number) => void;
+  removeItem: (
+    section: 'work' | 'education' | 'skills' | 'volunteer' | 'interest',
+    index: number
+  ) => void;
   addItem: (section: 'work' | 'education' | 'skills' | 'volunteer' | 'interest') => void;
   handleSave: () => Promise<void>;
 }
@@ -127,15 +132,23 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
       <div className={editorClass}>
         <div className="flex justify-between items-center border-b border-current bg-black/5 dark:bg-black/20 pr-4">
           <div className="flex overflow-x-auto">
-            {(['BASICS', 'WORK', 'EDUCATION', 'SKILLS', 'VOLUNTEER', 'INTEREST'] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`${tabClassBase} ${activeTab === tab ? activeTabClass : inactiveTabClass}`}
-              >
-                {tab === 'SKILLS' ? 'SKILLS (含语言及4品类)' : tab === 'VOLUNTEER' ? 'VOLUNTEER (志愿活动)' : tab === 'INTEREST' ? 'INTEREST (兴趣爱好)' : tab}
-              </button>
-            ))}
+            {(['BASICS', 'WORK', 'EDUCATION', 'SKILLS', 'VOLUNTEER', 'INTEREST'] as const).map(
+              (tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`${tabClassBase} ${activeTab === tab ? activeTabClass : inactiveTabClass}`}
+                >
+                  {tab === 'SKILLS'
+                    ? 'SKILLS (含语言及4品类)'
+                    : tab === 'VOLUNTEER'
+                      ? 'VOLUNTEER (志愿活动)'
+                      : tab === 'INTEREST'
+                        ? 'INTEREST (兴趣爱好)'
+                        : tab}
+                </button>
+              )
+            )}
           </div>
           <div className="text-xs font-bold uppercase opacity-50 px-4">
             Editing: {editResume.title || currentSlug} ({targetProfile})
@@ -148,7 +161,8 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
               {/* Resume Version Title */}
               <div className="md:col-span-2 bg-amber-500/10 p-3 rounded-lg border border-amber-500/30">
                 <label className="block text-xs font-bold uppercase text-amber-600 dark:text-amber-400 mb-1">
-                  Resume Version Title / 简历版本名称 (用于多版本管理，例如：全栈工程师简历、兼职简历)
+                  Resume Version Title / 简历版本名称
+                  (用于多版本管理，例如：全栈工程师简历、兼职简历)
                 </label>
                 <input
                   className={inputClass}
@@ -195,9 +209,7 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                 />
               </div>
               <div className="space-y-4">
-                <label className="block text-xs font-bold uppercase opacity-60">
-                  Contact
-                </label>
+                <label className="block text-xs font-bold uppercase opacity-60">Contact</label>
                 <input
                   className={inputClass}
                   value={editResume.basics.email || ''}
@@ -308,9 +320,7 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                       <input
                         className={inputClass}
                         value={job.company_zh || ''}
-                        onChange={(e) =>
-                          updateField('work', '', e.target.value, idx, 'company_zh')
-                        }
+                        onChange={(e) => updateField('work', '', e.target.value, idx, 'company_zh')}
                         placeholder="Company (ZH)"
                       />
                     </div>
@@ -321,9 +331,7 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                       <input
                         className={inputClass}
                         value={job.company_en || ''}
-                        onChange={(e) =>
-                          updateField('work', '', e.target.value, idx, 'company_en')
-                        }
+                        onChange={(e) => updateField('work', '', e.target.value, idx, 'company_en')}
                         placeholder="Company (EN)"
                       />
                     </div>
@@ -386,9 +394,7 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                       <input
                         className={inputClass}
                         value={job.startDate || ''}
-                        onChange={(e) =>
-                          updateField('work', '', e.target.value, idx, 'startDate')
-                        }
+                        onChange={(e) => updateField('work', '', e.target.value, idx, 'startDate')}
                         placeholder="e.g. 2022.03"
                       />
                     </div>
@@ -399,9 +405,7 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                       <input
                         className={inputClass}
                         value={job.endDate || ''}
-                        onChange={(e) =>
-                          updateField('work', '', e.target.value, idx, 'endDate')
-                        }
+                        onChange={(e) => updateField('work', '', e.target.value, idx, 'endDate')}
                         placeholder="e.g. Present"
                       />
                     </div>
@@ -444,7 +448,8 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                         htmlFor={`work-isproject-${idx}`}
                         className="text-xs font-bold uppercase text-blue-600 dark:text-blue-400 cursor-pointer select-none"
                       >
-                        Is Project / 是否为作品项目 (勾选后会在此简历 de Featured Projects 栏目展示；不勾选则在 Work Experience 展示)
+                        Is Project / 是否为作品项目 (勾选后会在此简历 de Featured Projects
+                        栏目展示；不勾选则在 Work Experience 展示)
                       </label>
                     </div>
 
@@ -463,7 +468,9 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                         htmlFor={`work-pagebreak-${idx}`}
                         className="text-xs font-bold uppercase text-rose-600 dark:text-rose-400 cursor-pointer select-none"
                       >
-                        {language === 'zh' ? '此经历前强制分页 / Force page break before this job' : 'Force page break before this job'}
+                        {language === 'zh'
+                          ? '此经历前强制分页 / Force page break before this job'
+                          : 'Force page break before this job'}
                       </label>
                     </div>
                   </div>
@@ -474,9 +481,7 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                         label="Highlights ZH (One per line)"
                         targetId={`work-hl-zh-${idx}`}
                         value={job.highlights_zh?.join('\n') || ''}
-                        onChange={(val) =>
-                          updateField('work', '', val, idx, 'highlights_zh')
-                        }
+                        onChange={(val) => updateField('work', '', val, idx, 'highlights_zh')}
                       />
                       <textarea
                         id={`work-hl-zh-${idx}`}
@@ -493,9 +498,7 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                         label="Highlights EN (One per line)"
                         targetId={`work-hl-en-${idx}`}
                         value={job.highlights_en?.join('\n') || ''}
-                        onChange={(val) =>
-                          updateField('work', '', val, idx, 'highlights_en')
-                        }
+                        onChange={(val) => updateField('work', '', val, idx, 'highlights_en')}
                       />
                       <textarea
                         id={`work-hl-en-${idx}`}
@@ -614,9 +617,7 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                     <input
                       className={inputClass}
                       value={edu.endDate || ''}
-                      onChange={(e) =>
-                        updateField('education', '', e.target.value, idx, 'endDate')
-                      }
+                      onChange={(e) => updateField('education', '', e.target.value, idx, 'endDate')}
                       placeholder="End Date"
                     />
                     <input
@@ -650,7 +651,9 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                         htmlFor={`edu-pagebreak-${idx}`}
                         className="text-xs font-bold uppercase text-rose-600 dark:text-rose-400 cursor-pointer select-none"
                       >
-                        {language === 'zh' ? '在此 education 经历前强制分页 / Force page break before this education entry' : 'Force page break before this education entry'}
+                        {language === 'zh'
+                          ? '在此 education 经历前强制分页 / Force page break before this education entry'
+                          : 'Force page break before this education entry'}
                       </label>
                     </div>
                   </div>
@@ -687,9 +690,7 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                       <input
                         className={inputClass}
                         value={skill.name_zh || ''}
-                        onChange={(e) =>
-                          updateField('skills', '', e.target.value, idx, 'name_zh')
-                        }
+                        onChange={(e) => updateField('skills', '', e.target.value, idx, 'name_zh')}
                         placeholder="例如: 前端 / Frontend"
                       />
                     </div>
@@ -700,9 +701,7 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                       <input
                         className={inputClass}
                         value={skill.name_en || ''}
-                        onChange={(e) =>
-                          updateField('skills', '', e.target.value, idx, 'name_en')
-                        }
+                        onChange={(e) => updateField('skills', '', e.target.value, idx, 'name_en')}
                         placeholder="e.g. Frontend"
                       />
                     </div>
@@ -718,9 +717,7 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                       id={`skills-kw-${idx}`}
                       className={`${inputClass} h-28 text-xs font-mono`}
                       value={skill.keywords?.join('\n') || ''}
-                      onChange={(e) =>
-                        updateField('skills', '', e.target.value, idx, 'keywords')
-                      }
+                      onChange={(e) => updateField('skills', '', e.target.value, idx, 'keywords')}
                       placeholder="React&#10;TypeScript&#10;Vue.js&#10;Next.js"
                     />
                     {/* Page Break Toggle */}
@@ -738,7 +735,9 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                         htmlFor={`skills-pagebreak-${idx}`}
                         className="text-xs font-bold uppercase text-rose-600 dark:text-rose-400 cursor-pointer select-none"
                       >
-                        {language === 'zh' ? '在此技能组前强制分页 / Force page break before this skill group' : 'Force page break before this skill group'}
+                        {language === 'zh'
+                          ? '在此技能组前强制分页 / Force page break before this skill group'
+                          : 'Force page break before this skill group'}
                       </label>
                     </div>
                   </div>
@@ -811,9 +810,7 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                     <input
                       className={inputClass}
                       value={vol.endDate || ''}
-                      onChange={(e) =>
-                        updateField('volunteer', '', e.target.value, idx, 'endDate')
-                      }
+                      onChange={(e) => updateField('volunteer', '', e.target.value, idx, 'endDate')}
                       placeholder="End Date / 结束日期 (e.g. 2022.06)"
                     />
                     {/* Page Break Toggle */}
@@ -831,7 +828,9 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                         htmlFor={`vol-pagebreak-${idx}`}
                         className="text-xs font-bold uppercase text-rose-600 dark:text-rose-400 cursor-pointer select-none"
                       >
-                        {language === 'zh' ? '在此经历前强制分页 / Force page break before this volunteer entry' : 'Force page break before this volunteer entry'}
+                        {language === 'zh'
+                          ? '在此经历前强制分页 / Force page break before this volunteer entry'
+                          : 'Force page break before this volunteer entry'}
                       </label>
                     </div>
                   </div>
@@ -841,9 +840,7 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                         label="Highlights ZH (One per line)"
                         targetId={`vol-hl-zh-${idx}`}
                         value={vol.highlights_zh?.join('\n') || ''}
-                        onChange={(val) =>
-                          updateField('volunteer', '', val, idx, 'highlights_zh')
-                        }
+                        onChange={(val) => updateField('volunteer', '', val, idx, 'highlights_zh')}
                       />
                       <textarea
                         id={`vol-hl-zh-${idx}`}
@@ -860,9 +857,7 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                         label="Highlights EN (One per line)"
                         targetId={`vol-hl-en-${idx}`}
                         value={vol.highlights_en?.join('\n') || ''}
-                        onChange={(val) =>
-                          updateField('volunteer', '', val, idx, 'highlights_en')
-                        }
+                        onChange={(val) => updateField('volunteer', '', val, idx, 'highlights_en')}
                       />
                       <textarea
                         id={`vol-hl-en-${idx}`}
@@ -939,9 +934,7 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                       id={`interest-kw-${idx}`}
                       className={`${inputClass} h-28 text-xs font-mono`}
                       value={interest.keywords?.join('\n') || ''}
-                      onChange={(e) =>
-                        updateField('interest', '', e.target.value, idx, 'keywords')
-                      }
+                      onChange={(e) => updateField('interest', '', e.target.value, idx, 'keywords')}
                       placeholder="篮球 / Basketball&#10;游泳 / Swimming"
                     />
                     {/* Page Break Toggle */}
@@ -959,7 +952,9 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                         htmlFor={`interest-pagebreak-${idx}`}
                         className="text-xs font-bold uppercase text-rose-600 dark:text-rose-400 cursor-pointer select-none"
                       >
-                        {language === 'zh' ? '在此兴趣组前强制分页 / Force page break before this interest group' : 'Force page break before this interest group'}
+                        {language === 'zh'
+                          ? '在此兴趣组前强制分页 / Force page break before this interest group'
+                          : 'Force page break before this interest group'}
                       </label>
                     </div>
                   </div>

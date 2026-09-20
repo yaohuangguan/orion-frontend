@@ -1,4 +1,3 @@
-
 import { en } from './locales/en';
 import { zh } from './locales/zh';
 import { fr } from './locales/fr';

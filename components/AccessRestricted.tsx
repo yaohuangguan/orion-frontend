@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useTranslation } from '../i18n/LanguageContext';
 import { apiService } from '../services/api';
@@ -11,7 +10,11 @@ interface AccessRestrictedProps {
   className?: string;
 }
 
-export const AccessRestricted: React.FC<AccessRestrictedProps> = ({ permission, onSuccess, className }) => {
+export const AccessRestricted: React.FC<AccessRestrictedProps> = ({
+  permission,
+  onSuccess,
+  className
+}) => {
   const { t } = useTranslation();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [reason, setReason] = useState('');
@@ -25,7 +28,7 @@ export const AccessRestricted: React.FC<AccessRestrictedProps> = ({ permission, 
     try {
       // Direct request for specific permission
       await apiService.submitPermissionRequest(permission, reason);
-      
+
       setIsModalOpen(false);
       toast.success(t.access.pending);
       if (onSuccess) onSuccess();
@@ -39,79 +42,87 @@ export const AccessRestricted: React.FC<AccessRestrictedProps> = ({ permission, 
 
   return (
     <>
-      <div className={`flex flex-col items-center justify-center p-12 text-center h-full min-h-[300px] bg-slate-100/50 dark:bg-slate-900/30 rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 ${className}`}>
+      <div
+        className={`flex flex-col items-center justify-center p-12 text-center h-full min-h-[300px] bg-slate-100/50 dark:bg-slate-900/30 rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 ${className}`}
+      >
         <div className="w-16 h-16 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center mb-6 shadow-inner">
-           <i className="fas fa-lock text-3xl text-slate-400 dark:text-slate-500"></i>
+          <i className="fas fa-lock text-3xl text-slate-400 dark:text-slate-500"></i>
         </div>
         <h3 className="text-2xl font-display font-bold text-slate-700 dark:text-slate-300 mb-2">
-           {t.access.restricted}
+          {t.access.restricted}
         </h3>
-        <p className="text-slate-500 dark:text-slate-400 max-w-md mb-2">
-           {t.access.message}
-        </p>
+        <p className="text-slate-500 dark:text-slate-400 max-w-md mb-2">{t.access.message}</p>
         <p className="text-xs font-mono text-red-400 mb-8 uppercase tracking-widest bg-red-50 dark:bg-red-900/20 px-3 py-1 rounded">
-           Missing: {permission}
+          Missing: {permission}
         </p>
-        <button 
+        <button
           onClick={() => setIsModalOpen(true)}
           className="px-8 py-3 bg-slate-800 dark:bg-slate-700 text-white rounded-xl font-bold uppercase tracking-widest hover:bg-slate-900 dark:hover:bg-slate-600 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1"
         >
-           {t.access.request}
+          {t.access.request}
         </button>
       </div>
 
-      {isModalOpen && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
-           <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl p-8 border border-slate-200 dark:border-slate-800 relative">
-              <button 
+      {isModalOpen &&
+        createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
+            <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl p-8 border border-slate-200 dark:border-slate-800 relative">
+              <button
                 onClick={() => setIsModalOpen(false)}
                 className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
               >
-                 <i className="fas fa-times text-lg"></i>
+                <i className="fas fa-times text-lg"></i>
               </button>
 
               <div className="text-center mb-6">
-                 <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto mb-4">
-                    <i className="fas fa-key text-xl"></i>
-                 </div>
-                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t.access.requestTitle}</h3>
-                 <p className="text-sm text-slate-500 mt-2">Requesting permission: <span className="font-mono text-amber-500">{permission}</span></p>
+                <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto mb-4">
+                  <i className="fas fa-key text-xl"></i>
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                  {t.access.requestTitle}
+                </h3>
+                <p className="text-sm text-slate-500 mt-2">
+                  Requesting permission:{' '}
+                  <span className="font-mono text-amber-500">{permission}</span>
+                </p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
-                 <div>
-                    <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-2">{t.system.requests.reason}</label>
-                    <textarea 
-                       value={reason}
-                       onChange={(e) => setReason(e.target.value)}
-                       placeholder={t.access.reasonPlaceholder}
-                       className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl p-4 outline-none focus:ring-2 focus:ring-amber-500/50 resize-none h-32 text-slate-800 dark:text-slate-200"
-                       required
-                    />
-                 </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-2">
+                    {t.system.requests.reason}
+                  </label>
+                  <textarea
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    placeholder={t.access.reasonPlaceholder}
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl p-4 outline-none focus:ring-2 focus:ring-amber-500/50 resize-none h-32 text-slate-800 dark:text-slate-200"
+                    required
+                  />
+                </div>
 
-                 <div className="flex gap-3 pt-2">
-                    <button 
-                      type="button" 
-                      onClick={() => setIsModalOpen(false)}
-                      className="flex-1 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-sm uppercase hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                    >
-                       {t.access.cancel}
-                    </button>
-                    <button 
-                      type="submit"
-                      disabled={isSubmitting || !reason.trim()}
-                      className="flex-1 py-3 rounded-xl bg-amber-500 text-white font-bold text-sm uppercase shadow-lg shadow-amber-500/20 hover:bg-amber-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                       {isSubmitting && <i className="fas fa-circle-notch fa-spin"></i>}
-                       {t.access.submit}
-                    </button>
-                 </div>
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-sm uppercase hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                  >
+                    {t.access.cancel}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || !reason.trim()}
+                    className="flex-1 py-3 rounded-xl bg-amber-500 text-white font-bold text-sm uppercase shadow-lg shadow-amber-500/20 hover:bg-amber-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {isSubmitting && <i className="fas fa-circle-notch fa-spin"></i>}
+                    {t.access.submit}
+                  </button>
+                </div>
               </form>
-           </div>
-        </div>,
-        document.body
-      )}
+            </div>
+          </div>,
+          document.body
+        )}
     </>
   );
 };

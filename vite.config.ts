@@ -45,7 +45,7 @@ export default defineConfig(({ mode }) => {
         includeAssets: ['favicon.ico', 'ios-share-icon-192.png', 'logo.svg'],
         workbox: {
           // 匹配这些文件进行预缓存
-          globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
           globIgnores: ['**/remixicon-*.svg', '**/node_modules/**/*'],
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
           // 甚至可以配置 API 请求的缓存策略（可选）
@@ -92,7 +92,10 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks: (id) => {
             if (id.includes('node_modules')) {
-              if (id.includes('react') || id.includes('react-dom')) return 'vendor-react';
+              if (id.includes('@tiptap') || id.includes('prosemirror-')) return 'journal-editor';
+              if (id.includes('katex')) return 'journal-math';
+              // Keep React and its consumers together: pnpm peer suffixes contain
+              // 'react' too, so substring-based grouping creates circular runtime chunks.
               if (id.includes('highlight.js') || id.includes('leaflet')) return 'vendor-ui';
               return 'vendor';
             }

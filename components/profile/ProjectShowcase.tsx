@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams } from 'react-router-dom';
+import { withBuiltinProjects, NOTE_LEARN_PROJECT } from '../../constants/builtinProjects';
 import { apiService } from '../../services/api';
 import { PortfolioProject, User } from '../../types';
 import { useTranslation } from '../../i18n/LanguageContext';
@@ -64,9 +65,10 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
   const loadProjects = async () => {
     try {
       const data = await apiService.getPortfolioProjects();
-      setProjects(data);
+      setProjects(withBuiltinProjects(data));
     } catch (e) {
       console.error('Failed to load projects', e);
+      setProjects([NOTE_LEARN_PROJECT]);
     } finally {
       setIsLoading(false);
     }
@@ -611,8 +613,11 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
             onClick={() => setActiveDetailProject(project)}
           >
             {/* Admin Controls */}
-            {isVip && (
-              <div className="absolute top-4 right-4 z-20 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+            {isVip && !project._id.startsWith('builtin-') && (
+              <div
+                className="absolute top-4 right-4 z-20 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -708,7 +713,9 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
               <div className="flex items-center justify-between gap-3 shrink-0">
                 <div className="flex items-center min-w-0 flex-1">
                   {/* App Icon */}
-                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${getGradientFromTitle(getLocalized(project, 'title') || 'P')} flex items-center justify-center text-white text-lg font-black shadow-md flex-shrink-0 select-none`}>
+                  <div
+                    className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${getGradientFromTitle(getLocalized(project, 'title') || 'P')} flex items-center justify-center text-white text-lg font-black shadow-md flex-shrink-0 select-none`}
+                  >
                     {(getLocalized(project, 'title') || 'P').charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0 pl-3">
@@ -820,11 +827,12 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
 
               {/* Modal Body (Scrollable) */}
               <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-10 -mt-16 relative z-10 space-y-6 bg-gradient-to-b from-transparent via-white dark:via-[#0f172a] to-white dark:to-[#0f172a]">
-                
                 {/* Header Block */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800/80">
                   <div className="flex items-center gap-4">
-                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${getGradientFromTitle(getLocalized(activeDetailProject, 'title') || 'P')} flex items-center justify-center text-white text-3xl font-black shadow-lg flex-shrink-0 select-none`}>
+                    <div
+                      className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${getGradientFromTitle(getLocalized(activeDetailProject, 'title') || 'P')} flex items-center justify-center text-white text-3xl font-black shadow-lg flex-shrink-0 select-none`}
+                    >
                       {(getLocalized(activeDetailProject, 'title') || 'P').charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -865,23 +873,33 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                 {/* Specs Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50 dark:bg-slate-900/60 p-5 rounded-[1.5rem] border border-slate-100 dark:border-slate-800/80 text-slate-900 dark:text-slate-100">
                   <div>
-                    <span className="block text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Developer</span>
+                    <span className="block text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">
+                      Developer
+                    </span>
                     <span className="text-xs font-bold">Sam Yao</span>
                   </div>
                   <div>
-                    <span className="block text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Status</span>
+                    <span className="block text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">
+                      Status
+                    </span>
                     <span className="text-xs font-bold flex items-center gap-1.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                       <span>Live / Stable</span>
                     </span>
                   </div>
                   <div>
-                    <span className="block text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Access</span>
+                    <span className="block text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">
+                      Access
+                    </span>
                     <span className="text-xs font-bold">Public Sandbox</span>
                   </div>
                   <div>
-                    <span className="block text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Category</span>
-                    <span className="text-xs font-bold capitalize">{activeDetailProject.techStack[0] || 'Software'}</span>
+                    <span className="block text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">
+                      Category
+                    </span>
+                    <span className="text-xs font-bold capitalize">
+                      {activeDetailProject.techStack[0] || 'Software'}
+                    </span>
                   </div>
                 </div>
 
@@ -889,7 +907,9 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
                   {/* Left Column: Tech (1/3) */}
                   <div className="space-y-4">
-                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Core Tech Stack</h4>
+                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                      Core Tech Stack
+                    </h4>
                     <div className="flex flex-wrap gap-2">
                       {activeDetailProject.techStack.map((tech, i) => (
                         <span
@@ -907,9 +927,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                     {/* Summary */}
                     {getLocalized(activeDetailProject, 'summary') && (
                       <div className="relative pl-4 border-l-4 border-amber-500 bg-amber-500/5 p-4 rounded-r-2xl text-slate-800 dark:text-slate-200">
-                        <p className="font-bold">
-                          {getLocalized(activeDetailProject, 'summary')}
-                        </p>
+                        <p className="font-bold">{getLocalized(activeDetailProject, 'summary')}</p>
                       </div>
                     )}
 
@@ -919,15 +937,19 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                         <div
                           dangerouslySetInnerHTML={{
                             __html: window.marked
-                              ? window.marked.parse(getLocalized(activeDetailProject, 'description') || '')
-                              : (getLocalized(activeDetailProject, 'description') || '').replace(/\n/g, '<br/>')
+                              ? window.marked.parse(
+                                  getLocalized(activeDetailProject, 'description') || ''
+                                )
+                              : (getLocalized(activeDetailProject, 'description') || '').replace(
+                                  /\n/g,
+                                  '<br/>'
+                                )
                           }}
                         />
                       </div>
                     )}
                   </div>
                 </div>
-
               </div>
             </div>
           </div>,

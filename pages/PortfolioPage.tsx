@@ -90,7 +90,7 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({ currentUser }) => 
             onClick={() => handleTabChange('RESUME')}
             className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-300 ${
               activeTab === 'RESUME'
-                 ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md'
+                ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md'
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >

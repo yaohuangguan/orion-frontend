@@ -434,9 +434,9 @@ export const contentService = {
   getResumeList: async (
     userSlug: string = 'moviegoer24@gmail.com'
   ): Promise<Array<{ slug: string; title: string; user: string; createdAt: string }>> => {
-    return await fetchClient<Array<{ slug: string; title: string; user: string; createdAt: string }>>(
-      `/resumes/list?user=${userSlug}`
-    );
+    return await fetchClient<
+      Array<{ slug: string; title: string; user: string; createdAt: string }>
+    >(`/resumes/list?user=${userSlug}`);
   },
 
   updateResume: async (
@@ -462,10 +462,13 @@ export const contentService = {
   setDefaultResume: async (
     slug: string
   ): Promise<{ msg: string; defaultSlug: string; swappedSlug: string }> => {
-    const res = await fetchClient<{ msg: string; defaultSlug: string; swappedSlug: string }>('/resumes/set-default', {
-      method: 'POST',
-      body: JSON.stringify({ slug })
-    });
+    const res = await fetchClient<{ msg: string; defaultSlug: string; swappedSlug: string }>(
+      '/resumes/set-default',
+      {
+        method: 'POST',
+        body: JSON.stringify({ slug })
+      }
+    );
     toast.success('Set as default homepage resume successfully');
     return res;
   }

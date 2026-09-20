@@ -1,5 +1,3 @@
-
-
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { Language } from '../types';
 import { resources } from './resources';
@@ -8,7 +6,7 @@ interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   toggleLanguage: () => void;
-  t: typeof resources['en'];
+  t: (typeof resources)['en'];
 }
 
 // Helper for deep merging two objects
@@ -19,10 +17,10 @@ const deepMerge = (target: any, source: any): any => {
   if (typeof source !== 'object' || source === null) {
     return target;
   }
-  
+
   const output = { ...target };
-  
-  Object.keys(source).forEach(key => {
+
+  Object.keys(source).forEach((key) => {
     if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
       if (!(key in target)) {
         Object.assign(output, { [key]: source[key] });
@@ -33,7 +31,7 @@ const deepMerge = (target: any, source: any): any => {
       Object.assign(output, { [key]: source[key] });
     }
   });
-  
+
   return output;
 };
 
@@ -58,7 +56,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
       else if (prev === 'zh') newLang = 'zh-HK';
       else if (prev === 'zh-HK') newLang = 'fr';
       else newLang = 'en'; // Cycle back to EN
-      
+
       localStorage.setItem('app_language', newLang);
       return newLang;
     });
@@ -86,11 +84,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     t
   };
 
-  return (
-    <LanguageContext.Provider value={value}>
-      {children}
-    </LanguageContext.Provider>
-  );
+  return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 };
 
 export const useTranslation = () => {
