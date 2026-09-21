@@ -4,7 +4,7 @@ import process from 'process';
 
 const API_URL =
   'https://bananaboom-api-242273127238.asia-east1.run.app/api/posts?page=1&limit=1000';
-const FRONTEND_URL = 'https://www.ps5.space';
+const FRONTEND_URL = 'https://samyao.me';
 
 // 1. 复用你前端的 Slug 生成逻辑
 const generateSlug = (post) => {
