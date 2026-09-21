@@ -377,7 +377,9 @@ export const contentService = {
     // Seed cards are bundled with the frontend. Their first edit promotes them
     // into persisted projects, after which the normal update/delete flow applies.
     if (id.startsWith('seed-')) {
-      const { _id: _seedId, createdAt: _seedCreatedAt, ...persistedData } = data;
+      const persistedData = { ...data };
+      delete persistedData._id;
+      delete persistedData.createdAt;
       const res = await fetchClient<PortfolioProject>('/projects', {
         method: 'POST',
         body: JSON.stringify(persistedData)
