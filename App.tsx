@@ -254,6 +254,10 @@ const App: React.FC = () => {
 
   // Theme Sync
   useEffect(() => {
+    // Keep the user's real site theme available to isolated content surfaces
+    // even when Captain's Cabin intentionally keeps its own light shell.
+    document.documentElement.dataset.appTheme = theme;
+
     if (theme === Theme.DARK && !pathname.startsWith('/captain-cabin')) {
       document.documentElement.classList.add('dark');
     } else {
