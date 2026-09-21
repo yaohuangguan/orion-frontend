@@ -479,7 +479,15 @@ export const featureService = {
     fileType: string,
     folder: string = '',
     useOriginalName: boolean = true
-  ): Promise<{ uploadUrl: string; publicUrl: string; key: string; folder: string }> => {
+  ): Promise<{
+    uploadUrl: string;
+    url: string | null;
+    publicUrl: string | null;
+    customUrl: string | null;
+    r2Url: string | null;
+    key: string;
+    folder: string;
+  }> => {
     // Fallback for missing fileType
     const safeType = fileType || 'application/octet-stream';
 
@@ -511,7 +519,7 @@ export const featureService = {
     useOriginalName: boolean = true
   ): Promise<string> => {
     // Step 1: Get Sign
-    const { uploadUrl, publicUrl } = await featureService.getPresignedUrl(
+    const { uploadUrl, r2Url, publicUrl } = await featureService.getPresignedUrl(
       file.name,
       file.type,
       folder,
@@ -521,7 +529,9 @@ export const featureService = {
     // Step 2: Put File
     await featureService.uploadToPresignedUrl(uploadUrl, file);
 
-    return publicUrl;
+    const readUrl = r2Url || publicUrl;
+    if (!readUrl) throw new Error('R2 presign returned no public read URL');
+    return readUrl;
   },
 
   // Helper to "Create Folder" by uploading a dummy .keep file
@@ -573,13 +583,19 @@ export const featureService = {
 
     const data = await response.json();
 
-    // Updated Logic for new response structure
+    // Prefer the native R2 public URL so persisted records survive custom-domain changes.
+    if (data.r2Url) {
+      return data.r2Url;
+    }
+
     if (data.url) {
       return data.url;
     }
 
-    if (data.data && Array.isArray(data.data) && data.data.length > 0 && data.data[0].url) {
-      return data.data[0].url;
+    if (data.data && Array.isArray(data.data) && data.data.length > 0) {
+      const uploaded = data.data[0];
+      if (uploaded.r2Url) return uploaded.r2Url;
+      if (uploaded.url) return uploaded.url;
     }
 
     if (data.success && data.urls && data.urls.length > 0) {
