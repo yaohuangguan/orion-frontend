@@ -153,7 +153,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
   const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
   const currentArticleUrl =
     typeof window !== 'undefined'
-      ? window.location.href.split('#')[0]
+      ? `${window.location.origin}${window.location.pathname}`
       : '';
 
   // --- 🌟 SEO: 准备 JSON-LD 结构化数据 ---
