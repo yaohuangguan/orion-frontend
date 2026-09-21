@@ -157,7 +157,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
         '@type': 'BlogPosting',
         headline: blog.name,
         description: blog.info ? blog.info.substring(0, 160) : `Read ${blog.name} on Orion.`,
-        image: [blog.image || 'https://www.ps5.space/og-image.png'],
+        image: [blog.image || 'https://samyao.me/og-image.png'],
         datePublished: new Date(blog.createdAt || blog.createdDate || blog.date).toISOString(),
         dateModified: new Date(
           blog.updatedAt || blog.updatedDate || blog.createdAt || blog.createdDate || blog.date
@@ -166,7 +166,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
           {
             '@type': 'Person',
             name: blog.author || 'Sam',
-            url: 'https://www.ps5.space/profile'
+            url: 'https://samyao.me/profile'
           }
         ],
         publisher: {
@@ -174,7 +174,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
           name: 'Orion Journals',
           logo: {
             '@type': 'ImageObject',
-            url: 'https://www.ps5.space/og-image.png'
+            url: 'https://samyao.me/og-image.png'
           }
         },
         mainEntityOfPage: {
@@ -253,8 +253,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
           {structuredData && (
             <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
           )}
-          <link rel="canonical" href={`https://www.ps5.space/blogs/${blog._id}`} />
-          <link rel="canonical" href={`https://www.ps6.space/blogs/${blog._id}`} />
+          <link rel="canonical" href={`https://samyao.me/blogs/${blog._id}`} />
         </Helmet>
       )}
 
