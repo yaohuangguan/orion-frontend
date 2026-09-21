@@ -23,7 +23,7 @@ const CATEGORY_META: Array<{ value: ProjectCategory; icon: string; zh: string; e
 
 const inferCategory = (project: PortfolioProject): Exclude<ProjectCategory, 'all'> => {
   if (project.category) return project.category;
-  const stack = project.techStack.join(' ').toLowerCase();
+  const stack = (project.techStack || []).join(' ').toLowerCase();
   if (/react native|expo|flutter|swift|kotlin|android|ios/.test(stack)) return 'mobile';
   if (/node|express|mongo|cloudflare|worker|d1|sql|firebase|cloud run|golang/.test(stack))
     return 'fullstack';
@@ -67,7 +67,11 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
   const loadProjects = async () => {
     try {
       const data = await apiService.getPortfolioProjects();
-      setProjects(withBuiltinProjects(data));
+      const safeProjects = (Array.isArray(data) ? data : []).map((project) => ({
+        ...project,
+        techStack: Array.isArray(project.techStack) ? project.techStack : []
+      }));
+      setProjects(withBuiltinProjects(safeProjects));
     } catch (e) {
       console.error('Failed to load projects', e);
       setProjects(withBuiltinProjects([]));
@@ -774,7 +778,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                   </p>
 
                   <div className="my-5 flex flex-wrap gap-1.5">
-                    {project.techStack.slice(0, 4).map((tech) => (
+                    {(project.techStack || []).slice(0, 4).map((tech) => (
                       <span
                         key={tech}
                         className="rounded-lg border border-slate-200/80 bg-slate-50 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
@@ -782,9 +786,9 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                         {tech}
                       </span>
                     ))}
-                    {project.techStack.length > 4 && (
+                    {(project.techStack || []).length > 4 && (
                       <span className="rounded-lg border border-primary-100 bg-primary-50 px-2.5 py-1 text-[9px] font-bold text-primary-600 dark:border-primary-400/15 dark:bg-primary-400/5 dark:text-primary-400">
-                        +{project.techStack.length - 4}
+                        +{(project.techStack || []).length - 4}
                       </span>
                     )}
                   </div>
@@ -924,7 +928,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                       Category
                     </span>
                     <span className="text-xs font-bold capitalize">
-                      {activeDetailProject.techStack[0] || 'Software'}
+                      {activeDetailProject.techStack?.[0] || 'Software'}
                     </span>
                   </div>
                 </div>
@@ -937,7 +941,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                       Core Tech Stack
                     </h4>
                     <div className="flex flex-wrap gap-2">
-                      {activeDetailProject.techStack.map((tech, i) => (
+                      {(activeDetailProject.techStack || []).map((tech, i) => (
                         <span
                           key={i}
                           className="px-2.5 py-1 text-xs font-bold bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border border-primary-100/50 dark:border-primary-800/30 rounded-xl"
