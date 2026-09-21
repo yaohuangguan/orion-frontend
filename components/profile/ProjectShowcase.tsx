@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useSearchParams } from 'react-router-dom';
 import { withBuiltinProjects } from '../../constants/builtinProjects';
 import { apiService } from '../../services/api';
-import { PortfolioProject, User } from '../../types';
+import { PortfolioProject, PortfolioProjectCategory, User } from '../../types';
 import { useTranslation } from '../../i18n/LanguageContext';
 import { toast } from '../Toast';
 import { DeleteModal } from '../DeleteModal';
@@ -13,8 +13,8 @@ interface ProjectShowcaseProps {
   currentUser?: User | null;
 }
 
-type ProjectCategory = 'all' | 'web' | 'fullstack' | 'mobile' | 'tools';
-type ConcreteProjectCategory = Exclude<ProjectCategory, 'all'>;
+type ConcreteProjectCategory = PortfolioProjectCategory;
+type ProjectCategory = 'all' | ConcreteProjectCategory;
 
 const CATEGORY_META: Array<{ value: ProjectCategory; icon: string; zh: string; en: string }> = [
   { value: 'all', icon: 'fa-layer-group', zh: '全部作品', en: 'All work' },
@@ -36,9 +36,6 @@ const inferCategories = (project: PortfolioProject): ConcreteProjectCategory[] =
     return ['fullstack'];
   return ['web'];
 };
-
-const inferCategory = (project: PortfolioProject): ConcreteProjectCategory =>
-  inferCategories(project)[0] || 'web';
 
 export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser }) => {
   const { language, t } = useTranslation();
@@ -193,7 +190,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
     e.preventDefault();
 
     // Parse the tech stack string into array
-    const selectedCategories =
+    const selectedCategories: ConcreteProjectCategory[] =
       Array.isArray(currentProject.categories) && currentProject.categories.length > 0
         ? Array.from(new Set(currentProject.categories))
         : currentProject.category
