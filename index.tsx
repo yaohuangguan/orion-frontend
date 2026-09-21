@@ -27,9 +27,22 @@ const appContent = (
   </HelmetProvider>
 );
 
-if (rootElement.hasChildNodes()) {
+const normalizePath = (value: string) => {
+  if (!value || value === '/') return '/';
+  return value.replace(/\/+$/, '') || '/';
+};
+
+const prerenderPath = rootElement.getAttribute('data-prerender-path');
+const currentPath = normalizePath(window.location.pathname);
+const snapshotPath = prerenderPath ? normalizePath(prerenderPath) : null;
+const canHydrate = rootElement.hasChildNodes() && snapshotPath === currentPath;
+
+if (canHydrate) {
   hydrateRoot(rootElement, appContent);
 } else {
+  // A SPA fallback may return a snapshot generated for a different route.
+  // Never show/hydrate that stale page (for example Home HTML on /profile).
+  if (rootElement.hasChildNodes()) rootElement.replaceChildren();
   const root = createRoot(rootElement);
   root.render(appContent);
 }
