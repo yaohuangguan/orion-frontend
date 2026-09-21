@@ -108,7 +108,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
   }, [blog]);
 
   const handleCopyLink = () => {
-    const url = `https://samyao.me${window.location.pathname}${window.location.search}${window.location.hash}`;
+    const url = window.location.href;
     navigator.clipboard.writeText(url).then(() => {
       setIsCopied(true);
       toast.success(t.articleView.copied);
@@ -150,6 +150,12 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
     }
   };
 
+  const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+  const currentArticleUrl =
+    typeof window !== 'undefined'
+      ? window.location.href.split('#')[0]
+      : '';
+
   // --- 🌟 SEO: 准备 JSON-LD 结构化数据 ---
   const structuredData = blog
     ? {
@@ -157,7 +163,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
         '@type': 'BlogPosting',
         headline: blog.name,
         description: blog.info ? blog.info.substring(0, 160) : `Read ${blog.name} on Orion.`,
-        image: [blog.image || 'https://samyao.me/og-image.png'],
+        image: [blog.image || (currentOrigin ? `${currentOrigin}/og-image.png` : '/og-image.png')],
         datePublished: new Date(blog.createdAt || blog.createdDate || blog.date).toISOString(),
         dateModified: new Date(
           blog.updatedAt || blog.updatedDate || blog.createdAt || blog.createdDate || blog.date
@@ -166,7 +172,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
           {
             '@type': 'Person',
             name: blog.author || 'Sam',
-            url: 'https://samyao.me/profile'
+            url: currentOrigin ? `${currentOrigin}/profile` : '/profile'
           }
         ],
         publisher: {
@@ -174,7 +180,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
           name: 'Orion Journals',
           logo: {
             '@type': 'ImageObject',
-            url: 'https://samyao.me/og-image.png'
+            url: currentOrigin ? `${currentOrigin}/og-image.png` : '/og-image.png'
           }
         },
         mainEntityOfPage: {
@@ -244,16 +250,13 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
               `Explore "${blog.name}" - Insights on technology and digital evolution by Sam.`
             }
           />
-          <meta
-            property="og:url"
-            content={typeof window !== 'undefined' ? `https://samyao.me${window.location.pathname}` : ''}
-          />
+          <meta property="og:url" content={currentArticleUrl} />
           <meta property="article:author" content={blog.author || 'Sam'} />
           {blog.image && <meta property="og:image" content={blog.image} />}
           {structuredData && (
             <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
           )}
-          <link rel="canonical" href={`https://samyao.me/blogs/${blog._id}`} />
+          <link rel="canonical" href={currentArticleUrl} />
         </Helmet>
       )}
 
