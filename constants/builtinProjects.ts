@@ -43,12 +43,19 @@ export const X_VIDEO_VAULT_PROJECT: PortfolioProject = {
 };
 
 export function withBuiltinProjects(projects: PortfolioProject[]) {
-  // Persisted projects win over the seed cards once a built-in app is edited and saved.
+  // Persisted projects win over matching seed cards. Projects without a demo URL
+  // are distinct and must never be collapsed together.
   return [...projects, X_VIDEO_VAULT_PROJECT, NOTE_LEARN_PROJECT].filter(
-    (project, index, all) =>
-      index ===
-      all.findIndex(
-        (candidate) => candidate.demoUrl?.replace(/\/$/, '') === project.demoUrl?.replace(/\/$/, '')
-      )
+    (project, index, all) => {
+      const normalizedDemo = project.demoUrl?.replace(/\/$/, '');
+      if (!normalizedDemo) return true;
+
+      return (
+        index ===
+        all.findIndex(
+          (candidate) => candidate.demoUrl?.replace(/\/$/, '') === normalizedDemo
+        )
+      );
+    }
   );
 }
