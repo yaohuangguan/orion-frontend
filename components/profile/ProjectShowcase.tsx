@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams } from 'react-router-dom';
-import { withBuiltinProjects, NOTE_LEARN_PROJECT } from '../../constants/builtinProjects';
+import { withBuiltinProjects } from '../../constants/builtinProjects';
 import { apiService } from '../../services/api';
 import { PortfolioProject, User } from '../../types';
 import { useTranslation } from '../../i18n/LanguageContext';
@@ -12,6 +12,23 @@ import { R2ImageSelectorModal } from '../R2ImageSelectorModal';
 interface ProjectShowcaseProps {
   currentUser?: User | null;
 }
+
+type ProjectCategory = 'all' | 'web' | 'fullstack' | 'mobile';
+const CATEGORY_META: Array<{ value: ProjectCategory; icon: string; zh: string; en: string }> = [
+  { value: 'all', icon: 'fa-layer-group', zh: '全部作品', en: 'All work' },
+  { value: 'web', icon: 'fa-window-maximize', zh: 'Web 应用', en: 'Web' },
+  { value: 'fullstack', icon: 'fa-server', zh: '全栈系统', en: 'Full Stack' },
+  { value: 'mobile', icon: 'fa-mobile-alt', zh: '移动端', en: 'Mobile' }
+];
+
+const inferCategory = (project: PortfolioProject): Exclude<ProjectCategory, 'all'> => {
+  if (project.category) return project.category;
+  const stack = project.techStack.join(' ').toLowerCase();
+  if (/react native|expo|flutter|swift|kotlin|android|ios/.test(stack)) return 'mobile';
+  if (/node|express|mongo|cloudflare|worker|d1|sql|firebase|cloud run|golang/.test(stack))
+    return 'fullstack';
+  return 'web';
+};
 
 const getGradientFromTitle = (title: string) => {
   const gradients = [
@@ -34,6 +51,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
   const [searchParams, setSearchParams] = useSearchParams();
   const [projects, setProjects] = useState<PortfolioProject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState<ProjectCategory>('all');
 
   // Admin State
   const [isEditing, setIsEditing] = useState(false);
@@ -68,7 +86,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
       setProjects(withBuiltinProjects(data));
     } catch (e) {
       console.error('Failed to load projects', e);
-      setProjects([NOTE_LEARN_PROJECT]);
+      setProjects(withBuiltinProjects([]));
     } finally {
       setIsLoading(false);
     }
@@ -118,6 +136,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
       repoUrl: '',
       demoUrl: '',
       coverImage: '',
+      category: 'web',
       order: 0,
       isVisible: true
     });
@@ -387,6 +406,23 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                       value={techStackInput}
                       onChange={(e) => setTechStackInput(e.target.value)}
                     />
+                    <label className="block text-xs font-bold uppercase opacity-60">
+                      Project Category
+                    </label>
+                    <select
+                      className={inputClass}
+                      value={currentProject.category || 'web'}
+                      onChange={(e) =>
+                        setCurrentProject((project) => ({
+                          ...project,
+                          category: e.target.value as PortfolioProject['category']
+                        }))
+                      }
+                    >
+                      <option value="web">Web</option>
+                      <option value="fullstack">Full Stack</option>
+                      <option value="mobile">Mobile</option>
+                    </select>
                   </div>
                   <div className="space-y-4">
                     <label className="block text-xs font-bold uppercase opacity-60">
@@ -605,188 +641,240 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
           document.body
         )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {projects.map((project, index) => (
-          <div
-            key={project._id}
-            className="group relative flex flex-col h-full bg-white dark:bg-[#0f172a] border border-slate-200/60 dark:border-slate-800 rounded-[2rem] overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 cursor-pointer"
-            onClick={() => setActiveDetailProject(project)}
-          >
-            {/* Admin Controls */}
-            {isVip && !project._id.startsWith('builtin-') && (
-              <div
-                className="absolute top-4 right-4 z-20 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={(e) => e.stopPropagation()}
+      <div className="mb-8 flex flex-col gap-4 rounded-[1.75rem] border border-violet-100/80 bg-white/70 p-3 shadow-sm backdrop-blur-xl dark:border-amber-400/15 dark:bg-slate-950/55 md:flex-row md:items-center md:justify-between">
+        <div className="px-3">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-violet-600 dark:text-amber-400">
+            {language === 'zh' ? '作品导航' : 'Browse the collection'}
+          </p>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            {projects.length}{' '}
+            {language === 'zh' ? '个可以打开体验的项目' : 'projects you can open and explore'}
+          </p>
+        </div>
+        <div
+          className="grid grid-cols-2 gap-1 rounded-2xl bg-violet-50/80 p-1 dark:bg-slate-900 sm:flex"
+          role="tablist"
+          aria-label="Project categories"
+        >
+          {CATEGORY_META.map((category) => {
+            const count =
+              category.value === 'all'
+                ? projects.length
+                : projects.filter((project) => inferCategory(project) === category.value).length;
+            return (
+              <button
+                key={category.value}
+                type="button"
+                role="tab"
+                aria-selected={activeCategory === category.value}
+                onClick={() => setActiveCategory(category.value)}
+                className={`flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-all ${activeCategory === category.value ? 'bg-violet-600 text-white shadow-md shadow-violet-500/20 dark:bg-amber-400 dark:text-slate-950 dark:shadow-amber-500/20' : 'text-slate-500 hover:bg-white hover:text-violet-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-amber-300'}`}
               >
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleEdit(project);
-                  }}
-                  className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 text-blue-500 flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer"
+                <i className={`fas ${category.icon}`} aria-hidden="true"></i>
+                <span>{language === 'zh' ? category.zh : category.en}</span>
+                <span
+                  className={`rounded-full px-1.5 py-0.5 text-[9px] ${activeCategory === category.value ? 'bg-violet-950/40 text-white dark:bg-slate-950/15 dark:text-slate-950' : 'bg-slate-200/70 dark:bg-slate-700'}`}
                 >
-                  <i className="fas fa-pencil-alt text-xs"></i>
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setProjectToDelete(project);
-                  }}
-                  className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 text-red-500 flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer"
-                >
-                  <i className="fas fa-trash text-xs"></i>
-                </button>
-              </div>
-            )}
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-            {/* Cover Image */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {projects
+          .filter(
+            (project) => activeCategory === 'all' || inferCategory(project) === activeCategory
+          )
+          .map((project, index) => (
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                if (project.coverImage) setZoomedImage(project.coverImage);
-              }}
-              className="aspect-[16/9] shrink-0 bg-slate-100 dark:bg-slate-950 overflow-hidden relative cursor-zoom-in group/img"
+              key={project._id}
+              className="group relative flex flex-col h-full bg-white dark:bg-[#0f172a] border border-slate-200/60 dark:border-slate-800 rounded-[2rem] overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-2"
             >
-              {/* Zoom Prompt Icon */}
-              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center z-10">
-                <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white text-xl transform scale-50 group-hover/img:scale-100 transition-transform">
-                  <i className="fas fa-search-plus"></i>
-                </div>
-              </div>
-              {/* Badge for Top Projects */}
-              {index < 10 && (
+              {/* Admin Controls */}
+              {isVip && !project._id.startsWith('builtin-') && (
                 <div
-                  className={`absolute top-4 left-4 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border ${
-                    index < 5
-                      ? 'bg-red-500/80 border-red-400/50 text-white'
-                      : 'bg-black/50 border-white/20 text-white'
-                  }`}
+                  className="absolute top-4 right-4 z-20 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex -space-x-1.5">
-                    <i
-                      className={`fas fa-fire ${index < 5 ? 'text-yellow-300 animate-pulse' : 'text-orange-400'}`}
-                    ></i>
-                    {index < 5 && (
-                      <i
-                        className="fas fa-fire text-orange-300 animate-pulse"
-                        style={{ animationDelay: '0.1s' }}
-                      ></i>
-                    )}
-                    {index < 5 && (
-                      <i
-                        className="fas fa-fire text-red-300 animate-pulse"
-                        style={{ animationDelay: '0.2s' }}
-                      ></i>
-                    )}
-                  </div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider leading-none pt-0.5">
-                    {index < 5
-                      ? language === 'zh'
-                        ? '热门'
-                        : 'HOT'
-                      : language === 'zh'
-                        ? '推荐'
-                        : 'Pick'}
-                  </span>
-                </div>
-              )}
-
-              {project.coverImage ? (
-                <img
-                  src={project.coverImage}
-                  alt={getLocalized(project, 'title')}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
-                  <i className="fas fa-cube text-4xl text-slate-300 dark:text-slate-600"></i>
-                </div>
-              )}
-
-              {/* Overlay Gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-slate-900/10 to-transparent opacity-60 transition-opacity"></div>
-            </div>
-
-            {/* Card Info Content */}
-            <div className="p-5 flex flex-col flex-1 space-y-4">
-              {/* App-Store style Header */}
-              <div className="flex items-center justify-between gap-3 shrink-0">
-                <div className="flex items-center min-w-0 flex-1">
-                  {/* App Icon */}
-                  <div
-                    className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${getGradientFromTitle(getLocalized(project, 'title') || 'P')} flex items-center justify-center text-white text-lg font-black shadow-md flex-shrink-0 select-none`}
-                  >
-                    {(getLocalized(project, 'title') || 'P').charAt(0).toUpperCase()}
-                  </div>
-                  <div className="min-w-0 pl-3">
-                    <h3 className="text-base font-display font-black text-slate-900 dark:text-white truncate group-hover:text-amber-500 transition-colors leading-snug">
-                      {getLocalized(project, 'title')}
-                    </h3>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
-                      {project.techStack[0] || 'Software'}
-                    </p>
-                  </div>
-                </div>
-
-                {project.demoUrl && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleLiveDemoClick(project);
+                      handleEdit(project);
                     }}
-                    className="px-3.5 py-1.5 text-[10px] font-black rounded-full bg-slate-100 hover:bg-amber-500 hover:text-black dark:bg-slate-800 dark:hover:bg-amber-400 text-slate-700 dark:text-slate-200 transition-all shadow-sm flex-shrink-0 cursor-pointer active:scale-95 border border-slate-200/30 dark:border-slate-700/50"
+                    className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 text-blue-500 flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer"
                   >
-                    {language === 'zh' ? '打开' : 'GET'}
+                    <i className="fas fa-pencil-alt text-xs"></i>
                   </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setProjectToDelete(project);
+                    }}
+                    className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 text-red-500 flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer"
+                  >
+                    <i className="fas fa-trash text-xs"></i>
+                  </button>
+                </div>
+              )}
+
+              {/* Cover Image */}
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (project.coverImage) setZoomedImage(project.coverImage);
+                }}
+                className="aspect-[16/9] shrink-0 bg-slate-100 dark:bg-slate-950 overflow-hidden relative cursor-zoom-in group/img"
+              >
+                {/* Zoom Prompt Icon */}
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center z-10">
+                  <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white text-xl transform scale-50 group-hover/img:scale-100 transition-transform">
+                    <i className="fas fa-search-plus"></i>
+                  </div>
+                </div>
+                {/* Badge for Top Projects */}
+                {index < 10 && (
+                  <div
+                    className={`absolute top-4 left-4 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border ${
+                      index < 5
+                        ? 'bg-red-500/80 border-red-400/50 text-white'
+                        : 'bg-black/50 border-white/20 text-white'
+                    }`}
+                  >
+                    <div className="flex -space-x-1.5">
+                      <i
+                        className={`fas fa-fire ${index < 5 ? 'text-yellow-300 animate-pulse' : 'text-orange-400'}`}
+                      ></i>
+                      {index < 5 && (
+                        <i
+                          className="fas fa-fire text-orange-300 animate-pulse"
+                          style={{ animationDelay: '0.1s' }}
+                        ></i>
+                      )}
+                      {index < 5 && (
+                        <i
+                          className="fas fa-fire text-red-300 animate-pulse"
+                          style={{ animationDelay: '0.2s' }}
+                        ></i>
+                      )}
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider leading-none pt-0.5">
+                      {index < 5
+                        ? language === 'zh'
+                          ? '热门'
+                          : 'HOT'
+                        : language === 'zh'
+                          ? '推荐'
+                          : 'Pick'}
+                    </span>
+                  </div>
                 )}
+
+                {project.coverImage ? (
+                  <img
+                    src={project.coverImage}
+                    alt={getLocalized(project, 'title')}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
+                    <i className="fas fa-cube text-4xl text-slate-300 dark:text-slate-600"></i>
+                  </div>
+                )}
+
+                {/* Overlay Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-slate-900/10 to-transparent opacity-60 transition-opacity"></div>
+                <span className="absolute bottom-3 left-3 z-10 rounded-full border border-white/20 bg-slate-950/55 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-white backdrop-blur-md">
+                  {
+                    CATEGORY_META.find((category) => category.value === inferCategory(project))?.[
+                      language === 'zh' ? 'zh' : 'en'
+                    ]
+                  }
+                </span>
               </div>
 
-              {/* Tech Stack pills */}
-              <div className="flex flex-wrap gap-1.5 shrink-0">
-                {project.techStack.map((tech, i) => (
-                  <span
-                    key={i}
-                    className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-slate-50 dark:bg-slate-850 text-slate-500 dark:text-slate-400 rounded-md border border-slate-100 dark:border-slate-800"
+              {/* Card Info Content */}
+              <div className="p-5 flex flex-col flex-1 space-y-4">
+                {/* App-Store style Header */}
+                <div className="flex items-center justify-between gap-3 shrink-0">
+                  <div className="flex items-center min-w-0 flex-1">
+                    {/* App Icon */}
+                    <div
+                      className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${getGradientFromTitle(getLocalized(project, 'title') || 'P')} flex items-center justify-center text-white text-lg font-black shadow-md flex-shrink-0 select-none`}
+                    >
+                      {(getLocalized(project, 'title') || 'P').charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 pl-3">
+                      <h3 className="text-base font-display font-black text-slate-900 dark:text-white truncate group-hover:text-amber-500 transition-colors leading-snug">
+                        {getLocalized(project, 'title')}
+                      </h3>
+                      <p className="text-[10px] text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                        {project.techStack[0] || 'Software'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {project.demoUrl && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleLiveDemoClick(project);
+                      }}
+                      className="px-3.5 py-1.5 text-[10px] font-black rounded-full bg-slate-100 hover:bg-amber-500 hover:text-black dark:bg-slate-800 dark:hover:bg-amber-400 text-slate-700 dark:text-slate-200 transition-all shadow-sm flex-shrink-0 cursor-pointer active:scale-95 border border-slate-200/30 dark:border-slate-700/50"
+                    >
+                      {language === 'zh' ? '打开' : 'GET'}
+                    </button>
+                  )}
+                </div>
+
+                {/* Tech Stack pills */}
+                <div className="flex flex-wrap gap-1.5 shrink-0">
+                  {project.techStack.map((tech, i) => (
+                    <span
+                      key={i}
+                      className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-slate-50 dark:bg-slate-850 text-slate-500 dark:text-slate-400 rounded-md border border-slate-100 dark:border-slate-800"
+                    >
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Clamped Summary */}
+                <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed line-clamp-3 flex-grow pb-2">
+                  {getLocalized(project, 'summary') || 'Click specs below to read full details.'}
+                </p>
+
+                {/* Bottom Details Trigger */}
+                <div className="mt-auto flex justify-between items-center pt-3 border-t border-slate-100 dark:border-slate-800/80 shrink-0">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveDetailProject(project);
+                    }}
+                    className="text-[11px] font-bold text-amber-800 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-200 flex items-center gap-1 cursor-pointer transition-colors group/btn"
                   >
-                    {tech}
-                  </span>
-                ))}
-              </div>
+                    <span>{language === 'zh' ? '详情与规格' : 'Specs & Details'}</span>
+                    <i className="fas fa-arrow-right text-[8px] transform group-hover/btn:translate-x-0.5 transition-transform"></i>
+                  </button>
 
-              {/* Clamped Summary */}
-              <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed line-clamp-3 flex-grow pb-2">
-                {getLocalized(project, 'summary') || 'Click specs below to read full details.'}
-              </p>
-
-              {/* Bottom Details Trigger */}
-              <div className="mt-auto flex justify-between items-center pt-3 border-t border-slate-100 dark:border-slate-800/80 shrink-0">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveDetailProject(project);
-                  }}
-                  className="text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:text-amber-500 flex items-center gap-1 cursor-pointer transition-colors group/btn"
-                >
-                  <span>{language === 'zh' ? '详情与规格' : 'Specs & Details'}</span>
-                  <i className="fas fa-arrow-right text-[8px] transform group-hover/btn:translate-x-0.5 transition-transform"></i>
-                </button>
-
-                {project.repoUrl && (
-                  <a
-                    href={project.repoUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors p-1"
-                    title={language === 'zh' ? '查看源码' : 'View Source'}
-                  >
-                    <i className="fab fa-github text-base"></i>
-                  </a>
-                )}
+                  {project.repoUrl && (
+                    <a
+                      href={project.repoUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors p-1"
+                      title={language === 'zh' ? '查看源码' : 'View Source'}
+                    >
+                      <i className="fab fa-github text-base"></i>
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
       </div>
 
       {/* Project Detail Modal */}

@@ -144,60 +144,66 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
           </span>
         </div>
 
-        {/* About Sam Biography Section */}
+        {/* About Sam - concise, editorial introduction */}
         {t.resume.aboutP1 && (
-          <section className="mt-12 mx-auto text-left" aria-labelledby="about-sam-title">
-            <div className="relative overflow-hidden rounded-[2rem] border border-slate-200/70 dark:border-slate-800/80 bg-white/55 dark:bg-slate-950/45 px-5 py-7 md:px-8 md:py-9 shadow-[0_24px_70px_-48px_rgba(15,23,42,0.45)] dark:shadow-[0_24px_80px_-50px_rgba(0,0,0,0.9)] backdrop-blur-xl">
-              <div className="pointer-events-none absolute -top-24 -right-16 h-56 w-56 rounded-full bg-primary-400/10 blur-3xl"></div>
-              <div className="pointer-events-none absolute -bottom-28 -left-20 h-56 w-56 rounded-full bg-indigo-400/10 blur-3xl"></div>
-
-              <div className="relative mb-7 flex flex-col gap-3 md:mb-8 md:flex-row md:items-end md:justify-between">
+          <section className="mx-auto mt-10 text-left" aria-labelledby="about-sam-title">
+            <div className="relative overflow-hidden rounded-[2rem] border border-violet-100/80 bg-white/70 p-6 shadow-[0_28px_80px_-55px_rgba(76,29,149,.45)] backdrop-blur-xl dark:border-amber-400/15 dark:bg-slate-950/60 dark:shadow-[0_28px_90px_-55px_rgba(0,0,0,.95)] md:p-9">
+              <div className="pointer-events-none absolute -right-20 -top-28 h-64 w-64 rounded-full bg-violet-300/20 blur-3xl dark:bg-amber-400/10"></div>
+              <div className="relative grid gap-8 lg:grid-cols-[.9fr_1.1fr] lg:items-start">
                 <div>
-                  <p className="mb-2 font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-primary-600 dark:text-primary-400">
+                  <p className="mb-3 font-mono text-[10px] font-black uppercase tracking-[.3em] text-violet-600 dark:text-amber-400">
                     {t.resume.aboutEyebrow}
                   </p>
                   <h2
                     id="about-sam-title"
-                    className="font-serif text-3xl font-bold tracking-tight text-slate-900 dark:text-white md:text-4xl"
+                    className="font-serif text-3xl font-bold tracking-tight text-slate-950 dark:text-white md:text-4xl"
                   >
                     {t.resume.aboutTitle}
                   </h2>
+                  <p className="mt-4 text-lg font-light leading-8 text-slate-600 dark:text-slate-300">
+                    {t.resume.aboutSubtitle}
+                  </p>
+                  <div className="mt-7 flex flex-wrap gap-2">
+                    {['React & TypeScript', 'Node.js & Cloud', 'Product ownership'].map((skill) => (
+                      <span
+                        key={skill}
+                        className="rounded-full border border-violet-100 bg-violet-50 px-3 py-1.5 text-[11px] font-bold text-violet-700 dark:border-amber-400/15 dark:bg-amber-400/5 dark:text-amber-300"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-                <p className="max-w-md text-sm leading-relaxed text-slate-500 dark:text-slate-400 md:text-right">
-                  {t.resume.aboutSubtitle}
+                <div className="divide-y divide-violet-100/80 dark:divide-slate-800">
+                  {aboutCards.map((card, index) => (
+                    <article
+                      key={card.label}
+                      className="group grid grid-cols-[2.5rem_1fr] gap-4 py-4 first:pt-0 last:pb-0"
+                    >
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100 text-violet-700 transition group-hover:bg-violet-600 group-hover:text-white dark:bg-slate-900 dark:text-amber-400 dark:group-hover:bg-amber-400 dark:group-hover:text-slate-950">
+                        <i className={`fas ${card.icon}`}></i>
+                      </span>
+                      <div>
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono text-[9px] font-black uppercase tracking-[.18em] text-violet-500 dark:text-amber-500">
+                            0{index + 1}
+                          </span>
+                          <h3 className="font-serif text-lg font-bold text-slate-900 dark:text-white">
+                            {card.title}
+                          </h3>
+                        </div>
+                        <p className="mt-1.5 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                          {card.body}
+                        </p>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+              <div className="relative mt-7 flex items-center justify-between border-t border-violet-100/80 pt-5 dark:border-slate-800">
+                <p className="text-xs text-slate-400">
+                  Auckland · Open to software engineering opportunities
                 </p>
-              </div>
-
-              <div className="relative grid grid-cols-1 gap-4 md:grid-cols-3">
-                {aboutCards.map((card, index) => (
-                  <article
-                    key={card.label}
-                    className="group relative overflow-hidden rounded-3xl border border-slate-200/70 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/70 p-5 md:p-6 transition-all duration-300 hover:-translate-y-1 hover:border-primary-300/80 dark:hover:border-primary-700/70 hover:shadow-xl hover:shadow-primary-500/5"
-                  >
-                    <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-primary-400/70 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
-                    <div className="mb-5 flex items-center justify-between">
-                      <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-primary-600 dark:text-primary-400">
-                        {card.label}
-                      </span>
-                      <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary-500/10 text-sm text-primary-600 dark:text-primary-400 transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110">
-                        <i className={`fas ${card.icon}`} aria-hidden="true"></i>
-                      </span>
-                    </div>
-                    <h3 className="mb-3 font-serif text-xl font-bold leading-snug text-slate-800 dark:text-slate-100">
-                      {card.title}
-                    </h3>
-                    <p className="text-[15px] font-light leading-7 text-slate-600 dark:text-slate-300">
-                      {card.body}
-                    </p>
-                    <span className="pointer-events-none absolute -bottom-3 right-4 font-mono text-6xl font-bold text-slate-900/[0.025] dark:text-white/[0.025]">
-                      0{index + 1}
-                    </span>
-                  </article>
-                ))}
-              </div>
-
-              {/* Encapsulated Like Button */}
-              <div className="relative mt-7 flex justify-center border-t border-slate-200/60 pt-6 dark:border-slate-800/70">
                 <LikeButton />
               </div>
             </div>

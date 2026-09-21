@@ -195,12 +195,17 @@ price = "$10"; $$not_math$$
   await page.screenshot({ path: `${output}/journal-light.png`, fullPage: true });
   await textClick('切换主题');
   check(
-    'Cabin editor stays light while the external reader follows dark mode',
-    await page.evaluate(
-      () =>
-        getComputedStyle(document.querySelector('.journal-writing-scroll .journal-prose')).color !==
-        getComputedStyle(document.querySelector('.journal-reader .journal-prose')).color
-    )
+    "Editor and reader share Orion's cosmic dark palette",
+    await page.evaluate(() => {
+      const editor = getComputedStyle(document.querySelector('.journal-editor'));
+      const reader = getComputedStyle(document.querySelector('.journal-reader'));
+      return (
+        editor.getPropertyValue('--journal-accent').trim() === '#f2bd4f' &&
+        reader.getPropertyValue('--journal-accent').trim() === '#f2bd4f' &&
+        editor.backgroundColor === 'rgb(8, 13, 25)' &&
+        reader.backgroundColor === 'rgb(8, 13, 25)'
+      );
+    })
   );
   check(
     'Paper remains legible in dark mode',
@@ -306,7 +311,7 @@ price = "$10"; $$not_math$$
   await page.type('[aria-label="日记标签"]', 'Science');
   await page.click('[role="switch"][aria-label="私密日记"]');
   await textClick('发布公开日记');
-  await page.waitForFunction(() => document.body.innerText.includes('Public Log'));
+  await page.waitForFunction(() => document.body.innerText.includes('Public Journal'));
   check(
     'Publishing public journal sends public visibility and opens the public list',
     published?.isPrivate === false && published.content.includes('data-latex')

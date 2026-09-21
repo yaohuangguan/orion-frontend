@@ -456,19 +456,19 @@ export const en = {
     ],
     aboutTitle: 'About Sam',
     aboutEyebrow: 'The thread',
-    aboutSubtitle: 'Three ideas shape how I learn, build, and collaborate.',
+    aboutSubtitle: 'I turn ambiguous product problems into clear, reliable systems that ship.',
     aboutCard1Label: '01 · Impact',
-    aboutCard1Title: 'Build for real people',
+    aboutCard1Title: 'Start with the real problem',
     aboutP1:
-      'I became a software engineer to turn difficult problems into practical tools that make a tangible difference. At Tencent Cloud, I improved a CI/CD platform that helped teams build and deploy more efficiently. At Lalamove, I shipped driver-facing features that made everyday logistics work simpler. Those experiences still define how I work: start with the user, understand the system, and deliver reliable improvements that create clear value.',
+      'Understand the user, the business and the constraints first. The result should make complexity feel simple.',
     aboutCard2Label: '02 · Growth',
-    aboutCard2Title: 'Keep expanding the craft',
+    aboutCard2Title: 'Own the whole system',
     aboutP2:
-      'I’m currently completing a Master of Information Technology at the University of Auckland, deepening my foundation in enterprise web systems, global data communications, cloud architecture, and health data analytics. Alongside my studies, I build modern full-stack products with React, TypeScript, Node.js, and cloud infrastructure. Serving as the COMPSCI 734 Class Representative has also strengthened how I listen, synthesize feedback, and communicate across cultures.',
+      'From React interfaces to Node.js services, cloud infrastructure and production support, I care about complete delivery.',
     aboutCard3Label: '03 · Perspective',
-    aboutCard3Title: 'Connect technology and business',
+    aboutCard3Title: 'Move with calm momentum',
     aboutP3:
-      'My perspective has been shaped across Shenzhen, Hong Kong, the United States, and now Auckland—as well as by building an investment venture of my own. Moving between engineering and business taught me to balance product value, technical quality, and delivery under pressure. I bring ownership, curiosity, and calm collaboration to unfamiliar codebases, and I’m always glad to meet people who care about building useful things well.'
+      'Working across teams and cultures taught me to value clear communication, sound judgement and maintainable systems.'
   },
   comments: {
     title: 'Comms Channel',

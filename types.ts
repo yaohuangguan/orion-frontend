@@ -182,6 +182,7 @@ export interface PortfolioProject {
   repoUrl?: string;
   demoUrl?: string;
   coverImage?: string;
+  category?: 'web' | 'fullstack' | 'mobile';
   order: number;
   isVisible: boolean;
   createdAt: string;

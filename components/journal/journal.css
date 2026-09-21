@@ -1,25 +1,26 @@
 .journal-editor,
 .journal-reader {
-  --journal-paper: #fffefa;
-  --journal-text: #35443c;
-  --journal-title: #22372d;
-  --journal-muted: #79857c;
-  --journal-line: #e6e9e1;
-  --journal-soft: #f1f4ed;
-  --journal-accent: #46775e;
-  --journal-highlight: #f5e5a5;
+  --journal-paper: #ffffff;
+  --journal-text: #3f3b4b;
+  --journal-title: #24183d;
+  --journal-muted: #756c86;
+  --journal-line: #e8e0f3;
+  --journal-soft: #f7f3fc;
+  --journal-accent: #7c3aed;
+  --journal-highlight: #ede0ff;
   color: var(--journal-text);
   background: var(--journal-paper);
 }
-html.dark .journal-reader:not(.journal-force-light) {
-  --journal-paper: #18201e;
-  --journal-text: #dbe4de;
-  --journal-title: #f0f5ed;
-  --journal-muted: #99ada1;
-  --journal-line: #34423a;
-  --journal-soft: #25332b;
-  --journal-accent: #a4cfb5;
-  --journal-highlight: #615522;
+html.dark .journal-editor,
+html.dark .journal-reader {
+  --journal-paper: #080d19;
+  --journal-text: #d9deea;
+  --journal-title: #f7d88b;
+  --journal-muted: #8d98ac;
+  --journal-line: #263044;
+  --journal-soft: #111a2b;
+  --journal-accent: #f2bd4f;
+  --journal-highlight: #5b4516;
   color-scheme: dark;
 }
 .journal-editor {
@@ -502,15 +503,31 @@ html.dark .journal-reader:not(.journal-force-light) {
   display: contents;
 }
 
-.journal-editor,
-.journal-force-light {
+.journal-editor {
   color-scheme: light;
+}
+html.dark .journal-editor {
+  color-scheme: dark;
 }
 .journal-reader [data-journal-ink] {
   color: var(--ink-light) !important;
 }
-html.dark .journal-reader:not(.journal-force-light) [data-journal-ink] {
+html.dark .journal-reader [data-journal-ink] {
   color: var(--ink-dark) !important;
+}
+html.dark .journal-reader.journal-force-light {
+  --journal-paper: #ffffff;
+  --journal-text: #3f3b4b;
+  --journal-title: #24183d;
+  --journal-muted: #756c86;
+  --journal-line: #e8e0f3;
+  --journal-soft: #f7f3fc;
+  --journal-accent: #7c3aed;
+  --journal-highlight: #ede0ff;
+  color-scheme: light;
+}
+html.dark .journal-reader.journal-force-light [data-journal-ink] {
+  color: var(--ink-light) !important;
 }
 .journal-prose video {
   display: block;
@@ -612,4 +629,36 @@ html.dark .journal-reader:not(.journal-force-light) [data-journal-ink] {
 .journal-stickers small {
   display: block;
   margin-bottom: 10px;
+}
+
+/* Orion owns the journal palette: violet daylight, gold in the cosmic theme. */
+.journal-prose h1::after,
+.journal-prose h2::after {
+  content: '';
+  display: block;
+  width: 2.75rem;
+  height: 3px;
+  margin-top: 0.5rem;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--journal-accent), transparent);
+}
+.journal-prose blockquote {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--journal-accent) 13%, transparent);
+}
+.journal-space-panel {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(124, 58, 237, 0.12);
+}
+html.dark .journal-space-panel {
+  background: rgba(2, 6, 23, 0.72);
+  border-color: rgba(245, 190, 70, 0.15);
+  box-shadow: 0 24px 80px -48px rgba(0, 0, 0, 0.95);
+}
+.journal-orbit-header {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(245, 240, 255, 0.86));
+  border-color: rgba(124, 58, 237, 0.12);
+}
+html.dark .journal-orbit-header {
+  background: linear-gradient(135deg, rgba(9, 14, 28, 0.98), rgba(19, 25, 43, 0.92));
+  border-color: rgba(245, 190, 70, 0.16);
 }

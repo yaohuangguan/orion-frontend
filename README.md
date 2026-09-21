@@ -1,147 +1,106 @@
-# Orion System | Engineering & Design
+# Orion
 
-![Orion Banner](public/logo.svg)
+**Navigate your value.**
 
-![React](https://img.shields.io/badge/React-v19-blue?logo=react)
-![Vite](https://img.shields.io/badge/Vite-v6-purple?logo=vite)
-![pnpm](https://img.shields.io/badge/Manager-pnpm-orange?logo=pnpm)
-![PWA](https://img.shields.io/badge/PWA-Offline_Ready-success?logo=pwa)
+Orion is Sam Yao's bilingual digital garden and personal operating system. It brings a public journal, engineering portfolio and live app directory together with a private **Captain's Cabin** for writing, personal data, health, travel and AI-assisted workflows.
 
-> **Navigate your Value.**
+[Live site](https://samyao.me) · [中文说明](README_CN.md) · [Latest résumé](public/Sam_Yao_Resume.pdf)
 
-Orion is a modern, high-performance **Personal Knowledge Management (PKM)** and **Digital Garden** system. It combines a public-facing portfolio and blog with a sophisticated, encrypted private dashboard ("Captain's Cabin") for managing personal data, health, and AI interactions.
+![Orion](public/logo.svg)
 
-Designed with **Atomic Design principles**, powered by **React 19**, and orchestrated via **pnpm** monorepo-style management.
+## What is implemented
 
-## 🌟 Key Features
+- **Public journal:** searchable posts, tags, comments, reactions, rich media and responsive article reading.
+- **Writing studio:** Tiptap rich text, headings, blockquotes, typography and colour controls, tables, tasks, code, syntax-safe LaTeX paste, emoji, online GIF search, video embeds, vector handwriting and direct clipboard image upload to R2.
+- **Consistent reading:** the editor, live preview and published article share the same content renderer, with violet-on-white and gold-on-cosmic theme palettes.
+- **Portfolio:** a bilingual résumé, downloadable source PDF, and a filterable Web / Full Stack / Mobile app directory with live demos and source links.
+- **Captain's Cabin:** JWT/RBAC-protected journal, second brain, to-do systems, fitness records, photo gallery, footprint map, personal utilities and account-aware private data.
+- **AI and realtime tools:** context-aware assistants, streaming responses and Socket.IO chat backed by the companion API.
+- **Installable web app:** responsive desktop, tablet and mobile layouts with PWA metadata and service-worker caching.
+- **Bilingual interface:** English and Chinese content, navigation and portfolio presentation.
 
-### 1. Public Sector (The Bridge)
+## Journal experience
 
-- **Interactive Hero:** Dynamic 3D-style CSS animations and status indicators.
-- **Transmission Log (Blog):** Markdown-supported journal with tagging, search, and nested comments. Supports embedded iframes and rich media.
-- **Portfolio & Resume:** A dual-mode showcase (Resume Document / Project Cards) with multi-language support (EN/ZH).
+The journal is designed as one writing system rather than separate editor and reader implementations.
 
-### 2. Captain's Cabin (Private Space)
+- Paste display math such as `$$P(\text{mW}) = 10^{\frac{\text{dBm}}{10}}$$` and keep its fraction and exponent structure.
+- Paste an image directly into the editor; Orion reuses the authenticated upload path and stores the returned R2 URL.
+- Apply fonts, sizes and colours to selected text, insert emoji or GIFs, embed supported video links and draw editable SVG handwriting.
+- Preserve legacy Quill HTML, code containing dollar delimiters, tables, task lists and existing journal entries.
+- Keep private and public drafts isolated by account, and prevent publishing while media is still uploading.
 
-A restricted area protected by JWT authentication and Role-Based Access Control (RBAC).
+## Local development
 
-#### 🧠 Second Brain (AI Core)
+Requirements: Node.js 22+ and pnpm 9+.
 
-- **Context-Aware Chat:** RAG-style interactions having access to your journals, fitness logs, and project data.
-- **Multimodal Input:** Drag-and-drop image analysis and text processing.
-- **Session Management:** Persistent chat history with sidebar navigation.
-
-#### 🏃 Fitness Space
-
-- **Holistic Tracking:** Weight, BMI, sleep, mood, and water intake logging.
-- **Workout Log:** Track activity types (Run, Lift, HIIT, etc.) with duration and notes.
-- **Photo Wall:** A monthly calendar-based gallery for progress photos.
-- **Analytics:** Visual charts using Recharts for weight trends and activity stats.
-
-#### 🧘 Leisure & Utilities
-
-- **AI Smart Kitchen:** - **Chef's Wheel:** Randomized meal decision maker with filters (Healthy/Variety).
-  - **Smart Plan:** AI-generated meal plans based on your fitness goals (Cut/Bulk).
-- **Moon Cycle:** Period and biological cycle tracker with predictions.
-- **Pirate Lords:** A custom logic puzzle game (Slider/Grid strategy).
-
-#### 🗺️ Footprint & Gallery
-
-- **Star Map:** Dual-view (China/Global) travel logging via ECharts & Leaflet.
-- **Capsule Gallery:** Corkboard UI with Draggable, rotatable photo cards.
-
-## 🛠 Tech Stack & Engineering
-
-### Core
-
-- **Framework:** React 19
-- **Build Tool:** Vite
-- **Language:** TypeScript
-- **Package Manager:** **pnpm** (Strict mode)
-
-### Infrastructure & Quality
-
-- **Linting:** ESLint v9 (Flat Config)
-- **Formatting:** Prettier
-- **Git Hooks:** Husky + Lint-staged (Automated pre-commit checks)
-- **CI/CD:** Automated Service Worker versioning
-
-### Libraries
-
-- **Styling:** Tailwind CSS, FontAwesome
-- **Visualization:** Recharts, ECharts, Leaflet
-- **Real-time:** Socket.io-client
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- **Node.js**: v22.0.0 or higher
-- **pnpm**: v9+ (Recommended via Corepack)
-
-### Installation
-
-1. **Clone and Setup**
-
-   ```bash
-   git clone [https://github.com/yourusername/orion.git](https://github.com/yourusername/orion.git)
-   cd orion
-
-   # Enable pnpm via Node Corepack
-   corepack enable
-   corepack prepare pnpm@latest --activate
-   ```
-
-````
-
-2. **Install Dependencies**
 ```bash
+git clone https://github.com/yaohuangguan/orion-frontend.git
+cd orion-frontend
 pnpm install
-
-````
-
-3. **Environment Configuration**
-   Create a `.env` file in the root directory:
-
-```properties
-VITE_API_URL=http://localhost:5000/api
-VITE_CLOUDINARY_CLOUD_NAME=your_cloud_name
-
+pnpm dev:local
 ```
 
-4. **Run Development Server**
+`pnpm dev:local` expects the API at `http://localhost:5000/api`. Use `pnpm dev` when `VITE_API_URL` is already configured or when you want the production API fallback.
+
+Create `.env` for environment-specific values:
+
+```dotenv
+VITE_API_URL=http://localhost:5000/api
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
+```
+
+Do not commit real credentials. Firebase mock values keep unauthenticated local pages usable, while private features require the API and a valid account.
+
+## Quality checks
 
 ```bash
-pnpm dev
-
+pnpm typecheck
+pnpm lint
+pnpm test
+pnpm build
 ```
 
-## 🤖 Automation & PWA
+The browser suite covers LaTeX paste, code preservation, image upload and failure recovery, handwriting undo/redo and serialization, rich typography, emoji and GIF insertion, video round trips, draft isolation, legacy content, mobile overflow and both Orion themes.
 
-This project uses **Husky** to enforce code quality and automate PWA versioning.
+## Architecture
 
-### Service Worker Strategy
+```mermaid
+flowchart LR
+  Browser[React 19 + Vite PWA] --> API[Orion API]
+  Browser --> Firebase[Firebase sign-in]
+  API --> Mongo[(MongoDB)]
+  API --> R2[(Cloudflare R2)]
+  API --> Realtime[Socket.IO]
+  API --> AI[AI providers]
+```
 
-- **Entry (HTML):** Network First (Prevents version deadlocks).
-- **Assets (JS/CSS):** Cache First (Stale-while-revalidate).
-- **API:** Network Only.
+```text
+components/             shared UI, journal editor/reader, profile and private widgets
+pages/                  public routes and Captain's Cabin workspaces
+services/               API, authentication, content and media clients
+i18n/                   English and Chinese locale data
+constants/              navigation and built-in app catalogue
+tests/journal/           browser-level editor and renderer regression suite
+public/                  PWA, SEO, résumé and project assets
+```
 
-### Auto-Bumping
+React 19 · TypeScript · Vite · Tailwind CSS · Tiptap · KaTeX · Firebase · Socket.IO · Recharts · ECharts · Leaflet · Puppeteer.
 
-Every time you commit code, a `pre-commit` hook triggers:
+## Data and security
 
-1. Runs `scripts/bump-sw.js` to update the cache version timestamp in `sw.js`.
-2. Runs `ESLint` and `Prettier` to fix code style.
-3. Adds the updated Service Worker back to the commit.
+- Public posts and portfolio data are readable without a session; private routes are enforced by backend permissions.
+- Authentication tokens and private entries are handled by the API. The frontend does not embed server secrets.
+- Pasted HTML is sanitised before rendering. Unsafe links and untrusted video embeds are rejected.
+- Media upload state blocks premature publishing and stores durable remote URLs instead of local blob URLs.
+- The application contains personal modules. Use your own environment, database and storage accounts for a separate deployment.
 
-## 🎨 Theming
+## Companion service
 
-The system features a dynamic **Cosmic/Scenic** theme engine:
+The frontend is backed by [new-bananaboom-api-2025](https://github.com/yaohuangguan/new-bananaboom-api-2025), which provides authentication, permissions, content, uploads, realtime events and personal-data APIs.
 
-- **Light Mode:** "Milky" warm tones with paper textures.
-- **Dark Mode:** Deep space "Cosmic" theme with animated starfields.
-- **Holiday Modes:** Special overlays (Snow/Lanterns) triggered by date.
-
-## 📄 License
-
-[MIT](https://www.google.com/search?q=LICENSE)
+Contributions and issue reports are welcome. Run the quality checks before opening a pull request, and never include private journal content, exported account data or real credentials.

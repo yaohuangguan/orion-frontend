@@ -13,6 +13,7 @@ const ResumeEditModal = React.lazy(() =>
   import('./ResumeEditModal').then((m) => ({ default: m.ResumeEditModal }))
 );
 import { safeKey, getNormalizedSectionOrder } from './utils';
+import { withCanonicalSamResume } from './canonicalResume';
 
 interface CustomSelectProps {
   label?: string;
@@ -297,13 +298,14 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
           }
 
           const data = await apiService.getResumeData(activeSlug);
-          setResume(data);
-          if (data?.styleSettings) {
-            if (data.styleSettings.pdfMode) {
-              setPdfMode(data.styleSettings.pdfMode as any);
+          const displayResume = withCanonicalSamResume(data, activeSlug);
+          setResume(displayResume);
+          if (displayResume?.styleSettings) {
+            if (displayResume.styleSettings.pdfMode) {
+              setPdfMode(displayResume.styleSettings.pdfMode as any);
             }
-            if (data.styleSettings.paperSize) {
-              setPaperSize(data.styleSettings.paperSize as any);
+            if (displayResume.styleSettings.paperSize) {
+              setPaperSize(displayResume.styleSettings.paperSize as any);
             }
           }
         } else {

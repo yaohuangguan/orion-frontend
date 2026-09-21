@@ -14,7 +14,7 @@ import { TagCloud } from '../../components/TagCloud';
 
 export const JournalSpace: React.FC = () => {
   const { user } = useOutletContext<{ user: User | null }>();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // URL State
@@ -283,11 +283,11 @@ export const JournalSpace: React.FC = () => {
         />
 
         {/* Left Column Container */}
-        <div className="h-[65vh] lg:h-full flex flex-col min-h-0 bg-white/60 rounded-3xl border border-white/80 shadow-lg backdrop-blur-md overflow-hidden ring-1 ring-white/50 order-2 lg:order-1 private-feed-top transition-all duration-300 relative">
+        <div className="h-[65vh] lg:h-full flex flex-col min-h-0 journal-space-panel rounded-3xl border shadow-lg backdrop-blur-md overflow-hidden ring-1 ring-white/50 order-2 lg:order-1 private-feed-top transition-all duration-300 relative">
           {/* Detail View */}
           {selectedEntry && (
-            <div className="absolute inset-0 z-20 flex flex-col bg-white animate-slide-up overflow-hidden">
-              <div className="p-4 border-b border-rose-100 flex items-center justify-between bg-white shrink-0">
+            <div className="absolute inset-0 z-20 flex flex-col bg-white dark:bg-slate-950 animate-slide-up overflow-hidden">
+              <div className="p-4 border-b border-violet-100 dark:border-amber-400/15 flex items-center justify-between bg-white dark:bg-slate-950 shrink-0">
                 <button
                   onClick={() => setSelectedEntry(null)}
                   className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-rose-50 hover:text-rose-500 transition-all font-bold text-xs uppercase tracking-wider"
@@ -304,7 +304,7 @@ export const JournalSpace: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <div className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar bg-white">
+              <div className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar bg-white dark:bg-slate-950">
                 <div className="max-w-2xl mx-auto">
                   <div className="mb-8 text-center">
                     <div className="flex justify-center gap-2 mb-4">
@@ -336,7 +336,7 @@ export const JournalSpace: React.FC = () => {
                     <BlogContent
                       content={selectedEntry.content || ''}
                       shadowClass="shadow-none border-none"
-                      forceLight={true}
+                      forceLight={false}
                     />
                   </div>
                   <div className="border-t border-slate-100 pt-8">
@@ -344,7 +344,7 @@ export const JournalSpace: React.FC = () => {
                       postId={selectedEntry._id}
                       currentUser={user}
                       onLoginRequest={() => {}}
-                      forceLight={true}
+                      forceLight={false}
                     />
                   </div>
                 </div>
@@ -354,7 +354,7 @@ export const JournalSpace: React.FC = () => {
 
           {/* Preview View */}
           {showPreview ? (
-            <div className="flex-col h-full flex animate-fade-in bg-white/50">
+            <div className="flex-col h-full flex animate-fade-in bg-white/50 dark:bg-slate-950/70">
               <div className="p-6 pb-4 bg-amber-50/50 border-b border-amber-100 flex items-center justify-center relative shrink-0">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-amber-200 flex items-center justify-center text-amber-700 shadow-sm animate-pulse">
@@ -371,8 +371,8 @@ export const JournalSpace: React.FC = () => {
                   <i className="fas fa-times"></i>
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-slate-50/30">
-                <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 border border-slate-200 mb-6">
+              <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-violet-50/30 dark:bg-slate-950">
+                <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl p-6 border border-slate-200 mb-6">
                   <h1 className="text-3xl font-display font-bold text-slate-900 mb-2 text-center leading-tight">
                     {previewData?.title || 'Untitled Entry'}
                   </h1>
@@ -380,85 +380,91 @@ export const JournalSpace: React.FC = () => {
                 <BlogContent
                   content={previewData?.content || ''}
                   shadowClass="shadow-sm"
-                  forceLight={true}
+                  forceLight={false}
                 />
               </div>
             </div>
           ) : (
             // List View
             <div className={`flex flex-col h-full ${selectedEntry ? 'hidden' : 'flex'}`}>
-              <div className="p-6 pb-4 flex flex-col gap-4 bg-white/40 border-b border-rose-100/50 shrink-0">
-                <div className="flex items-center justify-between">
+              <div className="journal-orbit-header shrink-0 border-b p-4 sm:p-6">
+                <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                   <div className="flex items-center gap-4">
-                    <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm shrink-0 transition-colors ${logSource === 'private' ? 'bg-rose-100 text-rose-500' : 'bg-blue-100 text-blue-500'}`}
-                    >
-                      <i className={`fas ${logSource === 'private' ? 'fa-heart' : 'fa-globe'}`}></i>
+                    <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-violet-600 text-white shadow-lg shadow-violet-500/20 dark:bg-amber-400 dark:text-slate-950 dark:shadow-amber-500/20">
+                      <i className={`fas ${logSource === 'private' ? 'fa-lock' : 'fa-globe'}`}></i>
+                      <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-white bg-emerald-400 dark:border-slate-950"></span>
                     </div>
                     <div className="min-w-0">
-                      <h1 className="text-2xl font-display font-bold text-slate-800 truncate">
-                        {logSource === 'private' ? t.privateSpace.journal : 'Public Log'}
+                      <p className="mb-1 font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-violet-600 dark:text-amber-400">
+                        Captain&apos;s log archive
+                      </p>
+                      <h1 className="truncate font-display text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                        {logSource === 'private' ? t.privateSpace.journal : 'Public Journal'}
                       </h1>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`text-xs font-mono uppercase tracking-widest ${logSource === 'private' ? 'text-rose-400' : 'text-blue-400'}`}
-                        >
-                          {displayPagination ? displayPagination.totalItems : displayBlogs.length}{' '}
-                          Entries
-                        </span>
-                        {hasContent(previewData) && isPreviewHidden && (
-                          <button
-                            onClick={() => setIsPreviewHidden(false)}
-                            className="ml-2 px-2 py-0.5 bg-amber-100 text-amber-600 text-[10px] font-bold uppercase rounded-full animate-pulse hover:bg-amber-200 transition-colors"
-                          >
-                            <i className="fas fa-eye mr-1"></i> Resume Preview
-                          </button>
-                        )}
-                      </div>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        {displayPagination ? displayPagination.totalItems : displayBlogs.length}{' '}
+                        entries ·{' '}
+                        {logSource === 'private'
+                          ? 'Only visible inside the cabin'
+                          : 'Published to Orion'}
+                      </p>
                     </div>
                   </div>
-                  <div className="flex bg-slate-100 p-1 rounded-lg shrink-0">
-                    <button
-                      onClick={() => setLogSource('private')}
-                      className={`px-3 py-1.5 rounded-md text-xs font-bold uppercase transition-all ${logSource === 'private' ? 'bg-white text-rose-500 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                    >
-                      Private
-                    </button>
-                    <button
-                      onClick={() => setLogSource('public')}
-                      className={`px-3 py-1.5 rounded-md text-xs font-bold uppercase transition-all ${logSource === 'public' ? 'bg-white text-blue-500 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                    >
-                      Public
-                    </button>
+                  <div
+                    className="grid grid-cols-2 rounded-2xl border border-violet-100 bg-violet-50/80 p-1 dark:border-amber-400/10 dark:bg-slate-900"
+                    role="tablist"
+                    aria-label="Journal visibility"
+                  >
+                    {[
+                      { value: 'private', label: 'Private', icon: 'fa-lock' },
+                      { value: 'public', label: 'Public', icon: 'fa-globe' }
+                    ].map((source) => (
+                      <button
+                        key={source.value}
+                        type="button"
+                        role="tab"
+                        aria-selected={logSource === source.value}
+                        onClick={() => setLogSource(source.value as 'private' | 'public')}
+                        className={`flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${logSource === source.value ? 'bg-white text-violet-700 shadow-sm dark:bg-amber-400 dark:text-slate-950' : 'text-slate-500 hover:text-violet-700 dark:text-slate-400 dark:hover:text-amber-300'}`}
+                      >
+                        <i className={`fas ${source.icon}`}></i>
+                        {source.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i
-                      className={`fas fa-search transition-colors ${logSource === 'private' ? 'text-rose-300 group-focus-within:text-rose-500' : 'text-blue-300 group-focus-within:text-blue-500'}`}
-                    ></i>
-                  </div>
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search logs..."
-                    className={`block w-full pl-10 pr-3 py-2 bg-white/80 border rounded-xl leading-5 placeholder-slate-300 text-slate-700 focus:outline-none focus:ring-2 sm:text-sm transition-all shadow-sm ${logSource === 'private' ? 'border-rose-100 focus:ring-rose-400/50 focus:border-rose-400' : 'border-blue-100 focus:ring-blue-400/50 focus:border-blue-400'}`}
+                <div className="flex flex-col gap-3">
+                  <label className="group relative block">
+                    <span className="sr-only">Search journal</span>
+                    <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-violet-300 transition-colors group-focus-within:text-violet-600 dark:text-slate-600 dark:group-focus-within:text-amber-400"></i>
+                    <input
+                      type="search"
+                      value={searchQuery}
+                      onChange={(event) => setSearchQuery(event.target.value)}
+                      placeholder="Search titles, memories and ideas…"
+                      className="w-full rounded-2xl border border-violet-100 bg-white/90 py-3 pl-11 pr-4 text-sm text-slate-800 shadow-sm outline-none transition focus:border-violet-300 focus:ring-4 focus:ring-violet-100/70 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-amber-400/40 dark:focus:ring-amber-400/10"
+                    />
+                  </label>
+                  <TagCloud
+                    tags={availableTags}
+                    selectedTag={tag || null}
+                    onSelect={handleTagToggle}
+                    theme="primary"
+                    limit={8}
+                    label={language === 'zh' ? '按标签筛选' : 'Filter by tag'}
                   />
+                  {hasContent(previewData) && isPreviewHidden && (
+                    <button
+                      onClick={() => setIsPreviewHidden(false)}
+                      className="self-start rounded-full bg-violet-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-violet-700 transition hover:bg-violet-200 dark:bg-amber-400/10 dark:text-amber-300"
+                    >
+                      <i className="fas fa-eye mr-1"></i> Resume live preview
+                    </button>
+                  )}
                 </div>
-
-                {/* Improved Tag Filter using TagCloud */}
-                <TagCloud
-                  tags={availableTags}
-                  selectedTag={tag || null}
-                  onSelect={handleTagToggle}
-                  theme={logSource === 'private' ? 'rose' : 'blue'}
-                  limit={12}
-                  label="Categories"
-                />
               </div>
 
-              <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-slate-50/30">
+              <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-violet-50/30 dark:bg-slate-950/70">
                 {isPublicLoading ? (
                   <div className="text-center py-20 text-slate-400 animate-pulse">
                     Loading Logs...
@@ -498,7 +504,7 @@ export const JournalSpace: React.FC = () => {
 
           <div
             id="private-editor"
-            className="lg:flex-1 lg:min-h-0 h-[80vh] shadow-xl rounded-[2rem] bg-white overflow-hidden flex flex-col"
+            className="lg:flex-1 lg:min-h-0 h-[80vh] shadow-xl rounded-[2rem] bg-white dark:bg-slate-950 overflow-hidden ring-1 ring-violet-100 dark:ring-amber-400/10 flex flex-col"
           >
             <SimpleEditor
               key={`${user?._id}:${editingPost?._id || 'new-post'}`}

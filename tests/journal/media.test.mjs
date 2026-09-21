@@ -133,10 +133,10 @@ try {
   });
   assert.notEqual(result.light, result.dark);
   assert.equal(result.light, result.fixed);
-  assert.equal(result.editor, 'rgb(255, 254, 250)');
+  assert.equal(result.editor, 'rgb(8, 13, 25)');
   assert.equal(result.unsafe, null);
   assert(result.bili && result.vimeo);
-  console.log('PASS fixed light editor and theme-aware custom text, safe URL handling');
+  console.log('PASS Orion-themed editor and adaptive custom text, safe URL handling');
   assert.deepEqual(errors, []);
   await page.screenshot({ path: 'test-results/journal/media-dark-reader.png', fullPage: true });
 } finally {
