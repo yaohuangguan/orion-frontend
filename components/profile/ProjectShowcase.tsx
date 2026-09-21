@@ -13,22 +13,32 @@ interface ProjectShowcaseProps {
   currentUser?: User | null;
 }
 
-type ProjectCategory = 'all' | 'web' | 'fullstack' | 'mobile';
+type ProjectCategory = 'all' | 'web' | 'fullstack' | 'mobile' | 'tools';
+type ConcreteProjectCategory = Exclude<ProjectCategory, 'all'>;
+
 const CATEGORY_META: Array<{ value: ProjectCategory; icon: string; zh: string; en: string }> = [
   { value: 'all', icon: 'fa-layer-group', zh: '全部作品', en: 'All work' },
   { value: 'web', icon: 'fa-window-maximize', zh: 'Web 应用', en: 'Web' },
   { value: 'fullstack', icon: 'fa-server', zh: '全栈系统', en: 'Full Stack' },
-  { value: 'mobile', icon: 'fa-mobile-alt', zh: '移动端', en: 'Mobile' }
+  { value: 'mobile', icon: 'fa-mobile-alt', zh: '移动端', en: 'Mobile' },
+  { value: 'tools', icon: 'fa-screwdriver-wrench', zh: '工具', en: 'Tools' }
 ];
 
-const inferCategory = (project: PortfolioProject): Exclude<ProjectCategory, 'all'> => {
-  if (project.category) return project.category;
+const inferCategories = (project: PortfolioProject): ConcreteProjectCategory[] => {
+  if (Array.isArray(project.categories) && project.categories.length > 0) {
+    return Array.from(new Set(project.categories)) as ConcreteProjectCategory[];
+  }
+  if (project.category) return [project.category];
+
   const stack = (project.techStack || []).join(' ').toLowerCase();
-  if (/react native|expo|flutter|swift|kotlin|android|ios/.test(stack)) return 'mobile';
+  if (/react native|expo|flutter|swift|kotlin|android|ios/.test(stack)) return ['mobile'];
   if (/node|express|mongo|cloudflare|worker|d1|sql|firebase|cloud run|golang/.test(stack))
-    return 'fullstack';
-  return 'web';
+    return ['fullstack'];
+  return ['web'];
 };
+
+const inferCategory = (project: PortfolioProject): ConcreteProjectCategory =>
+  inferCategories(project)[0] || 'web';
 
 export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser }) => {
   const { language, t } = useTranslation();
@@ -69,7 +79,13 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
       const data = await apiService.getPortfolioProjects();
       const safeProjects = (Array.isArray(data) ? data : []).map((project) => ({
         ...project,
-        techStack: Array.isArray(project.techStack) ? project.techStack : []
+        techStack: Array.isArray(project.techStack) ? project.techStack : [],
+        categories:
+          Array.isArray(project.categories) && project.categories.length > 0
+            ? project.categories
+            : project.category
+              ? [project.category]
+              : undefined
       }));
       setProjects(withBuiltinProjects(safeProjects));
     } catch (e) {
@@ -125,6 +141,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
       demoUrl: '',
       coverImage: '',
       category: 'web',
+      categories: ['web'],
       order: 0,
       isVisible: true
     });
@@ -133,9 +150,32 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
   };
 
   const handleEdit = (project: PortfolioProject) => {
-    setCurrentProject({ ...project });
+    setCurrentProject({ ...project, categories: inferCategories(project) });
     setTechStackInput(project.techStack ? project.techStack.join(', ') : '');
     setIsEditing(true);
+  };
+
+  const toggleProjectCategory = (category: ConcreteProjectCategory) => {
+    setCurrentProject((project) => {
+      const selected = Array.isArray(project.categories)
+        ? (project.categories as ConcreteProjectCategory[])
+        : project.category
+          ? [project.category]
+          : [];
+
+      const next = selected.includes(category)
+        ? selected.filter((item) => item !== category)
+        : [...selected, category];
+
+      // Keep at least one category selected.
+      if (next.length === 0) return project;
+
+      return {
+        ...project,
+        categories: next,
+        category: next[0]
+      };
+    });
   };
 
   const handleDelete = async () => {
@@ -153,8 +193,17 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
     e.preventDefault();
 
     // Parse the tech stack string into array
+    const selectedCategories =
+      Array.isArray(currentProject.categories) && currentProject.categories.length > 0
+        ? Array.from(new Set(currentProject.categories))
+        : currentProject.category
+          ? [currentProject.category]
+          : ['web'];
+
     const processedProject = {
       ...currentProject,
+      category: selectedCategories[0],
+      categories: selectedCategories,
       techStack: techStackInput
         .split(/[,，]/)
         .map((s) => s.trim())
@@ -395,22 +444,48 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                       onChange={(e) => setTechStackInput(e.target.value)}
                     />
                     <label className="block text-xs font-bold uppercase opacity-60">
-                      Project Category
+                      Project Categories
                     </label>
-                    <select
-                      className={inputClass}
-                      value={currentProject.category || 'web'}
-                      onChange={(e) =>
-                        setCurrentProject((project) => ({
-                          ...project,
-                          category: e.target.value as PortfolioProject['category']
-                        }))
-                      }
-                    >
-                      <option value="web">Web</option>
-                      <option value="fullstack">Full Stack</option>
-                      <option value="mobile">Mobile</option>
-                    </select>
+                    <div className="grid grid-cols-2 gap-2">
+                      {CATEGORY_META.filter(
+                        (item): item is (typeof CATEGORY_META)[number] & { value: ConcreteProjectCategory } =>
+                          item.value !== 'all'
+                      ).map((item) => {
+                        const selectedCategories =
+                          Array.isArray(currentProject.categories) && currentProject.categories.length > 0
+                            ? currentProject.categories
+                            : currentProject.category
+                              ? [currentProject.category]
+                              : ['web'];
+                        const checked = selectedCategories.includes(item.value);
+
+                        return (
+                          <button
+                            key={item.value}
+                            type="button"
+                            onClick={() => toggleProjectCategory(item.value)}
+                            className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-xs font-bold transition-all ${
+                              checked
+                                ? 'border-primary-400 bg-primary-50 text-primary-700 dark:border-primary-400/40 dark:bg-primary-400/10 dark:text-primary-300'
+                                : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-primary-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400'
+                            }`}
+                            aria-pressed={checked}
+                          >
+                            <span
+                              className={`flex h-5 w-5 items-center justify-center rounded-md border text-[10px] ${
+                                checked
+                                  ? 'border-primary-500 bg-primary-500 text-white'
+                                  : 'border-slate-300 dark:border-slate-600'
+                              }`}
+                            >
+                              {checked && <i className="fas fa-check" />}
+                            </span>
+                            <i className={`fas ${item.icon}`} />
+                            <span>{language === 'zh' ? item.zh : item.en}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                   <div className="space-y-4">
                     <label className="block text-xs font-bold uppercase opacity-60">
@@ -654,7 +729,9 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
             const count =
               category.value === 'all'
                 ? projects.length
-                : projects.filter((project) => inferCategory(project) === category.value).length;
+                : projects.filter((project) =>
+                    inferCategories(project).includes(category.value as ConcreteProjectCategory)
+                  ).length;
             return (
               <button
                 key={category.value}
@@ -680,11 +757,16 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         {projects
           .filter(
-            (project) => activeCategory === 'all' || inferCategory(project) === activeCategory
+            (project) =>
+              activeCategory === 'all' ||
+              inferCategories(project).includes(activeCategory as ConcreteProjectCategory)
           )
           .map((project) => {
             const title = getLocalized(project, 'title') || 'Untitled app';
-            const category = CATEGORY_META.find((item) => item.value === inferCategory(project));
+            const projectCategories = inferCategories(project);
+            const categoryMeta = projectCategories
+              .map((value) => CATEGORY_META.find((item) => item.value === value))
+              .filter(Boolean);
 
             return (
               <article
@@ -734,9 +816,16 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/68 via-transparent to-transparent" />
                   <div className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-3">
-                    <span className="rounded-full border border-white/20 bg-slate-950/45 px-3 py-1.5 text-[9px] font-black uppercase tracking-[.18em] text-white backdrop-blur-md">
-                      {language === 'zh' ? category?.zh : category?.en}
-                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {categoryMeta.map((category) => (
+                        <span
+                          key={category!.value}
+                          className="rounded-full border border-white/20 bg-slate-950/45 px-3 py-1.5 text-[9px] font-black uppercase tracking-[.18em] text-white backdrop-blur-md"
+                        >
+                          {language === 'zh' ? category!.zh : category!.en}
+                        </span>
+                      ))}
+                    </div>
                     {project.coverImage && (
                       <span className="flex h-9 w-9 translate-y-2 items-center justify-center rounded-full border border-white/25 bg-white/15 text-white opacity-0 backdrop-blur-md transition group-hover/image:translate-y-0 group-hover/image:opacity-100">
                         <i className="fas fa-expand-alt text-xs" />
@@ -928,7 +1017,13 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                       Category
                     </span>
                     <span className="text-xs font-bold capitalize">
-                      {activeDetailProject.techStack?.[0] || 'Software'}
+                      {inferCategories(activeDetailProject)
+                        .map((value) => {
+                          const meta = CATEGORY_META.find((item) => item.value === value);
+                          return language === 'zh' ? meta?.zh : meta?.en;
+                        })
+                        .filter(Boolean)
+                        .join(' · ') || 'Software'}
                     </span>
                   </div>
                 </div>
