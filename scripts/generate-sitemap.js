@@ -4,7 +4,23 @@ import process from 'process';
 
 const API_URL =
   'https://bananaboom-api-242273127238.asia-east1.run.app/api/posts?page=1&limit=1000';
-const FRONTEND_URL = 'https://samyao.me';
+const normalizeSiteUrl = (value) => {
+  if (!value) return null;
+  const withProtocol = /^https?:\/\//i.test(value) ? value : `https://${value}`;
+  return withProtocol.replace(/\/$/, '');
+};
+
+const FRONTEND_URL =
+  normalizeSiteUrl(process.env.SITE_URL) ||
+  normalizeSiteUrl(process.env.VITE_SITE_URL) ||
+  normalizeSiteUrl(process.env.VERCEL_PROJECT_PRODUCTION_URL) ||
+  normalizeSiteUrl(process.env.VERCEL_URL);
+
+if (!FRONTEND_URL) {
+  throw new Error(
+    'No site URL available. Set SITE_URL/VITE_SITE_URL or build on a platform that provides VERCEL_PROJECT_PRODUCTION_URL.'
+  );
+}
 
 // 1. 复用你前端的 Slug 生成逻辑
 const generateSlug = (post) => {
