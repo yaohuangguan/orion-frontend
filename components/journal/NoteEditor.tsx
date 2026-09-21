@@ -34,7 +34,8 @@ import {
   Table,
   ListChecks,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Palette
 } from 'lucide-react';
 import { JournalMath, JournalDrawing, JournalEmbed, JournalVideo } from './extensions';
 import { normalizeContent, renderMath, videoFromUrl } from './content';
@@ -43,6 +44,17 @@ import { toast } from '../Toast';
 import StickerPicker from './StickerPicker';
 import './journal.css';
 import 'katex/dist/katex.min.css';
+
+const TEXT_COLORS = [
+  { label: '默认', value: '' },
+  { label: '深灰', value: '#334155' },
+  { label: '红', value: '#dc2626' },
+  { label: '橙', value: '#ea580c' },
+  { label: '绿', value: '#16a34a' },
+  { label: '蓝', value: '#2563eb' },
+  { label: '紫', value: '#7c3aed' },
+  { label: '粉', value: '#db2777' }
+] as const;
 
 const uploadKey = new PluginKey<DecorationSet>('journalUploads');
 const UploadPlaceholders = Extension.create({
@@ -103,7 +115,9 @@ export function NoteEditor({
   const [uploading, setUploading] = useState(0);
   const pending = useRef(0);
   const [focus, setFocus] = useState(false);
-  const [panel, setPanel] = useState<'math' | 'link' | 'video' | 'stickers' | null>(null);
+  const [panel, setPanel] = useState<'math' | 'link' | 'video' | 'stickers' | 'color' | null>(
+    null
+  );
   const [value, setValue] = useState('');
   const fileInput = useRef<HTMLInputElement>(null);
   const initial = useRef(initialContent);
@@ -342,6 +356,53 @@ export function NoteEditor({
           <option value="KaiTi, STKaiti, serif">楷体</option>
           <option value="monospace">等宽</option>
         </select>
+
+        <div className="journal-color-palette">
+          <button
+            type="button"
+            className="journal-color-trigger"
+            title="文字颜色"
+            aria-label="文字颜色"
+            aria-expanded={panel === 'color'}
+            onClick={() => setPanel(panel === 'color' ? null : 'color')}
+          >
+            <Palette size={17} />
+            <span
+              className="journal-color-current"
+              style={{ background: editor.getAttributes('textStyle').color || 'currentColor' }}
+            />
+          </button>
+          {panel === 'color' && (
+            <div className="journal-color-menu" role="menu" aria-label="文字颜色">
+              {TEXT_COLORS.map((color) => {
+                const active =
+                  (editor.getAttributes('textStyle').color || '') === color.value;
+                return (
+                  <button
+                    key={color.label}
+                    type="button"
+                    role="menuitem"
+                    title={color.label}
+                    aria-label={color.label}
+                    aria-pressed={active}
+                    className="journal-color-swatch"
+                    onClick={() => {
+                      if (color.value) editor.chain().focus().setColor(color.value).run();
+                      else editor.chain().focus().unsetColor().run();
+                      setPanel(null);
+                    }}
+                  >
+                    <span
+                      className={`journal-color-dot ${!color.value ? 'journal-color-default' : ''}`}
+                      style={color.value ? { background: color.value } : undefined}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
         <select
           aria-label="字号"
           value={editor.getAttributes('textStyle').fontSize || ''}
@@ -358,15 +419,6 @@ export function NoteEditor({
             </option>
           ))}
         </select>
-        <label className="journal-color" title="文字颜色">
-          A
-          <input
-            type="color"
-            aria-label="文字颜色"
-            defaultValue="#35443c"
-            onChange={(e) => editor.chain().focus().setColor(e.target.value).run()}
-          />
-        </label>
         <button
           type="button"
           title="恢复默认字体、字号和颜色"
