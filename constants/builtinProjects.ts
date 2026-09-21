@@ -1,7 +1,7 @@
 import type { PortfolioProject } from '../types';
 
 export const NOTE_LEARN_PROJECT: PortfolioProject = {
-  _id: 'builtin-note-learn',
+  _id: 'seed-note-learn',
   title_zh: 'Note Learn · 笔记与手写',
   title_en: 'Note Learn',
   summary_zh: '把想法写下来，把知识留下来。Orion 旗下独立的笔记与学习空间。',
@@ -21,7 +21,7 @@ export const NOTE_LEARN_PROJECT: PortfolioProject = {
 };
 
 export const X_VIDEO_VAULT_PROJECT: PortfolioProject = {
-  _id: 'builtin-x-video-vault',
+  _id: 'seed-x-video-vault',
   title_zh: 'X Video Vault',
   title_en: 'X Video Vault',
   summary_zh: '把散落在 X Likes 里的视频与 GIF，收进一个真正属于自己的私人收藏库。',
@@ -41,7 +41,8 @@ export const X_VIDEO_VAULT_PROJECT: PortfolioProject = {
 };
 
 export function withBuiltinProjects(projects: PortfolioProject[]) {
-  return [X_VIDEO_VAULT_PROJECT, NOTE_LEARN_PROJECT, ...projects].filter(
+  // Persisted projects win over the seed cards once a built-in app is edited and saved.
+  return [...projects, X_VIDEO_VAULT_PROJECT, NOTE_LEARN_PROJECT].filter(
     (project, index, all) =>
       index ===
       all.findIndex(
