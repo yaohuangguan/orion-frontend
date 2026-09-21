@@ -710,9 +710,12 @@ html[data-app-theme='dark'] .captains-cabin .journal-reader {
   --journal-muted: #8d98ac;
   --journal-line: #263044;
   --journal-soft: #111a2b;
-  --journal-accent: rgb(var(--color-primary-500));
+  --journal-accent: rgb(255 170 0);
   --journal-highlight: #5b4516;
   color-scheme: dark;
+}
+html[data-app-theme='dark'] .captains-cabin .journal-reader [data-journal-ink] {
+  color: var(--ink-dark) !important;
 }
 .captains-cabin .journal-space-panel {
   background: rgba(255, 255, 255, 0.78);
