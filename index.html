@@ -24,7 +24,8 @@
     <script>
       (function () {
         try {
-          const savedTheme = localStorage.getItem('app_theme');
+          const savedTheme = localStorage.getItem('app_theme') || 'light';
+          document.documentElement.dataset.appTheme = savedTheme;
 
           // 默认白色主题，仅当用户保存了 dark 时才启用暗黑模式
           if (savedTheme === 'dark' && !location.pathname.startsWith('/captain-cabin')) {
