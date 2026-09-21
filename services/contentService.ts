@@ -374,6 +374,18 @@ export const contentService = {
   },
 
   updateProject: async (id: string, data: Partial<PortfolioProject>): Promise<PortfolioProject> => {
+    // Seed cards are bundled with the frontend. Their first edit promotes them
+    // into persisted projects, after which the normal update/delete flow applies.
+    if (id.startsWith('seed-')) {
+      const { _id: _seedId, createdAt: _seedCreatedAt, ...persistedData } = data;
+      const res = await fetchClient<PortfolioProject>('/projects', {
+        method: 'POST',
+        body: JSON.stringify(persistedData)
+      });
+      toast.success('Project saved successfully');
+      return res;
+    }
+
     const res = await fetchClient<PortfolioProject>(`/projects/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data)
@@ -383,6 +395,11 @@ export const contentService = {
   },
 
   deleteProject: async (id: string): Promise<void> => {
+    if (id.startsWith('seed-')) {
+      toast.error('Edit and save this built-in app before deleting it.');
+      return;
+    }
+
     await fetchClient(`/projects/${id}`, {
       method: 'DELETE'
     });
