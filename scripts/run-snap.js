@@ -106,6 +106,13 @@ async function snapPage(browser, route, index, total) {
       }
     }
 
+    // Stamp the snapshot with the route it was rendered for.
+    // The client uses this to avoid hydrating stale/wrong-route HTML.
+    await page.evaluate((renderedRoute) => {
+      const root = document.getElementById('root');
+      if (root) root.setAttribute('data-prerender-path', renderedRoute);
+    }, route);
+
     const html = await page.content();
 
     // 计算保存路径
