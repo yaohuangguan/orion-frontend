@@ -136,7 +136,8 @@ async function snapPage(browser, route, index, total) {
 
   try {
     // 1. 并行：启动服务 + 抓取接口
-    const [_, dynamicRoutes] = await Promise.all([startServer(), fetchPostRoutes()]);
+    const [previewProcess, dynamicRoutes] = await Promise.all([startServer(), fetchPostRoutes()]);
+    serverProcess = previewProcess;
 
     const ALL_ROUTES = [...STATIC_ROUTES, ...dynamicRoutes];
     const total = ALL_ROUTES.length;
@@ -160,7 +161,7 @@ async function snapPage(browser, route, index, total) {
     browser = await puppeteer.launch({
       executablePath,
       headless: 'new',
-      args: [...launchArgs, '--single-process', '--no-zygote']
+      args: launchArgs
     });
 
     // 3. 并发控制队列
@@ -186,7 +187,13 @@ async function snapPage(browser, route, index, total) {
   } catch (error) {
     console.error('⚠️ Prerender script global error:', error);
   } finally {
-    if (browser) await browser.close();
+    if (browser) {
+      try {
+        await browser.close();
+      } catch (error) {
+        console.warn('⚠️ Browser was already closed:', error.message);
+      }
+    }
     if (serverProcess) {
       console.log('🛑 Killing preview server...');
       serverProcess.kill();
