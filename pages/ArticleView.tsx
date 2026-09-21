@@ -108,7 +108,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
   }, [blog]);
 
   const handleCopyLink = () => {
-    const url = window.location.href;
+    const url = `https://samyao.me${window.location.pathname}${window.location.search}${window.location.hash}`;
     navigator.clipboard.writeText(url).then(() => {
       setIsCopied(true);
       toast.success(t.articleView.copied);
@@ -246,7 +246,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
           />
           <meta
             property="og:url"
-            content={typeof window !== 'undefined' ? window.location.href : ''}
+            content={typeof window !== 'undefined' ? `https://samyao.me${window.location.pathname}` : ''}
           />
           <meta property="article:author" content={blog.author || 'Sam'} />
           {blog.image && <meta property="og:image" content={blog.image} />}
