@@ -15,14 +15,7 @@ export default defineConfig(({ mode }) => {
         '/api': {
           target: 'https://bananaboom-api-242273127238.asia-east1.run.app',
           changeOrigin: true,
-          secure: false,
-          configure: (proxy, options) => {
-            proxy.on('proxyReq', (proxyReq, req, res) => {
-              // 把 Origin 伪装成你的生产域名 (后端白名单里的域名)
-              // 这样后端就以为是自己人发的请求，不会拦截了
-              proxyReq.setHeader('Origin', 'https://samyao.me');
-            });
-          }
+          secure: false
         }
       }
     },
