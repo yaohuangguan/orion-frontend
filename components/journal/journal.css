@@ -2,12 +2,12 @@
 .journal-reader {
   --journal-paper: #ffffff;
   --journal-text: #3f3b4b;
-  --journal-title: #24183d;
+  --journal-title: #1e1b4b;
   --journal-muted: #756c86;
-  --journal-line: #e8e0f3;
-  --journal-soft: #f7f3fc;
-  --journal-accent: #7c3aed;
-  --journal-highlight: #ede0ff;
+  --journal-line: #e0e7ff;
+  --journal-soft: #eef2ff;
+  --journal-accent: rgb(var(--color-primary-500));
+  --journal-highlight: #e0e7ff;
   color: var(--journal-text);
   background: var(--journal-paper);
 }
@@ -19,7 +19,7 @@ html.dark .journal-reader {
   --journal-muted: #8d98ac;
   --journal-line: #263044;
   --journal-soft: #111a2b;
-  --journal-accent: #f2bd4f;
+  --journal-accent: rgb(var(--color-primary-500));
   --journal-highlight: #5b4516;
   color-scheme: dark;
 }
@@ -518,12 +518,12 @@ html.dark .journal-reader [data-journal-ink] {
 html.dark .journal-reader.journal-force-light {
   --journal-paper: #ffffff;
   --journal-text: #3f3b4b;
-  --journal-title: #24183d;
+  --journal-title: #1e1b4b;
   --journal-muted: #756c86;
-  --journal-line: #e8e0f3;
-  --journal-soft: #f7f3fc;
-  --journal-accent: #7c3aed;
-  --journal-highlight: #ede0ff;
+  --journal-line: #e0e7ff;
+  --journal-soft: #eef2ff;
+  --journal-accent: rgb(var(--color-primary-500));
+  --journal-highlight: #e0e7ff;
   color-scheme: light;
 }
 html.dark .journal-reader.journal-force-light [data-journal-ink] {
@@ -631,7 +631,7 @@ html.dark .journal-reader.journal-force-light [data-journal-ink] {
   margin-bottom: 10px;
 }
 
-/* Orion owns the journal palette: violet daylight, gold in the cosmic theme. */
+/* Public Orion journals follow the site primary palette: indigo daylight, gold cosmic. */
 .journal-prose h1::after,
 .journal-prose h2::after {
   content: '';
@@ -647,7 +647,7 @@ html.dark .journal-reader.journal-force-light [data-journal-ink] {
 }
 .journal-space-panel {
   background: rgba(255, 255, 255, 0.72);
-  border-color: rgba(124, 58, 237, 0.12);
+  border-color: rgba(244, 63, 94, 0.16);
 }
 html.dark .journal-space-panel {
   background: rgba(2, 6, 23, 0.72);
@@ -655,10 +655,33 @@ html.dark .journal-space-panel {
   box-shadow: 0 24px 80px -48px rgba(0, 0, 0, 0.95);
 }
 .journal-orbit-header {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(245, 240, 255, 0.86));
-  border-color: rgba(124, 58, 237, 0.12);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(255, 241, 242, 0.9));
+  border-color: rgba(244, 63, 94, 0.16);
 }
 html.dark .journal-orbit-header {
   background: linear-gradient(135deg, rgba(9, 14, 28, 0.98), rgba(19, 25, 43, 0.92));
   border-color: rgba(245, 190, 70, 0.16);
+}
+
+/* Captain's Cabin is a separate romantic space and never inherits the public theme. */
+.captains-cabin .journal-editor,
+.captains-cabin .journal-reader {
+  --journal-paper: #ffffff;
+  --journal-text: #4c3440;
+  --journal-title: #881337;
+  --journal-muted: #9f6375;
+  --journal-line: #ffe4e6;
+  --journal-soft: #fff1f2;
+  --journal-accent: #f43f5e;
+  --journal-highlight: #ffe4e6;
+  color-scheme: light;
+}
+.captains-cabin .journal-space-panel {
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(244, 63, 94, 0.16);
+  box-shadow: 0 28px 80px -52px rgba(136, 19, 55, 0.4);
+}
+.captains-cabin .journal-orbit-header {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.97), rgba(255, 241, 242, 0.92));
+  border-color: rgba(244, 63, 94, 0.16);
 }

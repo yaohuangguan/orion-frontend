@@ -1,6 +1,5 @@
 import { ResumeData } from '../../types';
 
-export const CANONICAL_RESUME_PDF_PATH = '/Sam_Yao_Resume.pdf';
 export const CANONICAL_RESUME_SLUG = 'moviegoer24@gmail.com-professional';
 
 const latestResume = {

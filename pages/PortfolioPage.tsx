@@ -1,144 +1,110 @@
-import React, { useRef } from 'react';
-import { useReactToPrint } from 'react-to-print';
-import { useSearchParams } from 'react-router-dom';
+import React from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { ProjectShowcase } from '../components/profile/ProjectShowcase';
 import { ResumeDocument } from '../components/profile/ResumeDocument';
-import { CANONICAL_RESUME_PDF_PATH } from '../components/profile/canonicalResume';
 import { useTranslation } from '../i18n/LanguageContext';
 import { User } from '../types';
 
 interface PortfolioPageProps {
   currentUser?: User | null;
 }
-type PortfolioTab = 'RESUME' | 'PROJECTS';
+
+type PortfolioTab = 'APPS' | 'RESUME';
 
 export const PortfolioPage: React.FC<PortfolioPageProps> = ({ currentUser }) => {
-  const { t, language } = useTranslation();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const activeTab: PortfolioTab = searchParams.get('tab') === 'projects' ? 'PROJECTS' : 'RESUME';
-  const resumeRef = useRef<HTMLDivElement>(null);
-  const handlePrint = useReactToPrint({ contentRef: resumeRef, documentTitle: 'Sam_Yao_Resume' });
+  const { language } = useTranslation();
+  const [searchParams] = useSearchParams();
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const activeTab: PortfolioTab =
+    pathname.endsWith('/experience') || searchParams.get('tab') === 'resume' ? 'RESUME' : 'APPS';
 
   const handleTabChange = (tab: PortfolioTab) => {
-    setSearchParams((current) => {
-      const next = new URLSearchParams(current);
-      next.set('tab', tab.toLowerCase());
-      next.delete('demo');
-      return next;
-    });
+    navigate(tab === 'RESUME' ? '/profile/experience' : '/profile');
   };
 
-  const tabs = [
-    {
-      value: 'RESUME' as const,
-      icon: 'fa-file-lines',
-      label: t.portfolio.resume,
-      hint: language === 'zh' ? '经历与能力' : 'Experience & craft'
-    },
-    {
-      value: 'PROJECTS' as const,
-      icon: 'fa-table-cells-large',
-      label: t.portfolio.projects,
-      hint: language === 'zh' ? '产品与实验' : 'Products & experiments'
-    }
-  ];
-
   return (
-    <main
-      className={`container relative z-10 mx-auto min-h-screen px-4 pb-24 pt-28 transition-all duration-500 sm:px-6 ${activeTab === 'PROJECTS' ? 'max-w-[1500px]' : 'max-w-6xl'}`}
+    <section
+      className={`container relative z-10 mx-auto min-h-screen px-4 pb-24 pt-28 transition-all duration-500 sm:px-6 ${activeTab === 'APPS' ? 'max-w-[1500px]' : 'max-w-6xl'}`}
     >
       <Helmet>
-        <title>Orion Portfolio | Sam Yao</title>
+        <title>{activeTab === 'APPS' ? 'Apps by Sam' : 'Experience | Sam Yao'}</title>
         <meta
           name="description"
-          content="Sam Yao's software engineering resume and selected full-stack, web and mobile products."
+          content="Selected full-stack, web and mobile products by Sam Yao, with a concise professional background."
         />
       </Helmet>
 
-      <header className="relative mb-8 overflow-hidden rounded-[2.25rem] border border-violet-100/80 bg-white/70 p-6 shadow-[0_28px_90px_-55px_rgba(76,29,149,.45)] backdrop-blur-2xl dark:border-amber-400/15 dark:bg-slate-950/65 dark:shadow-[0_28px_100px_-55px_rgba(0,0,0,.95)] md:p-9">
-        <div className="pointer-events-none absolute -right-20 -top-32 h-72 w-72 rounded-full bg-violet-300/20 blur-3xl dark:bg-amber-400/10"></div>
+      <header className="relative mb-9 overflow-hidden rounded-[2.5rem] border border-primary-100/70 bg-white/72 px-6 py-7 shadow-[0_30px_100px_-65px_rgba(30,27,75,.6)] backdrop-blur-2xl dark:border-primary-400/15 dark:bg-slate-950/65 dark:shadow-[0_30px_100px_-58px_rgba(0,0,0,.95)] sm:px-9 sm:py-9">
+        <div className="pointer-events-none absolute -right-20 -top-32 h-72 w-72 rounded-full bg-primary-300/16 blur-3xl dark:bg-primary-400/10" />
+        <div
+          className="pointer-events-none absolute bottom-0 right-10 hidden h-24 w-40 opacity-30 sm:block"
+          aria-hidden="true"
+        >
+          <span className="absolute bottom-8 right-0 h-px w-32 bg-gradient-to-l from-primary-500 to-transparent" />
+          <span className="absolute bottom-4 right-12 h-px w-20 bg-gradient-to-l from-primary-400 to-transparent" />
+          <span className="absolute bottom-6 right-6 h-2 w-2 rotate-45 border border-primary-500" />
+        </div>
+
         <div className="relative flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <p className="mb-3 font-mono text-[10px] font-black uppercase tracking-[.32em] text-violet-600 dark:text-amber-400">
-              Orion / Sam Yao
-            </p>
-            <h1 className="font-display text-4xl font-black tracking-[-.04em] text-slate-950 dark:text-white sm:text-6xl">
-              {activeTab === 'RESUME'
+          <div className="max-w-3xl">
+            <div className="mb-4 flex items-center gap-3 font-mono text-[10px] font-black uppercase tracking-[.3em] text-primary-600 dark:text-primary-400">
+              <span className="h-px w-8 bg-primary-500" />
+              {activeTab === 'APPS' ? 'Orion App Directory' : 'Background / Selected experience'}
+            </div>
+            <h1 className="font-display text-4xl font-black tracking-[-.045em] text-slate-950 dark:text-white sm:text-6xl">
+              {activeTab === 'APPS'
                 ? language === 'zh'
-                  ? '工程履历'
-                  : 'Engineering profile'
+                  ? '我做的产品，欢迎直接体验。'
+                  : 'Products made to be used.'
                 : language === 'zh'
-                  ? '作品档案'
-                  : 'Selected work'}
+                  ? '经历与能力'
+                  : 'Experience & craft'}
             </h1>
-            <p className="mt-3 max-w-xl text-base leading-7 text-slate-600 dark:text-slate-400">
-              {activeTab === 'RESUME'
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-400 sm:text-base">
+              {activeTab === 'APPS'
                 ? language === 'zh'
-                  ? '五年以上全栈工程经验，从产品需求、架构设计一路负责到生产交付。'
-                  : 'Five-plus years building and owning full-stack products, from product requirements and architecture through production delivery.'
+                  ? '从日常工具到完整系统，记录我把想法做成产品的过程。'
+                  : 'A working collection of products you can open, try, and inspect beyond the screenshots.'
                 : language === 'zh'
-                  ? '能打开、能体验、能看见技术取舍的真实产品。'
-                  : 'Live products you can open, explore, and inspect beyond the screenshots.'}
+                  ? '关于我的工程经历、技能与教育背景。'
+                  : 'A record of my engineering experience, skills, and education.'}
             </p>
           </div>
 
-          {activeTab === 'RESUME' && (
-            <div className="flex flex-wrap gap-2">
-              {currentUser && (
-                <button
-                  type="button"
-                  onClick={() => handlePrint()}
-                  className="rounded-xl bg-violet-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-500/20 transition hover:-translate-y-0.5 dark:bg-amber-400 dark:text-slate-950"
-                >
-                  <i className="fas fa-print mr-2"></i>Export PDF
-                </button>
-              )}
-              <a
-                href={CANONICAL_RESUME_PDF_PATH}
-                download="Sam_Yao_CV_SE.pdf"
-                className="rounded-xl border border-violet-100 bg-white/80 px-4 py-2.5 text-xs font-bold text-slate-700 transition hover:-translate-y-0.5 hover:border-violet-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-amber-400/40"
-              >
-                <i className="fas fa-download mr-2 text-violet-500 dark:text-amber-400"></i>Latest
-                CV
-              </a>
-            </div>
-          )}
+          <nav
+            className="flex w-fit items-center gap-1 rounded-full border border-slate-200/80 bg-white/80 p-1 shadow-sm dark:border-slate-800 dark:bg-slate-900/80"
+            aria-label="Profile sections"
+          >
+            <button
+              type="button"
+              onClick={() => handleTabChange('APPS')}
+              aria-current={activeTab === 'APPS' ? 'page' : undefined}
+              className={`rounded-full px-5 py-2.5 text-xs font-bold transition-all ${activeTab === 'APPS' ? 'bg-primary-500 text-white shadow-md shadow-primary-500/20 dark:text-slate-950' : 'text-slate-600 hover:text-primary-600 dark:text-slate-400 dark:hover:text-primary-300'}`}
+            >
+              <i className="fas fa-table-cells-large mr-2" />
+              {language === 'zh' ? 'Apps' : 'Apps'}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleTabChange('RESUME')}
+              aria-current={activeTab === 'RESUME' ? 'page' : undefined}
+              className={`rounded-full px-4 py-2.5 text-[11px] font-semibold transition-all ${activeTab === 'RESUME' ? 'bg-slate-900 text-white dark:bg-primary-500 dark:text-slate-950' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+            >
+              {language === 'zh' ? '经历' : 'Experience'}
+            </button>
+          </nav>
         </div>
       </header>
 
-      <nav
-        className="mb-9 grid grid-cols-2 gap-2 rounded-[1.4rem] border border-violet-100/80 bg-white/65 p-1.5 shadow-sm backdrop-blur-xl dark:border-amber-400/10 dark:bg-slate-950/60"
-        aria-label="Portfolio sections"
-      >
-        {tabs.map((tab) => (
-          <button
-            key={tab.value}
-            type="button"
-            onClick={() => handleTabChange(tab.value)}
-            aria-current={activeTab === tab.value ? 'page' : undefined}
-            className={`group flex items-center justify-center gap-3 rounded-2xl px-4 py-3 text-left transition-all ${activeTab === tab.value ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/20 dark:bg-amber-400 dark:text-slate-950 dark:shadow-amber-500/20' : 'text-slate-500 hover:bg-violet-50 hover:text-violet-700 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-amber-300'}`}
-          >
-            <span
-              className={`flex h-9 w-9 items-center justify-center rounded-xl ${activeTab === tab.value ? 'bg-white/15' : 'bg-violet-100/70 dark:bg-slate-800'}`}
-            >
-              <i className={`fas ${tab.icon}`}></i>
-            </span>
-            <span>
-              <strong className="block text-sm">{tab.label}</strong>
-              <small className="hidden opacity-90 sm:block">{tab.hint}</small>
-            </span>
-          </button>
-        ))}
-      </nav>
-
       <div className="animate-slide-up">
-        {activeTab === 'RESUME' ? (
-          <ResumeDocument ref={resumeRef} currentUser={currentUser} />
-        ) : (
+        {activeTab === 'APPS' ? (
           <ProjectShowcase currentUser={currentUser} />
+        ) : (
+          <ResumeDocument currentUser={currentUser} />
         )}
       </div>
-    </main>
+    </section>
   );
 };

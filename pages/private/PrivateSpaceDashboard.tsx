@@ -142,7 +142,7 @@ export const PrivateSpaceDashboard: React.FC<PrivateSpaceDashboardProps> = ({ us
   return (
     <div
       className={`
-      min-h-screen pt-24 pb-6 px-4 md:px-6 relative flex flex-col gap-6 transition-colors duration-1000 overflow-y-auto
+      captains-cabin min-h-screen pt-24 pb-6 px-4 md:px-6 relative flex flex-col gap-6 transition-colors duration-1000 overflow-y-auto
       ${getBackgroundClass()}
     `}
     >

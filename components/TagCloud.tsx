@@ -60,10 +60,11 @@ export const TagCloud: React.FC<TagCloudProps> = ({
       labelIcon: 'text-slate-500'
     },
     primary: {
-      active: 'bg-primary-500 text-white shadow-lg shadow-primary-500/20 border-primary-500',
+      active:
+        'bg-primary-500 text-white dark:text-slate-950 shadow-lg shadow-primary-500/20 border-primary-500',
       inactive:
-        'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-primary-50 dark:hover:bg-slate-700 hover:text-primary-600 border-transparent',
-      count: 'text-primary-500',
+        'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-slate-700 hover:text-primary-600 border-transparent',
+      count: 'text-primary-700 dark:text-primary-300',
       labelIcon: 'text-primary-500'
     }
   };
@@ -103,7 +104,7 @@ export const TagCloud: React.FC<TagCloudProps> = ({
             {tagObj.name}
             {tagObj.count > 0 && (
               <span
-                className={`text-[10px] font-normal opacity-80 ${selectedTag === tagObj.name ? 'text-white/80' : currentTheme.count}`}
+                className={`text-[10px] font-normal ${selectedTag === tagObj.name ? (theme === 'primary' ? 'text-white dark:text-slate-950' : 'text-white') : currentTheme.count}`}
               >
                 {tagObj.count}
               </span>

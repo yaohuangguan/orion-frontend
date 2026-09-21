@@ -4,7 +4,7 @@
 
 Orion 是 Sam Yao 的双语数字花园与个人操作系统。它把公开日志、工程作品集和应用目录，与私密的 **Captain's Cabin（舰长室）** 连接在一起，用于写作、个人数据、健康、足迹和 AI 辅助工作流。
 
-[访问 Orion](https://samyao.me) · [English README](README.md) · [最新简历](public/Sam_Yao_Resume.pdf)
+[访问 Orion](https://samyao.me) · [English README](README.md)
 
 ![Orion](public/logo.svg)
 
@@ -13,7 +13,7 @@ Orion 是 Sam Yao 的双语数字花园与个人操作系统。它把公开日�
 - **公开日志：** 文章搜索、标签、评论、互动、富媒体和响应式阅读页面。
 - **写作工作台：** 基于 Tiptap 的富文本、标题、引用、字体/字号/颜色、表格、任务、代码、数学公式粘贴、表情、在线 GIF 搜索、视频嵌入、SVG 手写和粘贴图片自动上传 R2。
 - **编辑与阅读一致：** 编辑器、实时预览和公开文章共用同一套内容协议；亮色采用白紫色，暗色采用宇宙黑与金色。
-- **作品与简历：** 双语结构化简历、原始 PDF 下载，以及可按 Web / Full Stack / Mobile 筛选的应用目录。
+- **作品与简历：** 默认展示 Apps，支持 Web / Full Stack / Mobile 分类、在线体验与源码；职业经历放在二级路由 /profile/experience，不提供 CV 下载入口。
 - **舰长室：** 由 JWT 与 RBAC 保护的私密日志、第二大脑、待办、健身、照片墙、足迹和个人工具。
 - **AI 与实时能力：** 上下文助手、流式响应和基于 Socket.IO 的聊天，由配套 API 提供服务。
 - **PWA：** 桌面、平板和手机响应式布局，包含安装信息和 Service Worker 缓存。
@@ -86,7 +86,7 @@ services/               API、鉴权、内容与媒体客户端
 i18n/                   中英文文案
 constants/              导航与内置应用目录
 tests/journal/           编辑器和阅读器浏览器回归测试
-public/                  PWA、SEO、简历和项目资源
+public/                  PWA、SEO 和项目资源
 ```
 
 React 19 · TypeScript · Vite · Tailwind CSS · Tiptap · KaTeX · Firebase · Socket.IO · Recharts · ECharts · Leaflet · Puppeteer。

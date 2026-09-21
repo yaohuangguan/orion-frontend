@@ -154,9 +154,16 @@ interface ProtectedRouteProps {
   user: User | null;
   element: React.ReactNode;
   requiredPerm?: string;
+  isLoading?: boolean;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ user, element, requiredPerm }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  user,
+  element,
+  requiredPerm,
+  isLoading
+}) => {
+  if (isLoading) return <PageLoader />;
   if (!user) {
     // Not logged in -> Redirect to home (or could show login modal trigger)
     return <Navigate to="/" replace />;
@@ -173,6 +180,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ user, element, required
 };
 
 const App: React.FC = () => {
+  const { pathname } = useLocation();
   const [theme, setTheme] = useState<Theme>(() => {
     const savedTheme = localStorage.getItem('app_theme');
     if (savedTheme === Theme.DARK || savedTheme === Theme.LIGHT) {
@@ -246,13 +254,13 @@ const App: React.FC = () => {
 
   // Theme Sync
   useEffect(() => {
-    if (theme === Theme.DARK) {
+    if (theme === Theme.DARK && !pathname.startsWith('/captain-cabin')) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
     localStorage.setItem('app_theme', theme);
-  }, [theme]);
+  }, [theme, pathname]);
 
   // 🔥🔥🔥 新增代码：当 Auth 检查结束，通知 HTML 移除 Splash Screen 🔥🔥🔥
   useEffect(() => {
@@ -490,12 +498,14 @@ const App: React.FC = () => {
           />
 
           <Route path="/profile" element={<PortfolioPage currentUser={user} />} />
+          <Route path="/profile/experience" element={<PortfolioPage currentUser={user} />} />
 
           {/* Authenticated Routes */}
           <Route
             path="/user-profile"
             element={
               <ProtectedRoute
+                isLoading={isAuthChecking}
                 user={user}
                 element={<UserProfile user={user!} onUpdateUser={setUser} />}
               />
@@ -506,6 +516,7 @@ const App: React.FC = () => {
             path="/system-management"
             element={
               <ProtectedRoute
+                isLoading={isAuthChecking}
                 user={user}
                 element={<SystemManagement />}
                 requiredPerm={PERM_KEYS.SYSTEM_ACCESS}
@@ -529,6 +540,7 @@ const App: React.FC = () => {
             path="/audit-log"
             element={
               <ProtectedRoute
+                isLoading={isAuthChecking}
                 user={user}
                 element={<AuditLogViewer />}
                 requiredPerm={PERM_KEYS.SYSTEM_LOGS}
@@ -540,6 +552,7 @@ const App: React.FC = () => {
             path="/footprints"
             element={
               <ProtectedRoute
+                isLoading={isAuthChecking}
                 user={user}
                 element={
                   <Suspense fallback={<PageLoader />}>
@@ -555,6 +568,7 @@ const App: React.FC = () => {
             path="/chatroom"
             element={
               <ProtectedRoute
+                isLoading={isAuthChecking}
                 user={user}
                 element={<ChatRoom currentUser={user!} socket={socket} targetUser={chatTarget} />}
               />
@@ -566,6 +580,7 @@ const App: React.FC = () => {
             path="/captain-cabin"
             element={
               <ProtectedRoute
+                isLoading={isAuthChecking}
                 user={user}
                 requiredPerm={PERM_KEYS.PRIVATE_ACCESS}
                 element={

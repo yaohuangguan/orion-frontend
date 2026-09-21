@@ -4,7 +4,7 @@
 
 Orion is Sam Yao's bilingual digital garden and personal operating system. It brings a public journal, engineering portfolio and live app directory together with a private **Captain's Cabin** for writing, personal data, health, travel and AI-assisted workflows.
 
-[Live site](https://samyao.me) · [中文说明](README_CN.md) · [Latest résumé](public/Sam_Yao_Resume.pdf)
+[Live site](https://samyao.me) · [中文说明](README_CN.md)
 
 ![Orion](public/logo.svg)
 
@@ -13,7 +13,7 @@ Orion is Sam Yao's bilingual digital garden and personal operating system. It br
 - **Public journal:** searchable posts, tags, comments, reactions, rich media and responsive article reading.
 - **Writing studio:** Tiptap rich text, headings, blockquotes, typography and colour controls, tables, tasks, code, syntax-safe LaTeX paste, emoji, online GIF search, video embeds, vector handwriting and direct clipboard image upload to R2.
 - **Consistent reading:** the editor, live preview and published article share the same content renderer, with violet-on-white and gold-on-cosmic theme palettes.
-- **Portfolio:** a bilingual résumé, downloadable source PDF, and a filterable Web / Full Stack / Mobile app directory with live demos and source links.
+- **Portfolio:** an Apps-first Web / Full Stack / Mobile directory with live demos and source links; professional experience lives at the secondary /profile/experience route, without CV download controls.
 - **Captain's Cabin:** JWT/RBAC-protected journal, second brain, to-do systems, fitness records, photo gallery, footprint map, personal utilities and account-aware private data.
 - **AI and realtime tools:** context-aware assistants, streaming responses and Socket.IO chat backed by the companion API.
 - **Installable web app:** responsive desktop, tablet and mobile layouts with PWA metadata and service-worker caching.
@@ -86,7 +86,7 @@ services/               API, authentication, content and media clients
 i18n/                   English and Chinese locale data
 constants/              navigation and built-in app catalogue
 tests/journal/           browser-level editor and renderer regression suite
-public/                  PWA, SEO, résumé and project assets
+public/                  PWA, SEO and project assets
 ```
 
 React 19 · TypeScript · Vite · Tailwind CSS · Tiptap · KaTeX · Firebase · Socket.IO · Recharts · ECharts · Leaflet · Puppeteer.

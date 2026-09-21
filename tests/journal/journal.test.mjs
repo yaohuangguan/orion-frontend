@@ -200,8 +200,18 @@ price = "$10"; $$not_math$$
       const editor = getComputedStyle(document.querySelector('.journal-editor'));
       const reader = getComputedStyle(document.querySelector('.journal-reader'));
       return (
-        editor.getPropertyValue('--journal-accent').trim() === '#f2bd4f' &&
-        reader.getPropertyValue('--journal-accent').trim() === '#f2bd4f' &&
+        editor.getPropertyValue('--journal-accent').trim() ===
+          'rgb(' +
+            getComputedStyle(document.documentElement)
+              .getPropertyValue('--color-primary-500')
+              .trim() +
+            ')' &&
+        reader.getPropertyValue('--journal-accent').trim() ===
+          'rgb(' +
+            getComputedStyle(document.documentElement)
+              .getPropertyValue('--color-primary-500')
+              .trim() +
+            ')' &&
         editor.backgroundColor === 'rgb(8, 13, 25)' &&
         reader.backgroundColor === 'rgb(8, 13, 25)'
       );

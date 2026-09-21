@@ -30,22 +30,6 @@ const inferCategory = (project: PortfolioProject): Exclude<ProjectCategory, 'all
   return 'web';
 };
 
-const getGradientFromTitle = (title: string) => {
-  const gradients = [
-    'from-blue-500 to-indigo-600 dark:from-blue-650 dark:to-indigo-800',
-    'from-emerald-400 to-teal-600 dark:from-emerald-550 dark:to-teal-800',
-    'from-amber-400 to-orange-500 dark:from-amber-550 dark:to-orange-700',
-    'from-rose-400 to-pink-600 dark:from-rose-550 dark:to-pink-800',
-    'from-violet-400 to-purple-600 dark:from-violet-550 dark:to-purple-850',
-    'from-cyan-400 to-blue-500 dark:from-cyan-550 dark:to-blue-750'
-  ];
-  let sum = 0;
-  for (let i = 0; i < title.length; i++) {
-    sum += title.charCodeAt(i);
-  }
-  return gradients[sum % gradients.length];
-};
-
 export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser }) => {
   const { language, t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -314,7 +298,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
         <div className="mb-8 flex justify-end">
           <button
             onClick={handleCreate}
-            className="px-6 py-2 bg-primary-600 dark:bg-amber-500 text-white dark:text-black rounded-xl font-bold uppercase text-sm hover:bg-primary-700 dark:hover:bg-amber-400 transition-colors shadow-lg shadow-primary-500/20 dark:shadow-amber-500/20"
+            className="px-6 py-2 bg-primary-600 dark:bg-primary-500 text-white dark:text-black rounded-xl font-bold uppercase text-sm hover:bg-primary-700 dark:hover:bg-primary-400 transition-colors shadow-lg shadow-primary-500/20 dark:shadow-primary-500/20"
           >
             <i className="fas fa-plus mr-2"></i> Add Project
           </button>
@@ -460,7 +444,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                         <button
                           type="button"
                           onClick={() => setIsR2ModalOpen(true)}
-                          className="px-4 bg-orange-100 dark:bg-orange-900/30 hover:bg-orange-200 dark:hover:bg-orange-900/50 rounded-lg text-orange-600 dark:text-orange-400 transition-colors flex items-center justify-center min-w-[3rem]"
+                          className="px-4 bg-primary-100 dark:bg-primary-900/30 hover:bg-primary-200 dark:hover:bg-primary-900/50 rounded-lg text-primary-600 dark:text-primary-400 transition-colors flex items-center justify-center min-w-[3rem]"
                           title="R2 Library"
                         >
                           <i className="fas fa-database"></i>
@@ -526,7 +510,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                   </button>
                   <button
                     type="submit"
-                    className="px-8 py-2.5 bg-primary-500 hover:bg-primary-600 text-white dark:bg-amber-500 dark:hover:bg-amber-400 dark:text-black rounded-lg font-bold shadow-lg shadow-primary-500/20 dark:shadow-amber-500/20 transition-all"
+                    className="px-8 py-2.5 bg-primary-500 hover:bg-primary-600 text-white dark:bg-primary-500 dark:hover:bg-primary-400 dark:text-black rounded-lg font-bold shadow-lg shadow-primary-500/20 dark:shadow-primary-500/20 transition-all"
                   >
                     Save Project
                   </button>
@@ -641,18 +625,24 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
           document.body
         )}
 
-      <div className="mb-8 flex flex-col gap-4 rounded-[1.75rem] border border-violet-100/80 bg-white/70 p-3 shadow-sm backdrop-blur-xl dark:border-amber-400/15 dark:bg-slate-950/55 md:flex-row md:items-center md:justify-between">
-        <div className="px-3">
-          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-violet-600 dark:text-amber-400">
-            {language === 'zh' ? '作品导航' : 'Browse the collection'}
-          </p>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            {projects.length}{' '}
-            {language === 'zh' ? '个可以打开体验的项目' : 'projects you can open and explore'}
-          </p>
+      <section className="mb-9 flex flex-col gap-5 rounded-[2rem] border border-primary-100/70 bg-white/70 p-4 shadow-[0_20px_70px_-55px_rgba(79,70,229,.55)] backdrop-blur-xl dark:border-primary-400/15 dark:bg-slate-950/55 dark:shadow-none sm:p-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-center gap-4 px-1">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-100 text-primary-600 dark:bg-primary-400/10 dark:text-primary-400">
+            <i className="fas fa-wand-magic-sparkles" aria-hidden="true" />
+          </div>
+          <div>
+            <p className="font-mono text-[10px] font-black uppercase tracking-[0.24em] text-primary-600 dark:text-primary-400">
+              {language === 'zh' ? '应用目录' : 'App directory'}
+            </p>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              {language === 'zh'
+                ? `${projects.length} 个已发布或持续迭代的产品`
+                : `${projects.length} shipped products and active experiments`}
+            </p>
+          </div>
         </div>
         <div
-          className="grid grid-cols-2 gap-1 rounded-2xl bg-violet-50/80 p-1 dark:bg-slate-900 sm:flex"
+          className="grid grid-cols-2 gap-1 rounded-[1.25rem] bg-primary-50/80 p-1 dark:bg-slate-900 sm:flex"
           role="tablist"
           aria-label="Project categories"
         >
@@ -668,12 +658,12 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                 role="tab"
                 aria-selected={activeCategory === category.value}
                 onClick={() => setActiveCategory(category.value)}
-                className={`flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-all ${activeCategory === category.value ? 'bg-violet-600 text-white shadow-md shadow-violet-500/20 dark:bg-amber-400 dark:text-slate-950 dark:shadow-amber-500/20' : 'text-slate-500 hover:bg-white hover:text-violet-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-amber-300'}`}
+                className={`flex items-center justify-center gap-2 rounded-2xl px-3.5 py-2.5 text-xs font-bold transition-all ${activeCategory === category.value ? 'bg-primary-500 text-white shadow-md shadow-primary-500/20 dark:text-slate-950' : 'text-slate-500 hover:bg-white hover:text-primary-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-primary-300'}`}
               >
-                <i className={`fas ${category.icon}`} aria-hidden="true"></i>
+                <i className={`fas ${category.icon}`} aria-hidden="true" />
                 <span>{language === 'zh' ? category.zh : category.en}</span>
                 <span
-                  className={`rounded-full px-1.5 py-0.5 text-[9px] ${activeCategory === category.value ? 'bg-violet-950/40 text-white dark:bg-slate-950/15 dark:text-slate-950' : 'bg-slate-200/70 dark:bg-slate-700'}`}
+                  className={`min-w-5 rounded-full px-1.5 py-0.5 text-[9px] ${activeCategory === category.value ? 'bg-primary-700 text-white dark:bg-slate-950/15 dark:text-slate-950' : 'bg-slate-200/70 text-slate-500 dark:bg-slate-700 dark:text-slate-300'}`}
                 >
                   {count}
                 </span>
@@ -681,200 +671,150 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
             );
           })}
         </div>
-      </div>
+      </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         {projects
           .filter(
             (project) => activeCategory === 'all' || inferCategory(project) === activeCategory
           )
-          .map((project, index) => (
-            <div
-              key={project._id}
-              className="group relative flex flex-col h-full bg-white dark:bg-[#0f172a] border border-slate-200/60 dark:border-slate-800 rounded-[2rem] overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-2"
-            >
-              {/* Admin Controls */}
-              {isVip && !project._id.startsWith('builtin-') && (
-                <div
-                  className="absolute top-4 right-4 z-20 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEdit(project);
-                    }}
-                    className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 text-blue-500 flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer"
-                  >
-                    <i className="fas fa-pencil-alt text-xs"></i>
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setProjectToDelete(project);
-                    }}
-                    className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 text-red-500 flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer"
-                  >
-                    <i className="fas fa-trash text-xs"></i>
-                  </button>
-                </div>
-              )}
+          .map((project) => {
+            const title = getLocalized(project, 'title') || 'Untitled app';
+            const category = CATEGORY_META.find((item) => item.value === inferCategory(project));
 
-              {/* Cover Image */}
-              <div
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (project.coverImage) setZoomedImage(project.coverImage);
-                }}
-                className="aspect-[16/9] shrink-0 bg-slate-100 dark:bg-slate-950 overflow-hidden relative cursor-zoom-in group/img"
+            return (
+              <article
+                key={project._id}
+                className="group relative flex min-h-[31rem] flex-col overflow-hidden rounded-[2.1rem] border border-slate-200/80 bg-white/88 shadow-[0_24px_70px_-50px_rgba(15,23,42,.45)] transition duration-500 hover:-translate-y-1.5 hover:border-primary-200 hover:shadow-[0_30px_90px_-48px_rgba(79,70,229,.38)] dark:border-slate-800 dark:bg-slate-950/82 dark:hover:border-primary-400/30 dark:hover:shadow-[0_30px_90px_-48px_rgba(0,0,0,.95)]"
               >
-                {/* Zoom Prompt Icon */}
-                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center z-10">
-                  <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white text-xl transform scale-50 group-hover/img:scale-100 transition-transform">
-                    <i className="fas fa-search-plus"></i>
-                  </div>
-                </div>
-                {/* Badge for Top Projects */}
-                {index < 10 && (
-                  <div
-                    className={`absolute top-4 left-4 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border ${
-                      index < 5
-                        ? 'bg-red-500/80 border-red-400/50 text-white'
-                        : 'bg-black/50 border-white/20 text-white'
-                    }`}
-                  >
-                    <div className="flex -space-x-1.5">
-                      <i
-                        className={`fas fa-fire ${index < 5 ? 'text-yellow-300 animate-pulse' : 'text-orange-400'}`}
-                      ></i>
-                      {index < 5 && (
-                        <i
-                          className="fas fa-fire text-orange-300 animate-pulse"
-                          style={{ animationDelay: '0.1s' }}
-                        ></i>
-                      )}
-                      {index < 5 && (
-                        <i
-                          className="fas fa-fire text-red-300 animate-pulse"
-                          style={{ animationDelay: '0.2s' }}
-                        ></i>
-                      )}
-                    </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider leading-none pt-0.5">
-                      {index < 5
-                        ? language === 'zh'
-                          ? '热门'
-                          : 'HOT'
-                        : language === 'zh'
-                          ? '推荐'
-                          : 'Pick'}
-                    </span>
-                  </div>
-                )}
-
-                {project.coverImage ? (
-                  <img
-                    src={project.coverImage}
-                    alt={getLocalized(project, 'title')}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
-                    <i className="fas fa-cube text-4xl text-slate-300 dark:text-slate-600"></i>
-                  </div>
-                )}
-
-                {/* Overlay Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-slate-900/10 to-transparent opacity-60 transition-opacity"></div>
-                <span className="absolute bottom-3 left-3 z-10 rounded-full border border-white/20 bg-slate-950/55 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-white backdrop-blur-md">
-                  {
-                    CATEGORY_META.find((category) => category.value === inferCategory(project))?.[
-                      language === 'zh' ? 'zh' : 'en'
-                    ]
-                  }
-                </span>
-              </div>
-
-              {/* Card Info Content */}
-              <div className="p-5 flex flex-col flex-1 space-y-4">
-                {/* App-Store style Header */}
-                <div className="flex items-center justify-between gap-3 shrink-0">
-                  <div className="flex items-center min-w-0 flex-1">
-                    {/* App Icon */}
-                    <div
-                      className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${getGradientFromTitle(getLocalized(project, 'title') || 'P')} flex items-center justify-center text-white text-lg font-black shadow-md flex-shrink-0 select-none`}
-                    >
-                      {(getLocalized(project, 'title') || 'P').charAt(0).toUpperCase()}
-                    </div>
-                    <div className="min-w-0 pl-3">
-                      <h3 className="text-base font-display font-black text-slate-900 dark:text-white truncate group-hover:text-amber-500 transition-colors leading-snug">
-                        {getLocalized(project, 'title')}
-                      </h3>
-                      <p className="text-[10px] text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
-                        {project.techStack[0] || 'Software'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {project.demoUrl && (
+                {isVip && !project._id.startsWith('builtin-') && (
+                  <div className="absolute right-4 top-4 z-20 flex gap-2 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleLiveDemoClick(project);
-                      }}
-                      className="px-3.5 py-1.5 text-[10px] font-black rounded-full bg-slate-100 hover:bg-amber-500 hover:text-black dark:bg-slate-800 dark:hover:bg-amber-400 text-slate-700 dark:text-slate-200 transition-all shadow-sm flex-shrink-0 cursor-pointer active:scale-95 border border-slate-200/30 dark:border-slate-700/50"
+                      type="button"
+                      onClick={() => handleEdit(project)}
+                      className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 bg-slate-950/65 text-white shadow-lg backdrop-blur-md transition hover:bg-primary-500"
+                      aria-label={`Edit ${title}`}
                     >
-                      {language === 'zh' ? '打开' : 'GET'}
+                      <i className="fas fa-pencil-alt text-xs" />
                     </button>
-                  )}
-                </div>
-
-                {/* Tech Stack pills */}
-                <div className="flex flex-wrap gap-1.5 shrink-0">
-                  {project.techStack.map((tech, i) => (
-                    <span
-                      key={i}
-                      className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-slate-50 dark:bg-slate-850 text-slate-500 dark:text-slate-400 rounded-md border border-slate-100 dark:border-slate-800"
+                    <button
+                      type="button"
+                      onClick={() => setProjectToDelete(project)}
+                      className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 bg-slate-950/65 text-white shadow-lg backdrop-blur-md transition hover:bg-red-500"
+                      aria-label={`Delete ${title}`}
                     >
-                      {tech}
+                      <i className="fas fa-trash text-xs" />
+                    </button>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => project.coverImage && setZoomedImage(project.coverImage)}
+                  disabled={!project.coverImage}
+                  className="group/image relative aspect-[16/10] w-full overflow-hidden bg-slate-100 text-left dark:bg-slate-900 disabled:cursor-default"
+                  aria-label={project.coverImage ? `View ${title} screenshot` : undefined}
+                >
+                  {project.coverImage ? (
+                    <img
+                      src={project.coverImage}
+                      alt={`${title} preview`}
+                      className="h-full w-full object-cover transition duration-700 group-hover/image:scale-[1.035]"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-950 dark:to-primary-900/20">
+                      <span className="flex h-20 w-20 items-center justify-center rounded-[1.7rem] border border-primary-100 bg-white/80 text-3xl font-black text-primary-500 shadow-xl dark:border-primary-400/15 dark:bg-slate-900">
+                        {title.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/68 via-transparent to-transparent" />
+                  <div className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-3">
+                    <span className="rounded-full border border-white/20 bg-slate-950/45 px-3 py-1.5 text-[9px] font-black uppercase tracking-[.18em] text-white backdrop-blur-md">
+                      {language === 'zh' ? category?.zh : category?.en}
                     </span>
-                  ))}
-                </div>
+                    {project.coverImage && (
+                      <span className="flex h-9 w-9 translate-y-2 items-center justify-center rounded-full border border-white/25 bg-white/15 text-white opacity-0 backdrop-blur-md transition group-hover/image:translate-y-0 group-hover/image:opacity-100">
+                        <i className="fas fa-expand-alt text-xs" />
+                      </span>
+                    )}
+                  </div>
+                </button>
 
-                {/* Clamped Summary */}
-                <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed line-clamp-3 flex-grow pb-2">
-                  {getLocalized(project, 'summary') || 'Click specs below to read full details.'}
-                </p>
+                <div className="flex flex-1 flex-col p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex min-w-0 items-center gap-3.5">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary-100 text-lg font-black text-primary-700 ring-1 ring-primary-200/70 dark:bg-primary-400/10 dark:text-primary-400 dark:ring-primary-400/15">
+                        {title.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <h2 className="truncate font-display text-lg font-black tracking-tight text-slate-950 transition-colors group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400">
+                          {title}
+                        </h2>
+                        <p className="mt-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.14em] text-slate-600 dark:text-slate-400">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                          {language === 'zh' ? '可体验产品' : 'Available now'}
+                        </p>
+                      </div>
+                    </div>
 
-                {/* Bottom Details Trigger */}
-                <div className="mt-auto flex justify-between items-center pt-3 border-t border-slate-100 dark:border-slate-800/80 shrink-0">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveDetailProject(project);
-                    }}
-                    className="text-[11px] font-bold text-amber-800 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-200 flex items-center gap-1 cursor-pointer transition-colors group/btn"
-                  >
-                    <span>{language === 'zh' ? '详情与规格' : 'Specs & Details'}</span>
-                    <i className="fas fa-arrow-right text-[8px] transform group-hover/btn:translate-x-0.5 transition-transform"></i>
-                  </button>
+                    {project.demoUrl && (
+                      <button
+                        type="button"
+                        onClick={() => handleLiveDemoClick(project)}
+                        className="shrink-0 rounded-full bg-primary-500 px-4 py-2 text-[10px] font-black uppercase tracking-wider text-white shadow-md shadow-primary-500/20 transition hover:-translate-y-0.5 hover:bg-primary-600 dark:text-slate-950"
+                      >
+                        {language === 'zh' ? '打开' : 'Open'}
+                      </button>
+                    )}
+                  </div>
 
-                  {project.repoUrl && (
-                    <a
-                      href={project.repoUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors p-1"
-                      title={language === 'zh' ? '查看源码' : 'View Source'}
+                  <p className="mt-5 line-clamp-3 min-h-[4.5rem] text-sm leading-6 text-slate-600 dark:text-slate-400">
+                    {getLocalized(project, 'summary') || 'Open the project details to learn more.'}
+                  </p>
+
+                  <div className="my-5 flex flex-wrap gap-1.5">
+                    {project.techStack.slice(0, 4).map((tech) => (
+                      <span
+                        key={tech}
+                        className="rounded-lg border border-slate-200/80 bg-slate-50 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                    {project.techStack.length > 4 && (
+                      <span className="rounded-lg border border-primary-100 bg-primary-50 px-2.5 py-1 text-[9px] font-bold text-primary-600 dark:border-primary-400/15 dark:bg-primary-400/5 dark:text-primary-400">
+                        +{project.techStack.length - 4}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-5 dark:border-slate-800/80">
+                    <button
+                      type="button"
+                      onClick={() => setActiveDetailProject(project)}
+                      className="group/details flex items-center gap-2 text-xs font-bold text-slate-600 transition hover:text-primary-600 dark:text-slate-300 dark:hover:text-primary-400"
                     >
-                      <i className="fab fa-github text-base"></i>
-                    </a>
-                  )}
+                      {language === 'zh' ? '项目详情' : 'View details'}
+                      <i className="fas fa-arrow-right text-[9px] transition-transform group-hover/details:translate-x-1" />
+                    </button>
+                    {project.repoUrl && (
+                      <a
+                        href={project.repoUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition hover:bg-primary-50 hover:text-primary-600 dark:hover:bg-primary-400/10 dark:hover:text-primary-400"
+                        title={language === 'zh' ? '查看源码' : 'View source'}
+                        aria-label={`${title} source code`}
+                      >
+                        <i className="fab fa-github text-base" />
+                      </a>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
+              </article>
+            );
+          })}
       </div>
 
       {/* Project Detail Modal */}
@@ -918,16 +858,14 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                 {/* Header Block */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800/80">
                   <div className="flex items-center gap-4">
-                    <div
-                      className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${getGradientFromTitle(getLocalized(activeDetailProject, 'title') || 'P')} flex items-center justify-center text-white text-3xl font-black shadow-lg flex-shrink-0 select-none`}
-                    >
+                    <div className="w-16 h-16 rounded-2xl bg-primary-500 flex items-center justify-center text-white dark:text-slate-950 text-3xl font-black shadow-lg shadow-primary-500/20 flex-shrink-0 select-none">
                       {(getLocalized(activeDetailProject, 'title') || 'P').charAt(0).toUpperCase()}
                     </div>
                     <div>
                       <h2 className="text-2xl md:text-3xl font-display font-black text-slate-900 dark:text-white leading-tight">
                         {getLocalized(activeDetailProject, 'title')}
                       </h2>
-                      <p className="text-xs font-mono text-amber-500 uppercase tracking-wider font-bold mt-1">
+                      <p className="text-xs font-mono text-primary-500 uppercase tracking-wider font-bold mt-1">
                         Application Specification
                       </p>
                     </div>
@@ -940,7 +878,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                           handleLiveDemoClick(activeDetailProject);
                           setActiveDetailProject(null);
                         }}
-                        className="px-6 py-2.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold uppercase tracking-wider shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                        className="px-6 py-2.5 rounded-full bg-gradient-to-r from-primary-500 to-primary-500 hover:from-primary-600 hover:to-primary-600 text-white text-xs font-bold uppercase tracking-wider shadow-lg shadow-primary-500/20 hover:shadow-primary-500/40 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
                       >
                         <i className="fas fa-play-circle mr-1.5"></i> {t.portfolio.liveDemo}
                       </button>
@@ -1002,7 +940,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                       {activeDetailProject.techStack.map((tech, i) => (
                         <span
                           key={i}
-                          className="px-2.5 py-1 text-xs font-bold bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 border border-blue-100/50 dark:border-blue-900/30 rounded-xl"
+                          className="px-2.5 py-1 text-xs font-bold bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border border-primary-100/50 dark:border-primary-800/30 rounded-xl"
                         >
                           {tech}
                         </span>
@@ -1014,7 +952,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                   <div className="lg:col-span-2 space-y-6 text-slate-600 dark:text-slate-350 leading-relaxed text-sm">
                     {/* Summary */}
                     {getLocalized(activeDetailProject, 'summary') && (
-                      <div className="relative pl-4 border-l-4 border-amber-500 bg-amber-500/5 p-4 rounded-r-2xl text-slate-800 dark:text-slate-200">
+                      <div className="relative pl-4 border-l-4 border-primary-500 bg-primary-500/5 p-4 rounded-r-2xl text-slate-800 dark:text-slate-200">
                         <p className="font-bold">{getLocalized(activeDetailProject, 'summary')}</p>
                       </div>
                     )}

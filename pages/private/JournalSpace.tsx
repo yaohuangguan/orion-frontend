@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useOutletContext, useSearchParams } from 'react-router-dom';
 import { TodoWidget } from '../../components/private/TodoWidget';
 import { PrivateBlogFeed } from '../../components/private/PrivateBlogFeed';
@@ -287,7 +287,7 @@ export const JournalSpace: React.FC = () => {
           {/* Detail View */}
           {selectedEntry && (
             <div className="absolute inset-0 z-20 flex flex-col bg-white dark:bg-slate-950 animate-slide-up overflow-hidden">
-              <div className="p-4 border-b border-violet-100 dark:border-amber-400/15 flex items-center justify-between bg-white dark:bg-slate-950 shrink-0">
+              <div className="p-4 border-b border-rose-100 dark:border-amber-400/15 flex items-center justify-between bg-white dark:bg-slate-950 shrink-0">
                 <button
                   onClick={() => setSelectedEntry(null)}
                   className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-rose-50 hover:text-rose-500 transition-all font-bold text-xs uppercase tracking-wider"
@@ -371,7 +371,7 @@ export const JournalSpace: React.FC = () => {
                   <i className="fas fa-times"></i>
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-violet-50/30 dark:bg-slate-950">
+              <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-rose-50/30 dark:bg-slate-950">
                 <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl p-6 border border-slate-200 mb-6">
                   <h1 className="text-3xl font-display font-bold text-slate-900 mb-2 text-center leading-tight">
                     {previewData?.title || 'Untitled Entry'}
@@ -390,12 +390,12 @@ export const JournalSpace: React.FC = () => {
               <div className="journal-orbit-header shrink-0 border-b p-4 sm:p-6">
                 <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-violet-600 text-white shadow-lg shadow-violet-500/20 dark:bg-amber-400 dark:text-slate-950 dark:shadow-amber-500/20">
+                    <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-600 text-white shadow-lg shadow-rose-500/20 dark:bg-amber-400 dark:text-slate-950 dark:shadow-amber-500/20">
                       <i className={`fas ${logSource === 'private' ? 'fa-lock' : 'fa-globe'}`}></i>
                       <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-white bg-emerald-400 dark:border-slate-950"></span>
                     </div>
                     <div className="min-w-0">
-                      <p className="mb-1 font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-violet-600 dark:text-amber-400">
+                      <p className="mb-1 font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-rose-600 dark:text-amber-400">
                         Captain&apos;s log archive
                       </p>
                       <h1 className="truncate font-display text-2xl font-black tracking-tight text-slate-900 dark:text-white">
@@ -411,7 +411,7 @@ export const JournalSpace: React.FC = () => {
                     </div>
                   </div>
                   <div
-                    className="grid grid-cols-2 rounded-2xl border border-violet-100 bg-violet-50/80 p-1 dark:border-amber-400/10 dark:bg-slate-900"
+                    className="grid grid-cols-2 rounded-2xl border border-rose-100 bg-rose-50/80 p-1 dark:border-amber-400/10 dark:bg-slate-900"
                     role="tablist"
                     aria-label="Journal visibility"
                   >
@@ -425,7 +425,7 @@ export const JournalSpace: React.FC = () => {
                         role="tab"
                         aria-selected={logSource === source.value}
                         onClick={() => setLogSource(source.value as 'private' | 'public')}
-                        className={`flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${logSource === source.value ? 'bg-white text-violet-700 shadow-sm dark:bg-amber-400 dark:text-slate-950' : 'text-slate-500 hover:text-violet-700 dark:text-slate-400 dark:hover:text-amber-300'}`}
+                        className={`flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${logSource === source.value ? 'bg-white text-rose-700 shadow-sm dark:bg-amber-400 dark:text-slate-950' : 'text-slate-500 hover:text-rose-700 dark:text-slate-400 dark:hover:text-amber-300'}`}
                       >
                         <i className={`fas ${source.icon}`}></i>
                         {source.label}
@@ -436,27 +436,27 @@ export const JournalSpace: React.FC = () => {
                 <div className="flex flex-col gap-3">
                   <label className="group relative block">
                     <span className="sr-only">Search journal</span>
-                    <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-violet-300 transition-colors group-focus-within:text-violet-600 dark:text-slate-600 dark:group-focus-within:text-amber-400"></i>
+                    <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-rose-300 transition-colors group-focus-within:text-rose-600 dark:text-slate-600 dark:group-focus-within:text-amber-400"></i>
                     <input
                       type="search"
                       value={searchQuery}
                       onChange={(event) => setSearchQuery(event.target.value)}
                       placeholder="Search titles, memories and ideas…"
-                      className="w-full rounded-2xl border border-violet-100 bg-white/90 py-3 pl-11 pr-4 text-sm text-slate-800 shadow-sm outline-none transition focus:border-violet-300 focus:ring-4 focus:ring-violet-100/70 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-amber-400/40 dark:focus:ring-amber-400/10"
+                      className="w-full rounded-2xl border border-rose-100 bg-white/90 py-3 pl-11 pr-4 text-sm text-slate-800 shadow-sm outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100/70 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-amber-400/40 dark:focus:ring-amber-400/10"
                     />
                   </label>
                   <TagCloud
                     tags={availableTags}
                     selectedTag={tag || null}
                     onSelect={handleTagToggle}
-                    theme="primary"
+                    theme="rose"
                     limit={8}
                     label={language === 'zh' ? '按标签筛选' : 'Filter by tag'}
                   />
                   {hasContent(previewData) && isPreviewHidden && (
                     <button
                       onClick={() => setIsPreviewHidden(false)}
-                      className="self-start rounded-full bg-violet-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-violet-700 transition hover:bg-violet-200 dark:bg-amber-400/10 dark:text-amber-300"
+                      className="self-start rounded-full bg-rose-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-rose-700 transition hover:bg-rose-200 dark:bg-amber-400/10 dark:text-amber-300"
                     >
                       <i className="fas fa-eye mr-1"></i> Resume live preview
                     </button>
@@ -464,7 +464,7 @@ export const JournalSpace: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-violet-50/30 dark:bg-slate-950/70">
+              <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-rose-50/30 dark:bg-slate-950/70">
                 {isPublicLoading ? (
                   <div className="text-center py-20 text-slate-400 animate-pulse">
                     Loading Logs...
@@ -504,7 +504,7 @@ export const JournalSpace: React.FC = () => {
 
           <div
             id="private-editor"
-            className="lg:flex-1 lg:min-h-0 h-[80vh] shadow-xl rounded-[2rem] bg-white dark:bg-slate-950 overflow-hidden ring-1 ring-violet-100 dark:ring-amber-400/10 flex flex-col"
+            className="lg:flex-1 lg:min-h-0 h-[80vh] shadow-xl rounded-[2rem] bg-white dark:bg-slate-950 overflow-hidden ring-1 ring-rose-100 dark:ring-amber-400/10 flex flex-col"
           >
             <SimpleEditor
               key={`${user?._id}:${editingPost?._id || 'new-post'}`}

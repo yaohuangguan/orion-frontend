@@ -4,13 +4,6 @@
 /* COLOR VARIABLES 
   从 HTML 搬运过来的
 */
-@theme {
-  --color-primary-50: 253 251 247;
-  --color-primary-100: 247 244 237;
-  /* ... 其他变量如果需要也可以在这里定义，
-     但因为你上面用了 JS config 引用 CSS 变量的方式，
-     我们还是用传统的 :root 写法更稳妥 */
-}
 
 :root {
   --color-primary-50: 245 243 255;

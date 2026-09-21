@@ -32,7 +32,7 @@ const StarCompass = () => {
       >
         {/* Outer Ring */}
         <div className="absolute inset-0 rounded-full border-2 border-slate-700/50 dark:border-slate-800/60 opacity-60 group-hover:opacity-100 transition-opacity"></div>
-        <div className="absolute inset-2 rounded-full border border-dashed border-amber-500/30 group-hover:border-amber-500/60 transition-colors animate-[spin_60s_linear_infinite]"></div>
+        <div className="absolute inset-2 rounded-full border border-dashed border-primary-500/30 group-hover:border-primary-500/60 transition-colors animate-[spin_60s_linear_infinite]"></div>
 
         {/* Labels */}
         <div className="absolute top-4 left-1/2 -translate-x-1/2 text-xs font-mono font-bold text-slate-500">
@@ -55,15 +55,15 @@ const StarCompass = () => {
         >
           {/* Needle */}
           <div className="relative w-8 h-full">
-            <div className="absolute top-8 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[60px] border-b-amber-500 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div>
+            <div className="absolute top-8 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[60px] border-b-primary-500 drop-shadow-[0_0_10px_rgba(79,70,229,0.5)]"></div>
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[60px] border-t-slate-700"></div>
             {/* Center Cap */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-slate-900 dark:bg-white rounded-full border-2 border-amber-500 z-10"></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-slate-900 dark:bg-white rounded-full border-2 border-primary-500 z-10"></div>
           </div>
         </div>
 
         {/* Hover Label */}
-        <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-xs font-mono text-amber-500 uppercase tracking-widest whitespace-nowrap">
+        <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-xs font-mono text-primary-500 uppercase tracking-widest whitespace-nowrap">
           Interstellar Compass
         </div>
       </div>
@@ -147,11 +147,11 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
         {/* About Sam - concise, editorial introduction */}
         {t.resume.aboutP1 && (
           <section className="mx-auto mt-10 text-left" aria-labelledby="about-sam-title">
-            <div className="relative overflow-hidden rounded-[2rem] border border-violet-100/80 bg-white/70 p-6 shadow-[0_28px_80px_-55px_rgba(76,29,149,.45)] backdrop-blur-xl dark:border-amber-400/15 dark:bg-slate-950/60 dark:shadow-[0_28px_90px_-55px_rgba(0,0,0,.95)] md:p-9">
-              <div className="pointer-events-none absolute -right-20 -top-28 h-64 w-64 rounded-full bg-violet-300/20 blur-3xl dark:bg-amber-400/10"></div>
+            <div className="relative overflow-hidden rounded-[2rem] border border-primary-100/80 bg-white/70 p-6 shadow-[0_28px_80px_-55px_rgba(79,70,229,.38)] backdrop-blur-xl dark:border-primary-400/15 dark:bg-slate-950/60 dark:shadow-[0_28px_90px_-55px_rgba(0,0,0,.95)] md:p-9">
+              <div className="pointer-events-none absolute -right-20 -top-28 h-64 w-64 rounded-full bg-primary-300/20 blur-3xl dark:bg-primary-400/10"></div>
               <div className="relative grid gap-8 lg:grid-cols-[.9fr_1.1fr] lg:items-start">
                 <div>
-                  <p className="mb-3 font-mono text-[10px] font-black uppercase tracking-[.3em] text-violet-600 dark:text-amber-400">
+                  <p className="mb-3 font-mono text-[10px] font-black uppercase tracking-[.3em] text-primary-600 dark:text-primary-400">
                     {t.resume.aboutEyebrow}
                   </p>
                   <h2
@@ -167,25 +167,25 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
                     {['React & TypeScript', 'Node.js & Cloud', 'Product ownership'].map((skill) => (
                       <span
                         key={skill}
-                        className="rounded-full border border-violet-100 bg-violet-50 px-3 py-1.5 text-[11px] font-bold text-violet-700 dark:border-amber-400/15 dark:bg-amber-400/5 dark:text-amber-300"
+                        className="rounded-full border border-primary-100 bg-primary-50 px-3 py-1.5 text-[11px] font-bold text-primary-700 dark:border-primary-400/15 dark:bg-primary-400/5 dark:text-primary-300"
                       >
                         {skill}
                       </span>
                     ))}
                   </div>
                 </div>
-                <div className="divide-y divide-violet-100/80 dark:divide-slate-800">
+                <div className="divide-y divide-primary-100/80 dark:divide-slate-800">
                   {aboutCards.map((card, index) => (
                     <article
                       key={card.label}
                       className="group grid grid-cols-[2.5rem_1fr] gap-4 py-4 first:pt-0 last:pb-0"
                     >
-                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100 text-violet-700 transition group-hover:bg-violet-600 group-hover:text-white dark:bg-slate-900 dark:text-amber-400 dark:group-hover:bg-amber-400 dark:group-hover:text-slate-950">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 text-primary-700 transition group-hover:bg-primary-600 group-hover:text-white dark:bg-slate-900 dark:text-primary-400 dark:group-hover:bg-primary-400 dark:group-hover:text-slate-950">
                         <i className={`fas ${card.icon}`}></i>
                       </span>
                       <div>
                         <div className="flex items-center gap-3">
-                          <span className="font-mono text-[9px] font-black uppercase tracking-[.18em] text-violet-500 dark:text-amber-500">
+                          <span className="font-mono text-[9px] font-black uppercase tracking-[.18em] text-primary-500 dark:text-primary-500">
                             0{index + 1}
                           </span>
                           <h3 className="font-serif text-lg font-bold text-slate-900 dark:text-white">
@@ -200,7 +200,7 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
                   ))}
                 </div>
               </div>
-              <div className="relative mt-7 flex items-center justify-between border-t border-violet-100/80 pt-5 dark:border-slate-800">
+              <div className="relative mt-7 flex items-center justify-between border-t border-primary-100/80 pt-5 dark:border-slate-800">
                 <p className="text-xs text-slate-400">
                   Auckland · Open to software engineering opportunities
                 </p>
@@ -232,7 +232,7 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
             className="group relative flex flex-col justify-between bg-white/60 dark:bg-slate-900/60 backdrop-blur-md rounded-[2.5rem] p-8 border border-slate-200/50 dark:border-slate-800/80 shadow-md hover:shadow-2xl hover:shadow-primary-500/10 hover:-translate-y-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 cursor-pointer overflow-hidden"
           >
             {/* Top gradient highlight bar */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary-400 to-indigo-500 opacity-80 group-hover:opacity-100 transition-opacity"></div>
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary-400 to-primary-500 opacity-80 group-hover:opacity-100 transition-opacity"></div>
 
             {/* Subtle background glow */}
             <div className="absolute -right-20 -top-20 w-48 h-48 rounded-full bg-primary-400/10 blur-3xl group-hover:bg-primary-400/20 transition-all duration-500"></div>
@@ -260,19 +260,19 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
           {/* CARD 2: PROFILE/RESUME */}
           <div
             onClick={() => onNavigate(PageView.RESUME)}
-            className="group relative flex flex-col justify-between bg-white/60 dark:bg-slate-900/60 backdrop-blur-md rounded-[2.5rem] p-8 border border-slate-200/50 dark:border-slate-800/80 shadow-md hover:shadow-2xl hover:shadow-blue-500/10 hover:-translate-y-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 cursor-pointer overflow-hidden"
+            className="group relative flex flex-col justify-between bg-white/60 dark:bg-slate-900/60 backdrop-blur-md rounded-[2.5rem] p-8 border border-slate-200/50 dark:border-slate-800/80 shadow-md hover:shadow-2xl hover:shadow-primary-500/10 hover:-translate-y-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 cursor-pointer overflow-hidden"
           >
             {/* Top gradient highlight bar */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-400 to-cyan-500 opacity-80 group-hover:opacity-100 transition-opacity"></div>
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary-400 to-primary-500 opacity-80 group-hover:opacity-100 transition-opacity"></div>
 
             {/* Subtle background glow */}
-            <div className="absolute -right-20 -top-20 w-48 h-48 rounded-full bg-blue-400/10 blur-3xl group-hover:bg-blue-400/20 transition-all duration-500"></div>
+            <div className="absolute -right-20 -top-20 w-48 h-48 rounded-full bg-primary-400/10 blur-3xl group-hover:bg-primary-400/20 transition-all duration-500"></div>
 
             <div className="relative z-10">
-              <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg mb-6 group-hover:scale-110 transition-transform duration-500">
+              <div className="w-12 h-12 rounded-2xl bg-primary-500/10 text-primary-600 dark:text-primary-400 flex items-center justify-center text-lg mb-6 group-hover:scale-110 transition-transform duration-500">
                 <i className="fas fa-history"></i>
               </div>
-              <h3 className="text-xl font-bold font-serif text-slate-800 dark:text-white mb-3 tracking-tight group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors duration-300">
+              <h3 className="text-xl font-bold font-serif text-slate-800 dark:text-white mb-3 tracking-tight group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors duration-300">
                 {t.resume.siteIntro.profileTitle}
               </h3>
               <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed font-light mb-8">
@@ -281,7 +281,7 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
             </div>
 
             <div className="relative z-10">
-              <span className="inline-flex items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full border border-slate-200/60 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 text-slate-600 dark:text-slate-300 group-hover:bg-blue-500 group-hover:text-white group-hover:border-transparent transition-all duration-300">
+              <span className="inline-flex items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full border border-slate-200/60 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 text-slate-600 dark:text-slate-300 group-hover:bg-primary-500 group-hover:text-white group-hover:border-transparent transition-all duration-300">
                 <span>Access Archives</span>{' '}
                 <i className="fas fa-arrow-right transition-transform group-hover:translate-x-1 duration-300"></i>
               </span>
@@ -291,19 +291,19 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
           {/* CARD 3: CHAT */}
           <div
             onClick={handleChatClick}
-            className="group relative flex flex-col justify-between bg-white/60 dark:bg-slate-900/60 backdrop-blur-md rounded-[2.5rem] p-8 border border-slate-200/50 dark:border-slate-800/80 shadow-md hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 cursor-pointer overflow-hidden"
+            className="group relative flex flex-col justify-between bg-white/60 dark:bg-slate-900/60 backdrop-blur-md rounded-[2.5rem] p-8 border border-slate-200/50 dark:border-slate-800/80 shadow-md hover:shadow-2xl hover:shadow-primary-500/10 hover:-translate-y-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 cursor-pointer overflow-hidden"
           >
             {/* Top gradient highlight bar */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-purple-400 to-pink-500 opacity-80 group-hover:opacity-100 transition-opacity"></div>
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary-400 to-primary-500 opacity-80 group-hover:opacity-100 transition-opacity"></div>
 
             {/* Subtle background glow */}
-            <div className="absolute -right-20 -top-20 w-48 h-48 rounded-full bg-purple-400/10 blur-3xl group-hover:bg-purple-400/20 transition-all duration-500"></div>
+            <div className="absolute -right-20 -top-20 w-48 h-48 rounded-full bg-primary-400/10 blur-3xl group-hover:bg-primary-400/20 transition-all duration-500"></div>
 
             <div className="relative z-10">
-              <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg mb-6 group-hover:scale-110 transition-transform duration-500">
+              <div className="w-12 h-12 rounded-2xl bg-primary-500/10 text-primary-600 dark:text-primary-400 flex items-center justify-center text-lg mb-6 group-hover:scale-110 transition-transform duration-500">
                 <i className="fas fa-comments"></i>
               </div>
-              <h3 className="text-xl font-bold font-serif text-slate-800 dark:text-white mb-3 tracking-tight group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors duration-300">
+              <h3 className="text-xl font-bold font-serif text-slate-800 dark:text-white mb-3 tracking-tight group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors duration-300">
                 {t.resume.siteIntro.chatTitle}
               </h3>
               <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed font-light mb-8">
@@ -312,7 +312,7 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
             </div>
 
             <div className="relative z-10">
-              <span className="inline-flex items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full border border-slate-200/60 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 text-slate-600 dark:text-slate-300 group-hover:bg-purple-500 group-hover:text-white group-hover:border-transparent transition-all duration-300">
+              <span className="inline-flex items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full border border-slate-200/60 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 text-slate-600 dark:text-slate-300 group-hover:bg-primary-500 group-hover:text-white group-hover:border-transparent transition-all duration-300">
                 <span>Initialize Link</span>{' '}
                 <i className="fas fa-arrow-right transition-transform group-hover:translate-x-1 duration-300"></i>
               </span>
@@ -454,7 +454,7 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
                   {/* Public Sector */}
                   <div>
                     <div className="flex items-center gap-3 mb-6">
-                      <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center text-xl shadow-sm">
+                      <div className="w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-900/30 text-primary-600 flex items-center justify-center text-xl shadow-sm">
                         <i className="fas fa-globe"></i>
                       </div>
                       <div>
@@ -472,7 +472,7 @@ export const ResumeView: React.FC<ResumeViewProps> = ({
                           key={i}
                           className="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-300"
                         >
-                          <i className="fas fa-check text-blue-500 mt-1"></i>
+                          <i className="fas fa-check text-primary-500 mt-1"></i>
                           <span dangerouslySetInnerHTML={{ __html: feat }} />
                         </li>
                       ))}

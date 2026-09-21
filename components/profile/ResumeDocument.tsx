@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { apiService } from '../../services/api';
 import { authService } from '../../services/authService';
-import { API_BASE_URL } from '../../services/core';
+
 import { ResumeData, User, UserRole, PERM_KEYS } from '../../types';
 import { useTranslation } from '../../i18n/LanguageContext';
 import { toast } from '../Toast';
@@ -375,18 +375,6 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
       const updated = { ...resume, sectionOrder: order };
       setResume(updated);
       await apiService.updateResume(updated, currentSlug);
-    };
-
-    const handleExportPdf = () => {
-      let host = API_BASE_URL;
-      if (host.startsWith('/')) {
-        host = import.meta.env.DEV
-          ? 'http://localhost:5000/api'
-          : `${window.location.origin}${host}`;
-      }
-      const limit = resume?.pageLimit || 0;
-      const backendUrl = `${host}/resumes/export-pdf?user=${currentSlug}&lang=${language}&pdfMode=${pdfMode}&paperSize=${paperSize}${limit ? `&pageLimit=${limit}` : ''}`;
-      window.open(backendUrl, '_blank');
     };
 
     // Dialog States
@@ -981,26 +969,6 @@ export const ResumeDocument = React.forwardRef<HTMLDivElement, ResumeDocumentPro
                           <span>{language === 'zh' ? '新建版本' : 'New Version'}</span>
                         </button>
                       )}
-
-                      {/* Browser Print / Export PDF Button */}
-                      <button
-                        type="button"
-                        onClick={() => window.print()}
-                        className="w-full py-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-xs font-bold uppercase rounded-xl hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 shadow-sm"
-                      >
-                        <i className="fas fa-print text-[10px]"></i>
-                        <span>{language === 'zh' ? '浏览器打印导出' : 'Print / Export PDF'}</span>
-                      </button>
-
-                      {/* Export PDF Button */}
-                      <button
-                        type="button"
-                        onClick={handleExportPdf}
-                        className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase rounded-xl hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 border border-emerald-500/30"
-                      >
-                        <i className="fas fa-file-pdf text-[10px]"></i>
-                        <span>{language === 'zh' ? '服务端导出 PDF' : 'Backend Export PDF'}</span>
-                      </button>
 
                       {/* Delete Button */}
                       {canUpdate && (
