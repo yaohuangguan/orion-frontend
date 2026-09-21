@@ -1,5 +1,5 @@
 // scripts/generate-sitemap.js
-import { writeFileSync } from 'fs';
+import { existsSync, writeFileSync } from 'fs';
 import process from 'process';
 
 const API_URL =
@@ -66,8 +66,26 @@ async function generate() {
     writeFileSync('./public/sitemap.xml', sitemap);
     console.log('✅ Sitemap generated successfully at ./public/sitemap.xml');
   } catch (error) {
-    console.error('❌ Failed to generate sitemap:', error);
-    process.exit(1);
+    console.warn('⚠️ Sitemap API fetch failed; keeping frontend build available:', error);
+
+    // Do not couple a frontend deployment to temporary API health.
+    // Keep the last generated sitemap when available; otherwise create a minimal public one.
+    if (!existsSync('./public/sitemap.xml')) {
+      const fallbackSitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${FRONTEND_URL}/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>${FRONTEND_URL}/blogs</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+</urlset>`;
+      writeFileSync('./public/sitemap.xml', fallbackSitemap);
+    }
   }
 }
 
