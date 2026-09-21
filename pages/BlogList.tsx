@@ -197,10 +197,6 @@ export const BlogList: React.FC<BlogListProps> = ({
     }
   };
 
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    e.currentTarget.style.display = 'none';
-  };
-
   // Helper to Render Pagination
   const renderPagination = () => {
     if (!pagination || pagination.totalPages <= 1) return null;
@@ -383,7 +379,7 @@ export const BlogList: React.FC<BlogListProps> = ({
           {[1, 2, 3, 4].map((item) => (
             <div
               key={item}
-              className={`animate-pulse rounded-[2.2rem] border border-slate-200/70 bg-white/55 dark:border-slate-800 dark:bg-slate-900/50 ${item === 1 ? 'h-[30rem] lg:col-span-2' : 'h-[25rem]'}`}
+              className={`animate-pulse rounded-[2.2rem] border border-slate-200/70 bg-white/55 dark:border-slate-800 dark:bg-slate-900/50 ${item === 1 ? 'h-[22rem] lg:col-span-2' : 'h-[20rem]'}`}
             />
           ))}
         </div>
@@ -391,7 +387,6 @@ export const BlogList: React.FC<BlogListProps> = ({
         <div className="grid gap-6 lg:grid-cols-2">
           {blogs.map((blog, index) => {
             const canDelete = currentUser?.vip && onDeletePost;
-            const hasImage = !!blog.image;
             const isLiked = likedPosts.has(blog._id);
             const isFeatured = index === 0 && currentPage === 1 && !searchQuery && !selectedTag;
             const authorName = blog.user?.displayName || blog.author || 'Anonymous';
@@ -403,37 +398,8 @@ export const BlogList: React.FC<BlogListProps> = ({
               <article
                 key={blog._id}
                 onClick={() => onSelectBlog(blog)}
-                className={`group relative cursor-pointer overflow-hidden rounded-[2.2rem] border border-slate-200/80 bg-white/86 shadow-[0_24px_75px_-55px_rgba(15,23,42,.5)] transition duration-500 hover:-translate-y-1 hover:border-primary-200 hover:shadow-[0_30px_95px_-52px_rgba(79,70,229,.38)] dark:border-slate-800 dark:bg-slate-950/82 dark:hover:border-primary-400/30 dark:hover:shadow-[0_30px_95px_-52px_rgba(0,0,0,.95)] ${isFeatured ? 'lg:col-span-2 lg:grid lg:min-h-[25rem] lg:grid-cols-[1.08fr_.92fr]' : 'flex min-h-[27rem] flex-col'}`}
+                className={`group relative flex min-h-[22rem] cursor-pointer flex-col overflow-hidden rounded-[2.2rem] border border-slate-200/80 bg-white/86 shadow-[0_24px_75px_-55px_rgba(15,23,42,.5)] transition duration-500 hover:-translate-y-1 hover:border-primary-200 hover:shadow-[0_30px_95px_-52px_rgba(79,70,229,.38)] dark:border-slate-800 dark:bg-slate-950/82 dark:hover:border-primary-400/30 dark:hover:shadow-[0_30px_95px_-52px_rgba(0,0,0,.95)] ${isFeatured ? 'lg:col-span-2' : ''}`}
               >
-                <div
-                  className={`relative overflow-hidden bg-gradient-to-br from-primary-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-950 dark:to-primary-900/20 ${isFeatured ? 'min-h-64 lg:min-h-full' : 'aspect-[16/9]'}`}
-                >
-                  {hasImage ? (
-                    <img
-                      src={blog.image}
-                      alt={blog.name}
-                      onError={handleImageError}
-                      className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]"
-                      loading={isFeatured ? 'eager' : 'lazy'}
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="font-serif text-[8rem] font-bold leading-none text-primary-500/10 dark:text-primary-400/10">
-                        {String(index + 1).padStart(2, '0')}
-                      </span>
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/65 via-transparent to-transparent" />
-                  <div className="absolute left-5 top-5 flex items-center gap-2 rounded-full border border-white/20 bg-slate-950/38 px-3 py-1.5 font-mono text-[9px] font-black uppercase tracking-[.18em] text-white backdrop-blur-md">
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary-400" />
-                    {isFeatured
-                      ? language === 'zh'
-                        ? '本期推荐'
-                        : 'Featured entry'
-                      : 'Orion Journal'}
-                  </div>
-                </div>
-
                 <div className="flex flex-1 flex-col p-6 sm:p-7 lg:p-8">
                   <div className="mb-5 flex flex-wrap items-center gap-3 text-[10px] font-bold uppercase tracking-[.12em] text-slate-400">
                     <span className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
