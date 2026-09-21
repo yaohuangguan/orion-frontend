@@ -143,6 +143,24 @@
     </div>
 
     <div id="root"></div>
+    <script>
+      (function () {
+        var root = document.getElementById('root');
+        if (!root) return;
+
+        var renderedPath = root.getAttribute('data-prerender-path');
+        if (!renderedPath) return;
+
+        var normalize = function (value) {
+          if (!value || value === '/') return '/';
+          return value.replace(/\/+$/, '') || '/';
+        };
+
+        if (normalize(renderedPath) !== normalize(window.location.pathname)) {
+          root.replaceChildren();
+        }
+      })();
+    </script>
     <script type="module" src="index.tsx"></script>
   </body>
 </html>
