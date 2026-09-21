@@ -25,11 +25,13 @@ const isVercel = process.env.VERCEL === '1';
 function startServer() {
   return new Promise((resolve, reject) => {
     console.log('🚀 Starting preview server...');
-    const server = spawn('npm', ['run', 'preview', '--', '--port', '4173'], {
+    const viteEntry = path.resolve(__dirname, '../node_modules/vite/bin/vite.js');
+    const server = spawn(process.execPath, [viteEntry, 'preview', '--port', '4173'], {
       stdio: 'inherit',
-      shell: true,
+      shell: false,
       detached: false
     });
+    server.once('error', reject);
     // 等待 3 秒确保服务启动
     setTimeout(() => {
       resolve(server);
