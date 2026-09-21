@@ -103,14 +103,20 @@ const uploadToR2 = async (file: File, options?: UploadOptions): Promise<string> 
 
   const data = await response.json();
 
-  // Prioritize root-level 'url' as per latest API response format
+  // Prefer Cloudflare's native public R2 URL when configured so stored media
+  // does not depend on a custom domain remaining active.
+  if (data.r2Url) {
+    return data.r2Url;
+  }
+
   if (data.url) {
     return data.url;
   }
 
-  // Check for 'data' array containing objects with 'url'
-  if (Array.isArray(data.data) && data.data.length > 0 && data.data[0].url) {
-    return data.data[0].url;
+  if (Array.isArray(data.data) && data.data.length > 0) {
+    const uploaded = data.data[0];
+    if (uploaded.r2Url) return uploaded.r2Url;
+    if (uploaded.url) return uploaded.url;
   }
 
   // Fallback for legacy format
