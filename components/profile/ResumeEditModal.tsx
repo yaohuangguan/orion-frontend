@@ -226,7 +226,7 @@ export const ResumeEditModal: React.FC<ResumeEditModalProps> = ({
                   className={inputClass}
                   value={editResume.basics.website || ''}
                   onChange={(e) => updateField('basics', 'website', e.target.value)}
-                  placeholder="Website (e.g. samyao.me)"
+                  placeholder="Website (e.g. yourdomain.com)"
                 />
                 <input
                   className={inputClass}
