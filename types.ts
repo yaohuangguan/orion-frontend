@@ -170,6 +170,8 @@ export interface Project {
 }
 
 // New Portfolio Project Model
+export type PortfolioProjectCategory = 'web' | 'fullstack' | 'mobile' | 'tools';
+
 export interface PortfolioProject {
   _id: string;
   title_zh: string;
@@ -182,7 +184,8 @@ export interface PortfolioProject {
   repoUrl?: string;
   demoUrl?: string;
   coverImage?: string;
-  category?: 'web' | 'fullstack' | 'mobile';
+  category?: PortfolioProjectCategory; // Legacy primary category
+  categories?: PortfolioProjectCategory[];
   order: number;
   isVisible: boolean;
   createdAt: string;
