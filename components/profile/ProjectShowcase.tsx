@@ -206,7 +206,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
 
     setIsGeneratingAiCover(true);
     try {
-      const selectedCategories =
+      const selectedCategories: ConcreteProjectCategory[] =
         Array.isArray(currentProject.categories) && currentProject.categories.length > 0
           ? currentProject.categories
           : currentProject.category
@@ -460,8 +460,9 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                 <h2 className="mt-2 text-2xl font-bold">Import project</h2>
                 <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
                   Paste a GitHub repository URL. Orion will analyse the README and package metadata,
-                  draft the portfolio copy and generate a cover illustration. Nothing is saved until
-                  you review and press Save Project.
+                  draft the portfolio copy and create a free deterministic Orion cover. You can
+                  optionally replace it with Cloudflare FLUX before saving. Nothing is persisted
+                  until you review and press Save Project.
                 </p>
               </div>
 
