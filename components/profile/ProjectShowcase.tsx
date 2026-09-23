@@ -401,6 +401,70 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
         }}
       />
 
+      {isImportOpen &&
+        createPortal(
+          <div className={modalBaseClass}>
+            <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-7 text-slate-900 shadow-2xl dark:border-slate-700 dark:bg-[#020617] dark:text-slate-100">
+              <div className="mb-5">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-primary-500">
+                  GitHub → Apps
+                </p>
+                <h2 className="mt-2 text-2xl font-bold">Import project</h2>
+                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                  Paste a GitHub repository URL. Orion will analyse the README and package metadata,
+                  draft the portfolio copy and generate a cover illustration. Nothing is saved until
+                  you review and press Save Project.
+                </p>
+              </div>
+
+              <form onSubmit={handleGithubImportPreview} className="space-y-4">
+                <input
+                  autoFocus
+                  type="url"
+                  required
+                  placeholder="https://github.com/owner/repository"
+                  value={importRepoUrl}
+                  onChange={(e) => setImportRepoUrl(e.target.value)}
+                  className={inputClass}
+                />
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-400">
+                  Public repositories work directly. Private repositories require
+                  <code className="mx-1">GITHUB_PORTFOLIO_TOKEN</code>
+                  on the backend with read-only Metadata/Contents access.
+                </div>
+                <div className="flex justify-end gap-3">
+                  <button
+                    type="button"
+                    disabled={isImporting}
+                    onClick={() => setIsImportOpen(false)}
+                    className="rounded-lg px-5 py-2.5 font-bold hover:bg-black/5 dark:hover:bg-white/10"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isImporting}
+                    className="rounded-lg bg-primary-600 px-6 py-2.5 font-bold text-white disabled:opacity-50 dark:bg-primary-500 dark:text-black"
+                  >
+                    {isImporting ? (
+                      <>
+                        <i className="fas fa-circle-notch fa-spin mr-2" />
+                        Analysing…
+                      </>
+                    ) : (
+                      <>
+                        <i className="fab fa-github mr-2" />
+                        Analyse repository
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>,
+          document.body
+        )}
+
       <DeleteModal
         isOpen={!!projectToDelete}
         onClose={() => setProjectToDelete(null)}
@@ -409,7 +473,17 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
       />
 
       {isVip && (
-        <div className="mb-8 flex justify-end">
+        <div className="mb-8 flex flex-wrap justify-end gap-3">
+          <button
+            onClick={() => {
+              setImportRepoUrl('');
+              setIsImportOpen(true);
+            }}
+            className="px-5 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold uppercase text-sm hover:border-primary-300 hover:text-primary-600 transition-colors dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+          >
+            <i className="fab fa-github mr-2" />
+            Import from GitHub
+          </button>
           <button
             onClick={handleCreate}
             className="px-6 py-2 bg-primary-600 dark:bg-primary-500 text-white dark:text-black rounded-xl font-bold uppercase text-sm hover:bg-primary-700 dark:hover:bg-primary-400 transition-colors shadow-lg shadow-primary-500/20 dark:shadow-primary-500/20"
@@ -569,6 +643,26 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                       }
                     />
 
+                    {generatedCoverSvg && !currentProject.coverImage && (
+                      <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-950 dark:border-slate-700">
+                        <img
+                          src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(generatedCoverSvg)}`}
+                          alt="AI generated project cover preview"
+                          className="aspect-video w-full object-cover"
+                        />
+                        <div className="flex items-center justify-between gap-3 px-3 py-2 text-xs text-slate-300">
+                          <span>AI-generated cover · uploads to R2 only when you save</span>
+                          <button
+                            type="button"
+                            onClick={() => setGeneratedCoverSvg('')}
+                            className="font-bold text-slate-400 hover:text-white"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex gap-2 relative">
                       <input
                         className={inputClass}
@@ -643,7 +737,10 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                 <div className="flex justify-end gap-3 pt-6 border-t border-current opacity-80">
                   <button
                     type="button"
-                    onClick={() => setIsEditing(false)}
+                    onClick={() => {
+                      setGeneratedCoverSvg('');
+                      setIsEditing(false);
+                    }}
                     className="px-6 py-2.5 rounded-lg font-bold hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
                   >
                     Cancel
