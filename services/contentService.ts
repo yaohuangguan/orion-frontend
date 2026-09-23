@@ -8,6 +8,7 @@ import {
   Project,
   PortfolioProject,
   PortfolioImportPreview,
+  PortfolioAiCoverResponse,
   ResumeItem,
   ResumeData,
   Log,
@@ -369,6 +370,15 @@ export const contentService = {
     return await fetchClient<PortfolioImportPreview>('/projects/import-github/preview', {
       method: 'POST',
       body: JSON.stringify({ repoUrl })
+    });
+  },
+
+  generatePortfolioAiCover: async (
+    data: Partial<PortfolioProject>
+  ): Promise<PortfolioAiCoverResponse> => {
+    return await fetchClient<PortfolioAiCoverResponse>('/projects/import-github/generate-cover', {
+      method: 'POST',
+      body: JSON.stringify(data)
     });
   },
 
