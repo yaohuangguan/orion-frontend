@@ -3,7 +3,12 @@ import { createPortal } from 'react-dom';
 import { useSearchParams } from 'react-router-dom';
 import { withBuiltinProjects } from '../../constants/builtinProjects';
 import { apiService } from '../../services/api';
-import { PortfolioProject, PortfolioProjectCategory, User } from '../../types';
+import {
+  PortfolioImportPreview,
+  PortfolioProject,
+  PortfolioProjectCategory,
+  User
+} from '../../types';
 import { useTranslation } from '../../i18n/LanguageContext';
 import { toast } from '../Toast';
 import { DeleteModal } from '../DeleteModal';
@@ -51,6 +56,10 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
   const [techStackInput, setTechStackInput] = useState('');
 
   const [projectToDelete, setProjectToDelete] = useState<PortfolioProject | null>(null);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [importRepoUrl, setImportRepoUrl] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
+  const [generatedCoverSvg, setGeneratedCoverSvg] = useState('');
 
   // Upload State
   const [isUploading, setIsUploading] = useState(false);
@@ -126,6 +135,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
   };
 
   const handleCreate = () => {
+    setGeneratedCoverSvg('');
     setCurrentProject({
       title_zh: '',
       title_en: '',
@@ -147,9 +157,40 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
   };
 
   const handleEdit = (project: PortfolioProject) => {
+    setGeneratedCoverSvg('');
     setCurrentProject({ ...project, categories: inferCategories(project) });
     setTechStackInput(project.techStack ? project.techStack.join(', ') : '');
     setIsEditing(true);
+  };
+
+  const handleGithubImportPreview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const repoUrl = importRepoUrl.trim();
+    if (!repoUrl) return;
+
+    setIsImporting(true);
+    try {
+      const preview: PortfolioImportPreview = await apiService.previewGithubPortfolioImport(repoUrl);
+      setGeneratedCoverSvg(preview.coverSvg || '');
+      setCurrentProject({
+        ...preview.project,
+        categories:
+          Array.isArray(preview.project.categories) && preview.project.categories.length > 0
+            ? preview.project.categories
+            : preview.project.category
+              ? [preview.project.category]
+              : ['web']
+      });
+      setTechStackInput((preview.project.techStack || []).join(', '));
+      setIsImportOpen(false);
+      setIsEditing(true);
+      toast.success('GitHub project analysed. Review it before saving.');
+    } catch (error) {
+      console.error(error);
+      toast.error('GitHub import failed. Check repository access and try again.');
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   const toggleProjectCategory = (category: ConcreteProjectCategory) => {
@@ -189,7 +230,6 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Parse the tech stack string into array
     const selectedCategories: ConcreteProjectCategory[] =
       Array.isArray(currentProject.categories) && currentProject.categories.length > 0
         ? Array.from(new Set(currentProject.categories))
@@ -197,26 +237,50 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
           ? [currentProject.category]
           : ['web'];
 
-    const processedProject = {
+    const processedProject: Partial<PortfolioProject> = {
       ...currentProject,
       category: selectedCategories[0],
       categories: selectedCategories,
       techStack: techStackInput
         .split(/[,，]/)
         .map((s) => s.trim())
-        .filter((s) => s) // Split by comma (EN or CN)
+        .filter(Boolean)
     };
 
     try {
+      if (!processedProject.coverImage && generatedCoverSvg) {
+        setIsUploading(true);
+        const safeName =
+          (processedProject.title_en || 'portfolio-project')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '') || 'portfolio-project';
+
+        const generatedCover = new File(
+          [generatedCoverSvg],
+          `${safeName}-cover.svg`,
+          { type: 'image/svg+xml' }
+        );
+
+        processedProject.coverImage = await apiService.uploadImage(generatedCover, {
+          folder: 'portfolio'
+        });
+      }
+
       if (processedProject._id) {
         await apiService.updateProject(processedProject._id, processedProject);
       } else {
         await apiService.createProject(processedProject);
       }
+
+      setGeneratedCoverSvg('');
       setIsEditing(false);
       loadProjects();
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to save project');
+    } finally {
+      setIsUploading(false);
     }
   };
 
