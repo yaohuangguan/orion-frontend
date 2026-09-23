@@ -60,6 +60,8 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
   const [importRepoUrl, setImportRepoUrl] = useState('');
   const [isImporting, setIsImporting] = useState(false);
   const [generatedCoverSvg, setGeneratedCoverSvg] = useState('');
+  const [generatedAiCoverDataUrl, setGeneratedAiCoverDataUrl] = useState('');
+  const [isGeneratingAiCover, setIsGeneratingAiCover] = useState(false);
 
   // Upload State
   const [isUploading, setIsUploading] = useState(false);
@@ -136,6 +138,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
 
   const handleCreate = () => {
     setGeneratedCoverSvg('');
+    setGeneratedAiCoverDataUrl('');
     setCurrentProject({
       title_zh: '',
       title_en: '',
@@ -158,6 +161,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
 
   const handleEdit = (project: PortfolioProject) => {
     setGeneratedCoverSvg('');
+    setGeneratedAiCoverDataUrl('');
     setCurrentProject({ ...project, categories: inferCategories(project) });
     setTechStackInput(project.techStack ? project.techStack.join(', ') : '');
     setIsEditing(true);
@@ -172,6 +176,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
     try {
       const preview: PortfolioImportPreview = await apiService.previewGithubPortfolioImport(repoUrl);
       setGeneratedCoverSvg(preview.coverSvg || '');
+      setGeneratedAiCoverDataUrl('');
       setCurrentProject({
         ...preview.project,
         categories:
@@ -190,6 +195,41 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
       toast.error('GitHub import failed. Check repository access and try again.');
     } finally {
       setIsImporting(false);
+    }
+  };
+
+  const handleGenerateAiCover = async () => {
+    if (!currentProject.title_en && !currentProject.title_zh) {
+      toast.error('Add a project title before generating a cover.');
+      return;
+    }
+
+    setIsGeneratingAiCover(true);
+    try {
+      const selectedCategories =
+        Array.isArray(currentProject.categories) && currentProject.categories.length > 0
+          ? currentProject.categories
+          : currentProject.category
+            ? [currentProject.category]
+            : ['web'];
+
+      const result = await apiService.generatePortfolioAiCover({
+        ...currentProject,
+        techStack: techStackInput
+          .split(/[,，]/)
+          .map((item) => item.trim())
+          .filter(Boolean),
+        category: selectedCategories[0],
+        categories: selectedCategories
+      });
+
+      setGeneratedAiCoverDataUrl(result.dataUrl);
+      toast.success('Cloudflare FLUX cover generated.');
+    } catch (error) {
+      console.error(error);
+      toast.error('Cloudflare cover generation is unavailable or not configured.');
+    } finally {
+      setIsGeneratingAiCover(false);
     }
   };
 
@@ -248,7 +288,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
     };
 
     try {
-      if (!processedProject.coverImage && generatedCoverSvg) {
+      if (!processedProject.coverImage && (generatedAiCoverDataUrl || generatedCoverSvg)) {
         setIsUploading(true);
         const safeName =
           (processedProject.title_en || 'portfolio-project')
@@ -256,11 +296,18 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/^-|-$/g, '') || 'portfolio-project';
 
-        const generatedCover = new File(
-          [generatedCoverSvg],
-          `${safeName}-cover.svg`,
-          { type: 'image/svg+xml' }
-        );
+        let generatedCover: File;
+        if (generatedAiCoverDataUrl) {
+          const response = await fetch(generatedAiCoverDataUrl);
+          const blob = await response.blob();
+          generatedCover = new File([blob], `${safeName}-cover.jpg`, {
+            type: blob.type || 'image/jpeg'
+          });
+        } else {
+          generatedCover = new File([generatedCoverSvg], `${safeName}-cover.svg`, {
+            type: 'image/svg+xml'
+          });
+        }
 
         processedProject.coverImage = await apiService.uploadImage(generatedCover, {
           folder: 'portfolio'
@@ -274,6 +321,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
       }
 
       setGeneratedCoverSvg('');
+      setGeneratedAiCoverDataUrl('');
       setIsEditing(false);
       loadProjects();
     } catch (error) {
@@ -643,25 +691,81 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                       }
                     />
 
-                    {generatedCoverSvg && !currentProject.coverImage && (
-                      <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-950 dark:border-slate-700">
-                        <img
-                          src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(generatedCoverSvg)}`}
-                          alt="AI generated project cover preview"
-                          className="aspect-video w-full object-cover"
-                        />
-                        <div className="flex items-center justify-between gap-3 px-3 py-2 text-xs text-slate-300">
-                          <span>AI-generated cover · uploads to R2 only when you save</span>
-                          <button
-                            type="button"
-                            onClick={() => setGeneratedCoverSvg('')}
-                            className="font-bold text-slate-400 hover:text-white"
-                          >
-                            Remove
-                          </button>
+                    {(generatedAiCoverDataUrl || generatedCoverSvg) &&
+                      !currentProject.coverImage && (
+                        <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-950 dark:border-slate-700">
+                          <img
+                            src={
+                              generatedAiCoverDataUrl ||
+                              `data:image/svg+xml;charset=utf-8,${encodeURIComponent(generatedCoverSvg)}`
+                            }
+                            alt="Generated project cover preview"
+                            className="aspect-video w-full object-cover"
+                          />
+                          <div className="space-y-2 px-3 py-2 text-xs text-slate-300">
+                            <div className="flex items-center justify-between gap-3">
+                              <span>
+                                {generatedAiCoverDataUrl
+                                  ? 'Cloudflare FLUX cover · uploads to R2 only when you save'
+                                  : 'Free deterministic Orion cover · $0 and generated locally'}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setGeneratedAiCoverDataUrl('');
+                                  setGeneratedCoverSvg('');
+                                }}
+                                className="font-bold text-slate-400 hover:text-white"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {generatedAiCoverDataUrl && generatedCoverSvg && (
+                                <button
+                                  type="button"
+                                  onClick={() => setGeneratedAiCoverDataUrl('')}
+                                  className="rounded-lg border border-white/15 px-3 py-1.5 font-bold text-slate-200 hover:bg-white/10"
+                                >
+                                  Use free default
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                disabled={isGeneratingAiCover}
+                                onClick={handleGenerateAiCover}
+                                className="rounded-lg bg-white/10 px-3 py-1.5 font-bold text-white hover:bg-white/15 disabled:opacity-50"
+                              >
+                                {isGeneratingAiCover ? (
+                                  <>
+                                    <i className="fas fa-circle-notch fa-spin mr-1.5" />
+                                    Generating…
+                                  </>
+                                ) : (
+                                  <>
+                                    <i className="fas fa-wand-magic-sparkles mr-1.5" />
+                                    {generatedAiCoverDataUrl ? 'Regenerate with FLUX' : 'Generate with FLUX'}
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+
+                    {!currentProject.coverImage &&
+                      !generatedCoverSvg &&
+                      !generatedAiCoverDataUrl && (
+                        <button
+                          type="button"
+                          disabled={isGeneratingAiCover}
+                          onClick={handleGenerateAiCover}
+                          className="w-full rounded-xl border border-dashed border-slate-300 px-4 py-3 text-sm font-bold text-slate-500 hover:border-primary-400 hover:text-primary-600 disabled:opacity-50 dark:border-slate-700 dark:text-slate-400"
+                        >
+                          <i className="fas fa-wand-magic-sparkles mr-2" />
+                          Optional: Generate cover with Cloudflare FLUX
+                        </button>
+                      )}
 
                     <div className="flex gap-2 relative">
                       <input
@@ -739,6 +843,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                     type="button"
                     onClick={() => {
                       setGeneratedCoverSvg('');
+                      setGeneratedAiCoverDataUrl('');
                       setIsEditing(false);
                     }}
                     className="px-6 py-2.5 rounded-lg font-bold hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
