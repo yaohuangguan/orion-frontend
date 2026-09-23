@@ -73,7 +73,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [activeDetailProject, setActiveDetailProject] = useState<PortfolioProject | null>(null);
 
-  const isVip = currentUser?.vip && currentUser?.private_token === 'ilovechenfangting';
+  const canManageProjects = currentUser?.role === 'super_admin';
 
   // 1. Load Projects
   useEffect(() => {
@@ -472,7 +472,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
         title="Delete Project?"
       />
 
-      {isVip && (
+      {canManageProjects && (
         <div className="mb-8 flex flex-wrap justify-end gap-3">
           <button
             onClick={() => {
