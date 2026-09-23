@@ -202,6 +202,13 @@ export interface PortfolioImportPreview {
   };
 }
 
+export interface PortfolioAiCoverResponse {
+  dataUrl: string;
+  mimeType: 'image/jpeg' | string;
+  model: string;
+  provider: 'cloudflare' | string;
+}
+
 export interface ResumeItem {
   _id: string;
   title: string;
