@@ -1072,7 +1072,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                 key={project._id}
                 className="group relative flex min-h-[31rem] flex-col overflow-hidden rounded-[2.1rem] border border-slate-200/80 bg-white/88 shadow-[0_24px_70px_-50px_rgba(15,23,42,.45)] transition duration-500 hover:-translate-y-1.5 hover:border-primary-200 hover:shadow-[0_30px_90px_-48px_rgba(79,70,229,.38)] dark:border-slate-800 dark:bg-slate-950/82 dark:hover:border-primary-400/30 dark:hover:shadow-[0_30px_90px_-48px_rgba(0,0,0,.95)]"
               >
-                {isVip && !project._id.startsWith('builtin-') && (
+                {canManageProjects && !project._id.startsWith('builtin-') && (
                   <div className="absolute right-4 top-4 z-20 flex gap-2 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
                     <button
                       type="button"
