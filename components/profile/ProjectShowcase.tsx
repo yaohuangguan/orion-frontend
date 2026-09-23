@@ -59,6 +59,8 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [importRepoUrl, setImportRepoUrl] = useState('');
   const [isImporting, setIsImporting] = useState(false);
+  const [cloudflareAiToken, setCloudflareAiToken] = useState('');
+  const [showCloudflareToken, setShowCloudflareToken] = useState(false);
   const [generatedCoverSvg, setGeneratedCoverSvg] = useState('');
   const [generatedAiCoverDataUrl, setGeneratedAiCoverDataUrl] = useState('');
   const [isGeneratingAiCover, setIsGeneratingAiCover] = useState(false);
@@ -174,7 +176,10 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
 
     setIsImporting(true);
     try {
-      const preview: PortfolioImportPreview = await apiService.previewGithubPortfolioImport(repoUrl);
+      const preview: PortfolioImportPreview = await apiService.previewGithubPortfolioImport(
+        repoUrl,
+        cloudflareAiToken.trim() || undefined
+      );
       setGeneratedCoverSvg(preview.coverSvg || '');
       setGeneratedAiCoverDataUrl('');
       setCurrentProject({
@@ -221,7 +226,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
           .filter(Boolean),
         category: selectedCategories[0],
         categories: selectedCategories
-      });
+      }, cloudflareAiToken.trim() || undefined);
 
       setGeneratedAiCoverDataUrl(result.dataUrl);
       toast.success('Cloudflare FLUX cover generated.');
@@ -480,6 +485,36 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                   Public repositories work directly. Private repositories require
                   <code className="mx-1">GITHUB_PORTFOLIO_TOKEN</code>
                   on the backend with read-only Metadata/Contents access.
+                </div>
+
+                <div className="rounded-xl border border-slate-200 p-3 dark:border-slate-700">
+                  <button
+                    type="button"
+                    onClick={() => setShowCloudflareToken((value) => !value)}
+                    className="flex w-full items-center justify-between text-left text-sm font-bold"
+                  >
+                    <span>Use my Cloudflare API token for this session</span>
+                    <i className={`fas fa-chevron-${showCloudflareToken ? 'up' : 'down'} text-xs opacity-50`} />
+                  </button>
+                  {showCloudflareToken && (
+                    <div className="mt-3 space-y-2">
+                      <input
+                        type="password"
+                        autoComplete="off"
+                        spellCheck={false}
+                        placeholder="Cloudflare Workers AI API token"
+                        value={cloudflareAiToken}
+                        onChange={(e) => setCloudflareAiToken(e.target.value)}
+                        className={inputClass}
+                      />
+                      <p className="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+                        Optional BYOK. The token stays only in this open Profile session, is sent
+                        directly to the backend for the current AI request, and is not written to
+                        Orion storage or localStorage. Leave blank to use the server Cloudflare
+                        Workers AI token.
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <div className="flex justify-end gap-3">
                   <button
