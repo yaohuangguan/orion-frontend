@@ -366,18 +366,28 @@ export const contentService = {
     return await fetchClient<PortfolioProject[]>('/projects');
   },
 
-  previewGithubPortfolioImport: async (repoUrl: string): Promise<PortfolioImportPreview> => {
+  previewGithubPortfolioImport: async (
+    repoUrl: string,
+    cloudflareAiToken?: string
+  ): Promise<PortfolioImportPreview> => {
     return await fetchClient<PortfolioImportPreview>('/projects/import-github/preview', {
       method: 'POST',
+      headers: cloudflareAiToken
+        ? { 'x-cloudflare-ai-token': cloudflareAiToken }
+        : undefined,
       body: JSON.stringify({ repoUrl })
     });
   },
 
   generatePortfolioAiCover: async (
-    data: Partial<PortfolioProject>
+    data: Partial<PortfolioProject>,
+    cloudflareAiToken?: string
   ): Promise<PortfolioAiCoverResponse> => {
     return await fetchClient<PortfolioAiCoverResponse>('/projects/import-github/generate-cover', {
       method: 'POST',
+      headers: cloudflareAiToken
+        ? { 'x-cloudflare-ai-token': cloudflareAiToken }
+        : undefined,
       body: JSON.stringify(data)
     });
   },
