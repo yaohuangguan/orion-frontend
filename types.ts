@@ -191,6 +191,17 @@ export interface PortfolioProject {
   createdAt: string;
 }
 
+export interface PortfolioImportPreview {
+  project: Partial<PortfolioProject>;
+  coverSvg?: string;
+  source: {
+    owner: string;
+    repo: string;
+    private: boolean;
+    description?: string;
+  };
+}
+
 export interface ResumeItem {
   _id: string;
   title: string;
