@@ -7,6 +7,7 @@ import {
   User,
   Project,
   PortfolioProject,
+  PortfolioImportPreview,
   ResumeItem,
   ResumeData,
   Log,
@@ -362,6 +363,13 @@ export const contentService = {
 
   getPortfolioProjects: async (): Promise<PortfolioProject[]> => {
     return await fetchClient<PortfolioProject[]>('/projects');
+  },
+
+  previewGithubPortfolioImport: async (repoUrl: string): Promise<PortfolioImportPreview> => {
+    return await fetchClient<PortfolioImportPreview>('/projects/import-github/preview', {
+      method: 'POST',
+      body: JSON.stringify({ repoUrl })
+    });
   },
 
   createProject: async (data: Partial<PortfolioProject>): Promise<PortfolioProject> => {
