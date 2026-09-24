@@ -5,6 +5,7 @@ import { withBuiltinProjects } from '../../constants/builtinProjects';
 import { apiService } from '../../services/api';
 import {
   PortfolioImportPreview,
+  PortfolioImportProgress,
   PortfolioProject,
   PortfolioProjectCategory,
   User
@@ -59,6 +60,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [importRepoUrl, setImportRepoUrl] = useState('');
   const [isImporting, setIsImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState<PortfolioImportProgress | null>(null);
   const [cloudflareAiToken, setCloudflareAiToken] = useState('');
   const [cloudflareAccountId, setCloudflareAccountId] = useState('');
   const [showCloudflareToken, setShowCloudflareToken] = useState(false);
@@ -176,9 +178,15 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
     if (!repoUrl) return;
 
     setIsImporting(true);
+    setImportProgress({
+      stage: 'connect',
+      percent: 1,
+      message: 'Connecting to the import stream'
+    });
     try {
-      const preview: PortfolioImportPreview = await apiService.previewGithubPortfolioImport(
+      const preview: PortfolioImportPreview = await apiService.streamGithubPortfolioImport(
         repoUrl,
+        (progress: PortfolioImportProgress) => setImportProgress(progress),
         cloudflareAiToken.trim() || undefined,
         cloudflareAccountId.trim() || undefined
       );
@@ -530,6 +538,29 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                     </div>
                   )}
                 </div>
+                {isImporting && importProgress && (
+                  <div className="rounded-xl border border-primary-200 bg-primary-50/70 p-4 dark:border-primary-900/60 dark:bg-primary-950/20">
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <i className="fas fa-circle-notch fa-spin shrink-0 text-primary-500" />
+                        <span className="truncate text-sm font-bold">{importProgress.message}</span>
+                      </div>
+                      <span className="shrink-0 text-xs font-black tabular-nums text-primary-600 dark:text-primary-400">
+                        {Math.max(0, Math.min(100, importProgress.percent))}%
+                      </span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+                      <div
+                        className="h-full rounded-full bg-primary-500 transition-[width] duration-500"
+                        style={{ width: `${Math.max(2, Math.min(100, importProgress.percent))}%` }}
+                      />
+                    </div>
+                    <p className="mt-2 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                      {importProgress.stage}
+                    </p>
+                  </div>
+                )}
+
                 <div className="flex justify-end gap-3">
                   <button
                     type="button"
@@ -575,6 +606,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
           <button
             onClick={() => {
               setImportRepoUrl('');
+              setImportProgress(null);
               setIsImportOpen(true);
             }}
             className="px-5 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold uppercase text-sm hover:border-primary-300 hover:text-primary-600 transition-colors dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
