@@ -191,6 +191,12 @@ export interface PortfolioProject {
   createdAt: string;
 }
 
+export interface PortfolioImportProgress {
+  stage: string;
+  percent: number;
+  message: string;
+}
+
 export interface PortfolioImportPreview {
   project: Partial<PortfolioProject>;
   coverSvg?: string;
