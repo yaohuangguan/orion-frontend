@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
       proxy: {
         '/api': {
-          target: 'https://bananaboom-api-242273127238.asia-east1.run.app',
+          target: 'https://api.samyao.me',
           changeOrigin: true,
           secure: false
         }
