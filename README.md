@@ -69,15 +69,53 @@ The browser suite covers LaTeX paste, code preservation, image upload and failur
 
 ## Architecture
 
+Production separates the public frontend from the protected API origin. The browser never needs the
+Cloud Run hostname: all production API and realtime traffic uses `https://api.samyao.me`.
+
 ```mermaid
 flowchart LR
-  Browser[React 19 + Vite PWA] --> API[Orion API]
+  Browser[Browser / PWA] --> Vercel[Vercel\nsamyao.me]
   Browser --> Firebase[Firebase sign-in]
+  Browser --> Edge[Cloudflare API Gateway\napi.samyao.me]
+
+  Edge -->|rate limit · CORS · TLS · security headers| API[Google Cloud Run\nOrion API]
   API --> Mongo[(MongoDB)]
   API --> R2[(Cloudflare R2)]
   API --> Realtime[Socket.IO]
-  API --> AI[AI providers]
+  API --> AIGateway[Cloudflare AI Gateway Worker]
+  AIGateway --> WorkersAI[Cloudflare Workers AI]
 ```
+
+### Production API edge
+
+`api.samyao.me` is a Cloudflare Worker custom domain in front of Cloud Run.
+
+- Cloudflare terminates TLS, applies per-IP rate limits, handles CORS preflight and adds security headers before requests reach the application.
+- The Worker injects a private `x-orion-edge-secret`; Cloud Run rejects direct `/api/*` requests that do not carry the matching server-side secret. The public `run.app` hostname therefore cannot execute normal API business logic directly.
+- Cloud Run keeps `minScale=0` and `maxScale=2` as an additional cost/surge guardrail.
+- Mutable portfolio, journal and homepage API responses are deliberately returned with `Cache-Control: no-store`. New or edited projects/posts must be visible immediately after a successful write; edge caching is reserved for data with an explicit staleness contract.
+- Authenticated/BYOK secrets stay out of URLs and browser persistence. Optional Cloudflare AI credentials are session-only and are forwarded only for the current request.
+
+### GitHub → Apps import
+
+Portfolio import uses a streaming POST endpoint instead of waiting for one long JSON response.
+
+```text
+GitHub URL
+  → validate repository
+  → fetch metadata
+  → read README / package.json
+  → Cloudflare Workers AI analysis
+  → bilingual portfolio draft
+  → deterministic Orion cover
+  → review in Project editor
+  → Save Project
+```
+
+The backend emits Server-Sent Event formatted progress frames over the POST response, including
+heartbeats while Workers AI is running. The React client reads the response stream with `fetch()`
+and updates the progress UI in real time. Preview generation does not write MongoDB or upload R2
+assets; persistence still happens only when **Save Project** is pressed.
 
 ```text
 components/             shared UI, journal editor/reader, profile and private widgets
