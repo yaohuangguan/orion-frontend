@@ -368,26 +368,32 @@ export const contentService = {
 
   previewGithubPortfolioImport: async (
     repoUrl: string,
-    cloudflareAiToken?: string
+    cloudflareAiToken?: string,
+    cloudflareAccountId?: string
   ): Promise<PortfolioImportPreview> => {
+    const headers: Record<string, string> = {};
+    if (cloudflareAiToken) headers['x-cloudflare-ai-token'] = cloudflareAiToken;
+    if (cloudflareAccountId) headers['x-cloudflare-account-id'] = cloudflareAccountId;
+
     return await fetchClient<PortfolioImportPreview>('/projects/import-github/preview', {
       method: 'POST',
-      headers: cloudflareAiToken
-        ? { 'x-cloudflare-ai-token': cloudflareAiToken }
-        : undefined,
+      headers: Object.keys(headers).length ? headers : undefined,
       body: JSON.stringify({ repoUrl })
     });
   },
 
   generatePortfolioAiCover: async (
     data: Partial<PortfolioProject>,
-    cloudflareAiToken?: string
+    cloudflareAiToken?: string,
+    cloudflareAccountId?: string
   ): Promise<PortfolioAiCoverResponse> => {
+    const headers: Record<string, string> = {};
+    if (cloudflareAiToken) headers['x-cloudflare-ai-token'] = cloudflareAiToken;
+    if (cloudflareAccountId) headers['x-cloudflare-account-id'] = cloudflareAccountId;
+
     return await fetchClient<PortfolioAiCoverResponse>('/projects/import-github/generate-cover', {
       method: 'POST',
-      headers: cloudflareAiToken
-        ? { 'x-cloudflare-ai-token': cloudflareAiToken }
-        : undefined,
+      headers: Object.keys(headers).length ? headers : undefined,
       body: JSON.stringify(data)
     });
   },
