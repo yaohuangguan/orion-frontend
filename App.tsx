@@ -47,7 +47,7 @@ const LeisureSpace = createLazyComponent(() => import('./pages/private/LeisureSp
 const PhotoGallery = createLazyComponent(() => import('./pages/private/PhotoGallery'));
 const FitnessSpace = createLazyComponent(() => import('./pages/private/FitnessSpace'));
 
-const SOCKET_URL = 'https://api.samyao.me';
+const SOCKET_URL = 'https://bananaboom-api-242273127238.asia-east1.run.app';
 
 declare global {
   interface Window {
