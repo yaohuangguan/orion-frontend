@@ -15,7 +15,7 @@
     # 🔥🔥🔥 关键点：写入后端地址 🔥🔥🔥
     # Vite 在构建时就会把这个变量写死在 JS 代码里，所以必须在这里定义
     # 替换成你 Cloud Run 后端的真实 URL (不要带最后的斜杠)
-    ENV VITE_API_URL=https://bananaboom-api-242273127238.asia-east1.run.app
+    ENV VITE_API_URL=https://api.samyao.me/api
     
     # 4. 执行构建 (生成 dist 文件夹)
     RUN yarn run build
