@@ -60,6 +60,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
   const [importRepoUrl, setImportRepoUrl] = useState('');
   const [isImporting, setIsImporting] = useState(false);
   const [cloudflareAiToken, setCloudflareAiToken] = useState('');
+  const [cloudflareAccountId, setCloudflareAccountId] = useState('');
   const [showCloudflareToken, setShowCloudflareToken] = useState(false);
   const [generatedCoverSvg, setGeneratedCoverSvg] = useState('');
   const [generatedAiCoverDataUrl, setGeneratedAiCoverDataUrl] = useState('');
@@ -178,7 +179,8 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
     try {
       const preview: PortfolioImportPreview = await apiService.previewGithubPortfolioImport(
         repoUrl,
-        cloudflareAiToken.trim() || undefined
+        cloudflareAiToken.trim() || undefined,
+        cloudflareAccountId.trim() || undefined
       );
       setGeneratedCoverSvg(preview.coverSvg || '');
       setGeneratedAiCoverDataUrl('');
@@ -226,7 +228,10 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
           .filter(Boolean),
         category: selectedCategories[0],
         categories: selectedCategories
-      }, cloudflareAiToken.trim() || undefined);
+      },
+      cloudflareAiToken.trim() || undefined,
+      cloudflareAccountId.trim() || undefined
+      );
 
       setGeneratedAiCoverDataUrl(result.dataUrl);
       toast.success('Cloudflare FLUX cover generated.');
@@ -499,6 +504,15 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                   {showCloudflareToken && (
                     <div className="mt-3 space-y-2">
                       <input
+                        type="text"
+                        autoComplete="off"
+                        spellCheck={false}
+                        placeholder="Cloudflare Account ID (optional if using Orion account)"
+                        value={cloudflareAccountId}
+                        onChange={(e) => setCloudflareAccountId(e.target.value)}
+                        className={inputClass}
+                      />
+                      <input
                         type="password"
                         autoComplete="off"
                         spellCheck={false}
@@ -508,10 +522,10 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                         className={inputClass}
                       />
                       <p className="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
-                        Optional BYOK. The token stays only in this open Profile session, is sent
-                        directly to the backend for the current AI request, and is not written to
-                        Orion storage or localStorage. Leave blank to use the server Cloudflare
-                        Workers AI token.
+                        Optional BYOK. Account ID and token stay only in this open Profile session,
+                        are sent to the backend only for the current AI request, and are not written
+                        to Orion storage or localStorage. Leave both blank to use the server
+                        Cloudflare Workers AI configuration.
                       </p>
                     </div>
                   )}
