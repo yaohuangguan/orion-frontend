@@ -24,6 +24,99 @@ console.log(`🚀 Current API Target: ${API_BASE_URL}`);
 // 2. Fetch 封装
 // ==================================================================================
 
+export async function fetchEventStream<T>(
+  endpoint: string,
+  options: RequestInit = {},
+  onProgress?: (data: any) => void
+): Promise<T> {
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    Accept: 'text/event-stream',
+    ...options.headers
+  };
+
+  const token = localStorage.getItem('auth_token');
+  if (token) (headers as any)['x-auth-token'] = token;
+
+  const googleInfo = localStorage.getItem('googleInfo');
+  if (googleInfo) (headers as any)['x-google-auth'] = googleInfo;
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    let message = `API Error ${response.status}`;
+    try {
+      const json = JSON.parse(body);
+      message = json.msg || json.message || json.error || message;
+    } catch {
+      if (body) message = body;
+    }
+    throw new Error(message);
+  }
+
+  if (!response.body) {
+    throw new Error('Streaming response is not available in this browser.');
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let finalResult: T | undefined;
+
+  const handleBlock = (block: string) => {
+    if (!block.trim() || block.trimStart().startsWith(':')) return;
+
+    let event = 'message';
+    const dataLines: string[] = [];
+
+    for (const line of block.split(/\r?\n/)) {
+      if (line.startsWith('event:')) event = line.slice(6).trim();
+      if (line.startsWith('data:')) dataLines.push(line.slice(5).trimStart());
+    }
+
+    if (dataLines.length === 0) return;
+
+    const raw = dataLines.join('\n');
+    let payload: any = raw;
+    try {
+      payload = JSON.parse(raw);
+    } catch {
+      // Keep raw text for non-JSON events.
+    }
+
+    if (event === 'progress') onProgress?.(payload);
+    if (event === 'result') finalResult = payload as T;
+    if (event === 'error') {
+      throw new Error(payload?.message || 'Streaming request failed.');
+    }
+  };
+
+  while (true) {
+    const { value, done } = await reader.read();
+    buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+
+    const blocks = buffer.split(/\r?\n\r?\n/);
+    buffer = blocks.pop() || '';
+
+    for (const block of blocks) handleBlock(block);
+
+    if (done) break;
+  }
+
+  if (buffer.trim()) handleBlock(buffer);
+
+  if (finalResult === undefined) {
+    throw new Error('Streaming request ended before a result was returned.');
+  }
+
+  return finalResult;
+}
+
+
 /**
  * 通用的 Fetch 客户端封装
  * 包含：超时控制、自动 Token 注入、统一错误处理、401 自动登出
