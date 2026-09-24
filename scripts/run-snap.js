@@ -17,7 +17,7 @@ const STATIC_ROUTES = ['/', '/blogs', '/profile', '/footprints', '/404'];
 
 // 2. API 地址
 const API_BASE_URL =
-  process.env.VITE_API_URL || 'https://api.samyao.me/api';
+  process.env.VITE_API_URL || 'https://bananaboom-api-242273127238.asia-east1.run.app/api';
 
 const isVercel = process.env.VERCEL === '1';
 
