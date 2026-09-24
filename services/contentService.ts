@@ -1,4 +1,4 @@
-import { fetchClient } from './core';
+import { fetchClient, fetchEventStream } from './core';
 import { toast } from '../components/Toast';
 import { uploadImage } from './media';
 import {
@@ -8,6 +8,7 @@ import {
   Project,
   PortfolioProject,
   PortfolioImportPreview,
+  PortfolioImportProgress,
   PortfolioAiCoverResponse,
   ResumeItem,
   ResumeData,
@@ -364,6 +365,27 @@ export const contentService = {
 
   getPortfolioProjects: async (): Promise<PortfolioProject[]> => {
     return await fetchClient<PortfolioProject[]>('/projects');
+  },
+
+  streamGithubPortfolioImport: async (
+    repoUrl: string,
+    onProgress: (progress: PortfolioImportProgress) => void,
+    cloudflareAiToken?: string,
+    cloudflareAccountId?: string
+  ): Promise<PortfolioImportPreview> => {
+    const headers: Record<string, string> = {};
+    if (cloudflareAiToken) headers['x-cloudflare-ai-token'] = cloudflareAiToken;
+    if (cloudflareAccountId) headers['x-cloudflare-account-id'] = cloudflareAccountId;
+
+    return await fetchEventStream<PortfolioImportPreview>(
+      '/projects/import-github/stream',
+      {
+        method: 'POST',
+        headers: Object.keys(headers).length ? headers : undefined,
+        body: JSON.stringify({ repoUrl })
+      },
+      onProgress
+    );
   },
 
   previewGithubPortfolioImport: async (
