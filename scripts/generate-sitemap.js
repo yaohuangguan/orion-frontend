@@ -3,7 +3,7 @@ import { existsSync, writeFileSync } from 'fs';
 import process from 'process';
 
 const API_URL =
-  'https://api.samyao.me/api/posts?page=1&limit=1000';
+  'https://bananaboom-api-242273127238.asia-east1.run.app/api/posts?page=1&limit=1000';
 const normalizeSiteUrl = (value) => {
   if (!value) return null;
   const withProtocol = /^https?:\/\//i.test(value) ? value : `https://${value}`;
