@@ -66,12 +66,17 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
   const [showCloudflareToken, setShowCloudflareToken] = useState(false);
   const [generatedCoverSvg, setGeneratedCoverSvg] = useState('');
   const [generatedAiCoverDataUrl, setGeneratedAiCoverDataUrl] = useState('');
+  const [generatedIconDataUrl, setGeneratedIconDataUrl] = useState('');
+  const [importedIconPath, setImportedIconPath] = useState('');
   const [isGeneratingAiCover, setIsGeneratingAiCover] = useState(false);
 
   // Upload State
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingIcon, setIsUploadingIcon] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const iconFileInputRef = useRef<HTMLInputElement>(null);
   const [isR2ModalOpen, setIsR2ModalOpen] = useState(false);
+  const [r2MediaTarget, setR2MediaTarget] = useState<'cover' | 'icon'>('cover');
 
   // Demo Modal State
   const [demoProject, setDemoProject] = useState<PortfolioProject | null>(null);
@@ -144,6 +149,8 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
   const handleCreate = () => {
     setGeneratedCoverSvg('');
     setGeneratedAiCoverDataUrl('');
+    setGeneratedIconDataUrl('');
+    setImportedIconPath('');
     setCurrentProject({
       title_zh: '',
       title_en: '',
@@ -155,6 +162,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
       repoUrl: '',
       demoUrl: '',
       coverImage: '',
+      iconImage: '',
       category: 'web',
       categories: ['web'],
       order: 0,
@@ -167,6 +175,8 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
   const handleEdit = (project: PortfolioProject) => {
     setGeneratedCoverSvg('');
     setGeneratedAiCoverDataUrl('');
+    setGeneratedIconDataUrl('');
+    setImportedIconPath('');
     setCurrentProject({ ...project, categories: inferCategories(project) });
     setTechStackInput(project.techStack ? project.techStack.join(', ') : '');
     setIsEditing(true);
@@ -192,6 +202,8 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
       );
       setGeneratedCoverSvg(preview.coverSvg || '');
       setGeneratedAiCoverDataUrl('');
+      setGeneratedIconDataUrl(preview.iconDataUrl || '');
+      setImportedIconPath(preview.source.iconPath || '');
       setCurrentProject({
         ...preview.project,
         categories:
@@ -306,6 +318,36 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
     };
 
     try {
+      if (!processedProject.iconImage && generatedIconDataUrl) {
+        setIsUploadingIcon(true);
+        const iconResponse = await fetch(generatedIconDataUrl);
+        const iconBlob = await iconResponse.blob();
+        const iconExt =
+          iconBlob.type === 'image/svg+xml'
+            ? 'svg'
+            : iconBlob.type === 'image/webp'
+              ? 'webp'
+              : iconBlob.type === 'image/x-icon' || iconBlob.type === 'image/vnd.microsoft.icon'
+                ? 'ico'
+                : iconBlob.type === 'image/jpeg'
+                  ? 'jpg'
+                  : 'png';
+
+        const safeName =
+          (processedProject.title_en || 'portfolio-project')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '') || 'portfolio-project';
+
+        const importedIcon = new File([iconBlob], `${safeName}-icon.${iconExt}`, {
+          type: iconBlob.type || 'image/png'
+        });
+
+        processedProject.iconImage = await apiService.uploadImage(importedIcon, {
+          folder: 'portfolio/icons'
+        });
+      }
+
       if (!processedProject.coverImage && (generatedAiCoverDataUrl || generatedCoverSvg)) {
         setIsUploading(true);
         const safeName =
@@ -340,6 +382,8 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
 
       setGeneratedCoverSvg('');
       setGeneratedAiCoverDataUrl('');
+      setGeneratedIconDataUrl('');
+      setImportedIconPath('');
       setIsEditing(false);
       loadProjects();
     } catch (error) {
@@ -347,6 +391,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
       toast.error('Failed to save project');
     } finally {
       setIsUploading(false);
+      setIsUploadingIcon(false);
     }
   };
 
@@ -369,6 +414,28 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) processUpload(file);
+  };
+
+  const processIconUpload = async (file: File) => {
+    setIsUploadingIcon(true);
+    try {
+      const url = await apiService.uploadImage(file, { folder: 'portfolio/icons' });
+      setCurrentProject((prev) => ({ ...prev, iconImage: url }));
+      setGeneratedIconDataUrl('');
+      setImportedIconPath('');
+      toast.success('Project icon uploaded successfully');
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to upload project icon');
+    } finally {
+      setIsUploadingIcon(false);
+      if (iconFileInputRef.current) iconFileInputRef.current.value = '';
+    }
+  };
+
+  const handleIconImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processIconUpload(file);
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
@@ -462,7 +529,15 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
         isOpen={isR2ModalOpen}
         onClose={() => setIsR2ModalOpen(false)}
         onSelect={(url) => {
-          setCurrentProject((prev) => ({ ...prev, coverImage: url }));
+          setCurrentProject((prev) =>
+            r2MediaTarget === 'icon'
+              ? { ...prev, iconImage: url }
+              : { ...prev, coverImage: url }
+          );
+          if (r2MediaTarget === 'icon') {
+            setGeneratedIconDataUrl('');
+            setImportedIconPath('');
+          }
           setIsR2ModalOpen(false);
         }}
       />
@@ -773,6 +848,104 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                       }
                     />
 
+                    <div className="space-y-2 rounded-xl border border-slate-200 p-3 dark:border-slate-700">
+                      <div className="flex items-center justify-between gap-3">
+                        <label className="block text-xs font-bold uppercase opacity-60">
+                          Project Icon / Favicon
+                        </label>
+                        {(currentProject.iconImage || generatedIconDataUrl) && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCurrentProject((project) => ({ ...project, iconImage: '' }));
+                              setGeneratedIconDataUrl('');
+                              setImportedIconPath('');
+                            }}
+                            className="text-xs font-bold text-slate-400 hover:text-red-500"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+                          {currentProject.iconImage || generatedIconDataUrl ? (
+                            <img
+                              src={currentProject.iconImage || generatedIconDataUrl}
+                              alt="Project icon preview"
+                              className="h-full w-full object-contain p-1.5"
+                            />
+                          ) : (
+                            <span className="text-xl font-black text-primary-500">
+                              {(currentProject.title_en || currentProject.title_zh || 'P')
+                                .charAt(0)
+                                .toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <input
+                            className={inputClass}
+                            placeholder="Icon URL"
+                            value={currentProject.iconImage || ''}
+                            onChange={(e) => {
+                              setCurrentProject((project) => ({
+                                ...project,
+                                iconImage: e.target.value
+                              }));
+                              if (e.target.value) {
+                                setGeneratedIconDataUrl('');
+                                setImportedIconPath('');
+                              }
+                            }}
+                          />
+                          {generatedIconDataUrl && importedIconPath && (
+                            <p className="mt-1 truncate text-[11px] text-emerald-600 dark:text-emerald-400">
+                              <i className="fab fa-github mr-1.5" />
+                              Detected from {importedIconPath} · uploads to R2 on Save
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        {currentUser?.role === 'super_admin' && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setR2MediaTarget('icon');
+                              setIsR2ModalOpen(true);
+                            }}
+                            className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:border-primary-300 hover:text-primary-600 dark:border-slate-700 dark:text-slate-300"
+                          >
+                            <i className="fas fa-database mr-2" />
+                            R2 Library
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => iconFileInputRef.current?.click()}
+                          disabled={isUploadingIcon}
+                          className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:border-primary-300 hover:text-primary-600 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300"
+                        >
+                          {isUploadingIcon ? (
+                            <i className="fas fa-circle-notch fa-spin mr-2" />
+                          ) : (
+                            <i className="fas fa-upload mr-2" />
+                          )}
+                          Upload icon
+                        </button>
+                        <input
+                          type="file"
+                          ref={iconFileInputRef}
+                          className="hidden"
+                          accept="image/*,.ico"
+                          onChange={handleIconImageUpload}
+                        />
+                      </div>
+                    </div>
+
                     {(generatedAiCoverDataUrl || generatedCoverSvg) &&
                       !currentProject.coverImage && (
                         <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-950 dark:border-slate-700">
@@ -863,7 +1036,10 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                       {currentUser?.role === 'super_admin' && (
                         <button
                           type="button"
-                          onClick={() => setIsR2ModalOpen(true)}
+                          onClick={() => {
+                            setR2MediaTarget('cover');
+                            setIsR2ModalOpen(true);
+                          }}
                           className="px-4 bg-primary-100 dark:bg-primary-900/30 hover:bg-primary-200 dark:hover:bg-primary-900/50 rounded-lg text-primary-600 dark:text-primary-400 transition-colors flex items-center justify-center min-w-[3rem]"
                           title="R2 Library"
                         >
@@ -926,6 +1102,8 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                     onClick={() => {
                       setGeneratedCoverSvg('');
                       setGeneratedAiCoverDataUrl('');
+                      setGeneratedIconDataUrl('');
+                      setImportedIconPath('');
                       setIsEditing(false);
                     }}
                     className="px-6 py-2.5 rounded-lg font-bold hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
@@ -1182,8 +1360,24 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                 <div className="flex flex-1 flex-col p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex min-w-0 items-center gap-3.5">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary-100 text-lg font-black text-primary-700 ring-1 ring-primary-200/70 dark:bg-primary-400/10 dark:text-primary-400 dark:ring-primary-400/15">
-                        {title.charAt(0).toUpperCase()}
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary-100 text-lg font-black text-primary-700 ring-1 ring-primary-200/70 dark:bg-primary-400/10 dark:text-primary-400 dark:ring-primary-400/15">
+                        {project.iconImage ? (
+                          <img
+                            src={project.iconImage}
+                            alt={`${title} icon`}
+                            className="h-full w-full object-contain bg-white p-1.5 dark:bg-slate-900"
+                            onError={(event) => {
+                              event.currentTarget.style.display = 'none';
+                              const fallback = event.currentTarget.nextElementSibling as HTMLElement | null;
+                              if (fallback) fallback.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
+                        <span
+                          className={project.iconImage ? 'hidden h-full w-full items-center justify-center' : 'flex h-full w-full items-center justify-center'}
+                        >
+                          {title.charAt(0).toUpperCase()}
+                        </span>
                       </div>
                       <div className="min-w-0">
                         <h2 className="truncate font-display text-lg font-black tracking-tight text-slate-950 transition-colors group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400">
