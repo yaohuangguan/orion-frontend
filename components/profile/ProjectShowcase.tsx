@@ -61,6 +61,9 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
   const [importRepoUrl, setImportRepoUrl] = useState('');
   const [isImporting, setIsImporting] = useState(false);
   const [importProgress, setImportProgress] = useState<PortfolioImportProgress | null>(null);
+  const [isProjectAiBusy, setIsProjectAiBusy] = useState(false);
+  const [projectAiMode, setProjectAiMode] = useState<'sync' | 'rewrite' | null>(null);
+  const [projectAiProgress, setProjectAiProgress] = useState<PortfolioImportProgress | null>(null);
   const [cloudflareAiToken, setCloudflareAiToken] = useState('');
   const [cloudflareAccountId, setCloudflareAccountId] = useState('');
   const [showCloudflareToken, setShowCloudflareToken] = useState(false);
@@ -225,6 +228,134 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
     }
   };
 
+  const prepareProjectEditor = (project: Partial<PortfolioProject>) => {
+    setGeneratedCoverSvg('');
+    setGeneratedAiCoverDataUrl('');
+    setGeneratedIconDataUrl('');
+    setImportedIconPath('');
+    setCurrentProject({
+      ...project,
+      categories:
+        Array.isArray(project.categories) && project.categories.length > 0
+          ? project.categories
+          : project.category
+            ? [project.category]
+            : ['web']
+    });
+    setTechStackInput((project.techStack || []).join(', '));
+    setIsEditing(true);
+  };
+
+  const handleSyncProjectFromGithub = async (project: Partial<PortfolioProject>) => {
+    const repoUrl = project.repoUrl?.trim();
+    if (!repoUrl) {
+      toast.error('Add a GitHub repository URL before syncing.');
+      return;
+    }
+
+    prepareProjectEditor(project);
+    setIsProjectAiBusy(true);
+    setProjectAiMode('sync');
+    setProjectAiProgress({
+      stage: 'connect',
+      percent: 1,
+      message: 'Connecting to GitHub sync'
+    });
+
+    try {
+      const preview = await apiService.streamGithubPortfolioImport(
+        repoUrl,
+        (progress: PortfolioImportProgress) => setProjectAiProgress(progress),
+        cloudflareAiToken.trim() || undefined,
+        cloudflareAccountId.trim() || undefined
+      );
+
+      const synced = preview.project;
+      setCurrentProject((existing) => ({
+        ...existing,
+        title_zh: synced.title_zh || existing.title_zh,
+        title_en: synced.title_en || existing.title_en,
+        summary_zh: synced.summary_zh || '',
+        summary_en: synced.summary_en || '',
+        description_zh: synced.description_zh || '',
+        description_en: synced.description_en || '',
+        techStack: synced.techStack || [],
+        category: synced.category || existing.category || 'web',
+        categories:
+          Array.isArray(synced.categories) && synced.categories.length > 0
+            ? synced.categories
+            : existing.categories,
+        repoUrl: repoUrl
+      }));
+      setTechStackInput((synced.techStack || []).join(', '));
+
+      if (!project.iconImage && preview.iconDataUrl) {
+        setGeneratedIconDataUrl(preview.iconDataUrl);
+        setImportedIconPath(preview.source.iconPath || '');
+      }
+
+      toast.success('GitHub details synced. Review changes before saving.');
+    } catch (error) {
+      console.error(error);
+      toast.error('GitHub sync failed.');
+    } finally {
+      setIsProjectAiBusy(false);
+      setProjectAiMode(null);
+    }
+  };
+
+  const handleAiRewriteProject = async (project: Partial<PortfolioProject>) => {
+    prepareProjectEditor(project);
+    setIsProjectAiBusy(true);
+    setProjectAiMode('rewrite');
+    setProjectAiProgress({
+      stage: 'connect',
+      percent: 1,
+      message: 'Connecting to AI rewrite'
+    });
+
+    const categories =
+      Array.isArray(project.categories) && project.categories.length > 0
+        ? project.categories
+        : project.category
+          ? [project.category]
+          : ['web'];
+
+    try {
+      const rewritten = await apiService.streamPortfolioAiRewrite(
+        {
+          ...project,
+          techStack: Array.isArray(project.techStack) ? project.techStack : [],
+          category: categories[0],
+          categories
+        },
+        (progress: PortfolioImportProgress) => setProjectAiProgress(progress),
+        cloudflareAiToken.trim() || undefined,
+        cloudflareAccountId.trim() || undefined
+      );
+
+      setCurrentProject((existing) => ({
+        ...existing,
+        ...rewritten,
+        repoUrl: existing.repoUrl,
+        demoUrl: existing.demoUrl,
+        coverImage: existing.coverImage,
+        iconImage: existing.iconImage,
+        order: existing.order,
+        isVisible: existing.isVisible
+      }));
+      setTechStackInput((rewritten.techStack || []).join(', '));
+
+      toast.success('AI rewrite is ready. Review changes before saving.');
+    } catch (error) {
+      console.error(error);
+      toast.error('AI rewrite failed.');
+    } finally {
+      setIsProjectAiBusy(false);
+      setProjectAiMode(null);
+    }
+  };
+
   const handleGenerateAiCover = async () => {
     if (!currentProject.title_en && !currentProject.title_zh) {
       toast.error('Add a project title before generating a cover.');
@@ -240,17 +371,18 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
             ? [currentProject.category]
             : ['web'];
 
-      const result = await apiService.generatePortfolioAiCover({
-        ...currentProject,
-        techStack: techStackInput
-          .split(/[,，]/)
-          .map((item) => item.trim())
-          .filter(Boolean),
-        category: selectedCategories[0],
-        categories: selectedCategories
-      },
-      cloudflareAiToken.trim() || undefined,
-      cloudflareAccountId.trim() || undefined
+      const result = await apiService.generatePortfolioAiCover(
+        {
+          ...currentProject,
+          techStack: techStackInput
+            .split(/[,，]/)
+            .map((item) => item.trim())
+            .filter(Boolean),
+          category: selectedCategories[0],
+          categories: selectedCategories
+        },
+        cloudflareAiToken.trim() || undefined,
+        cloudflareAccountId.trim() || undefined
       );
 
       setGeneratedAiCoverDataUrl(result.dataUrl);
@@ -530,9 +662,7 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
         onClose={() => setIsR2ModalOpen(false)}
         onSelect={(url) => {
           setCurrentProject((prev) =>
-            r2MediaTarget === 'icon'
-              ? { ...prev, iconImage: url }
-              : { ...prev, coverImage: url }
+            r2MediaTarget === 'icon' ? { ...prev, iconImage: url } : { ...prev, coverImage: url }
           );
           if (r2MediaTarget === 'icon') {
             setGeneratedIconDataUrl('');
@@ -582,7 +712,9 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                     className="flex w-full items-center justify-between text-left text-sm font-bold"
                   >
                     <span>Use my Cloudflare API token for this session</span>
-                    <i className={`fas fa-chevron-${showCloudflareToken ? 'up' : 'down'} text-xs opacity-50`} />
+                    <i
+                      className={`fas fa-chevron-${showCloudflareToken ? 'up' : 'down'} text-xs opacity-50`}
+                    />
                   </button>
                   {showCloudflareToken && (
                     <div className="mt-3 space-y-2">
@@ -703,11 +835,65 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
         createPortal(
           <div className={modalBaseClass}>
             <div className={editorClass}>
-              <h2 className="text-2xl font-bold mb-6 font-display">
-                {currentProject._id ? 'Edit Project' : 'New Project'}
-              </h2>
+              <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-2xl font-bold font-display">
+                  {currentProject._id ? 'Edit Project' : 'New Project'}
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {currentProject.repoUrl && (
+                    <button
+                      type="button"
+                      disabled={isProjectAiBusy}
+                      onClick={() => handleSyncProjectFromGithub(currentProject)}
+                      className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:border-primary-300 hover:text-primary-600 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300"
+                    >
+                      <i className="fab fa-github mr-2" />
+                      Sync from GitHub
+                    </button>
+                  )}
+                  {(currentProject.title_en || currentProject.title_zh) && (
+                    <button
+                      type="button"
+                      disabled={isProjectAiBusy}
+                      onClick={() => handleAiRewriteProject(currentProject)}
+                      className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:border-primary-300 hover:text-primary-600 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300"
+                    >
+                      <i className="fas fa-wand-magic-sparkles mr-2" />
+                      AI Rewrite
+                    </button>
+                  )}
+                </div>
+              </div>
 
               <form onSubmit={handleSave} className="space-y-6">
+                {isProjectAiBusy && projectAiProgress && (
+                  <div className="rounded-xl border border-primary-200 bg-primary-50/70 p-4 dark:border-primary-900/60 dark:bg-primary-950/20">
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <i className="fas fa-circle-notch fa-spin shrink-0 text-primary-500" />
+                        <span className="truncate text-sm font-bold">
+                          {projectAiProgress.message}
+                        </span>
+                      </div>
+                      <span className="shrink-0 text-xs font-black tabular-nums text-primary-600 dark:text-primary-400">
+                        {Math.max(0, Math.min(100, projectAiProgress.percent))}%
+                      </span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+                      <div
+                        className="h-full rounded-full bg-primary-500 transition-[width] duration-500"
+                        style={{
+                          width: `${Math.max(2, Math.min(100, projectAiProgress.percent))}%`
+                        }}
+                      />
+                    </div>
+                    <p className="mt-2 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                      {projectAiMode === 'sync' ? 'GitHub sync' : 'AI rewrite'} ·{' '}
+                      {projectAiProgress.stage}
+                    </p>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <h3 className="font-bold text-xs uppercase tracking-wider opacity-60 border-b border-current pb-2">
@@ -788,11 +974,15 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                     </label>
                     <div className="grid grid-cols-2 gap-2">
                       {CATEGORY_META.filter(
-                        (item): item is (typeof CATEGORY_META)[number] & { value: ConcreteProjectCategory } =>
-                          item.value !== 'all'
+                        (
+                          item
+                        ): item is (typeof CATEGORY_META)[number] & {
+                          value: ConcreteProjectCategory;
+                        } => item.value !== 'all'
                       ).map((item) => {
                         const selectedCategories =
-                          Array.isArray(currentProject.categories) && currentProject.categories.length > 0
+                          Array.isArray(currentProject.categories) &&
+                          currentProject.categories.length > 0
                             ? currentProject.categories
                             : currentProject.category
                               ? [currentProject.category]
@@ -999,7 +1189,9 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                                 ) : (
                                   <>
                                     <i className="fas fa-wand-magic-sparkles mr-1.5" />
-                                    {generatedAiCoverDataUrl ? 'Regenerate with FLUX' : 'Generate with FLUX'}
+                                    {generatedAiCoverDataUrl
+                                      ? 'Regenerate with FLUX'
+                                      : 'Generate with FLUX'}
                                   </>
                                 )}
                               </button>
@@ -1298,6 +1490,28 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
               >
                 {canManageProjects && !project._id.startsWith('builtin-') && (
                   <div className="absolute right-4 top-4 z-20 flex gap-2 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+                    {project.repoUrl && (
+                      <button
+                        type="button"
+                        onClick={() => handleSyncProjectFromGithub(project)}
+                        disabled={isProjectAiBusy}
+                        className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 bg-slate-950/65 text-white shadow-lg backdrop-blur-md transition hover:bg-emerald-500 disabled:opacity-50"
+                        aria-label={`Sync ${title} from GitHub`}
+                        title="Sync from GitHub"
+                      >
+                        <i className="fas fa-rotate text-xs" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleAiRewriteProject(project)}
+                      disabled={isProjectAiBusy}
+                      className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 bg-slate-950/65 text-white shadow-lg backdrop-blur-md transition hover:bg-violet-500 disabled:opacity-50"
+                      aria-label={`Rewrite ${title} with AI`}
+                      title="AI Rewrite"
+                    >
+                      <i className="fas fa-wand-magic-sparkles text-xs" />
+                    </button>
                     <button
                       type="button"
                       onClick={() => handleEdit(project)}
@@ -1368,13 +1582,18 @@ export const ProjectShowcase: React.FC<ProjectShowcaseProps> = ({ currentUser })
                             className="h-full w-full object-contain bg-white p-1.5 dark:bg-slate-900"
                             onError={(event) => {
                               event.currentTarget.style.display = 'none';
-                              const fallback = event.currentTarget.nextElementSibling as HTMLElement | null;
+                              const fallback = event.currentTarget
+                                .nextElementSibling as HTMLElement | null;
                               if (fallback) fallback.style.display = 'flex';
                             }}
                           />
                         ) : null}
                         <span
-                          className={project.iconImage ? 'hidden h-full w-full items-center justify-center' : 'flex h-full w-full items-center justify-center'}
+                          className={
+                            project.iconImage
+                              ? 'hidden h-full w-full items-center justify-center'
+                              : 'flex h-full w-full items-center justify-center'
+                          }
                         >
                           {title.charAt(0).toUpperCase()}
                         </span>

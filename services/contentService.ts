@@ -388,6 +388,27 @@ export const contentService = {
     );
   },
 
+  streamPortfolioAiRewrite: async (
+    project: Partial<PortfolioProject>,
+    onProgress: (progress: PortfolioImportProgress) => void,
+    cloudflareAiToken?: string,
+    cloudflareAccountId?: string
+  ): Promise<Partial<PortfolioProject>> => {
+    const headers: Record<string, string> = {};
+    if (cloudflareAiToken) headers['x-cloudflare-ai-token'] = cloudflareAiToken;
+    if (cloudflareAccountId) headers['x-cloudflare-account-id'] = cloudflareAccountId;
+
+    return await fetchEventStream<Partial<PortfolioProject>>(
+      '/projects/ai-rewrite/stream',
+      {
+        method: 'POST',
+        headers: Object.keys(headers).length ? headers : undefined,
+        body: JSON.stringify(project)
+      },
+      onProgress
+    );
+  },
+
   previewGithubPortfolioImport: async (
     repoUrl: string,
     cloudflareAiToken?: string,
