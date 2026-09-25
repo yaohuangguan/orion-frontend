@@ -184,6 +184,7 @@ export interface PortfolioProject {
   repoUrl?: string;
   demoUrl?: string;
   coverImage?: string;
+  iconImage?: string;
   category?: PortfolioProjectCategory; // Legacy primary category
   categories?: PortfolioProjectCategory[];
   order: number;
@@ -200,11 +201,13 @@ export interface PortfolioImportProgress {
 export interface PortfolioImportPreview {
   project: Partial<PortfolioProject>;
   coverSvg?: string;
+  iconDataUrl?: string;
   source: {
     owner: string;
     repo: string;
     private: boolean;
     description?: string;
+    iconPath?: string;
   };
 }
 
